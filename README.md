@@ -1,4 +1,6 @@
-## My Project
+![OpenSearch logo](./OpenSearch.svg)
+
+## OpenSearch Project Health
 
 TODO: Fill this README out!
 

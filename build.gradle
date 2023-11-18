@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    // id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'org.opensearch'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+// shadowJar {
+//    archiveClassifier = 'opensearch'
+// }
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation 'com.google.dagger:dagger:2.48'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.48'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
+    // implementation 'com.amazonaws:aws-java-sdk-sns:1.12.418'
+    // implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+task buildZip(type: Zip) {
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtimeClasspath
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
