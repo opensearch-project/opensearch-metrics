@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    // id 'com.github.johnrengelman.shadow' version '7.1.2'
+    //id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group 'org.opensearch'
@@ -10,17 +10,25 @@ repositories {
     mavenCentral()
 }
 
-// shadowJar {
+//shadowJar {
 //    archiveClassifier = 'opensearch'
-// }
+//}
 
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    implementation 'com.google.guava:guava:31.1-jre'
 
     implementation 'com.google.dagger:dagger:2.48'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.48'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    //implementation 'org.opensearch.client:opensearch-java:2.8.1'
+    implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.11.0'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+    //implementation 'com.amazonaws:aws-java-sdk-sts:1.12.599'
+    implementation 'software.amazon.awssdk:sts:2.21.33'
+    // implementation 'com.amazonaws:aws-java-sdk-core:1.12.599'
+    implementation 'io.github.acm19:aws-request-signing-apache-interceptor:2.3.1'
 
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
     // implementation 'com.amazonaws:aws-java-sdk-sns:1.12.418'
@@ -37,7 +45,16 @@ task buildZip(type: Zip) {
         from configurations.runtimeClasspath
     }
 }
+build.dependsOn buildZip
 
 test {
     useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'build/generated/source/apt'
+        }
+    }
 }
