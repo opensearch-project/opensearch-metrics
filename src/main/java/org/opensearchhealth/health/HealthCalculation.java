@@ -76,9 +76,6 @@ public class HealthCalculation {
                 theme.setFactors(factors);
                 themes.add(theme);
             }
-            if (actionItems.isEmpty()) {
-                actionItems.add("No Immediate Action Items");
-            }
             row.setActionItems(actionItems);
             row.setThemes(themes);
             healthData.put(row.getId(), getJson(row));

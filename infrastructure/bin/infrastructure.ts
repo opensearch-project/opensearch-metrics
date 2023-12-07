@@ -6,14 +6,14 @@ import { InfrastructureStack } from '../lib/infrastructure-stack';
 const app = new cdk.App();
 new InfrastructureStack(app, 'InfrastructureStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
+   * account.ts/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
+  /* Uncomment the next line to specialize this stack for the AWS account.ts
    * and Region that are implied by the current CLI configuration. */
   // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 
-  /* Uncomment the next line if you know exactly what Account and Region you
+  /* Uncomment the next line if you know exactly what account.ts and Region you
    * want to deploy the stack to. */
   // env: { account: '123456789012', region: 'us-east-1' },
 

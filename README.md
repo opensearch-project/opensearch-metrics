@@ -2,12 +2,8 @@
 
 ## OpenSearch Project Health
 
-TODO: Fill this README out!
-
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+- Generate the project jar by running `./gradlew clean build `, this will also generate a zip with all dependency jars.
+- Now `cd infrastructure/`, update the enum `lib/enums/account.ts` file with the desired AWS account and run `cdk deploy OpenSearchHealth-Workflow` to create all the required backend resources.
 
 ## Security
 
