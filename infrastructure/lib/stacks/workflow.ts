@@ -6,6 +6,8 @@ import { Construct } from 'constructs';
 import { VpcStack } from "./vpc";
 import {LambdaInvoke} from "aws-cdk-lib/aws-stepfunctions-tasks";
 import {JsonPath, Pass, StateMachine, Succeed} from "aws-cdk-lib/aws-stepfunctions";
+import {Rule, Schedule} from "aws-cdk-lib/aws-events";
+import {SfnStateMachine} from "aws-cdk-lib/aws-events-targets";
 
 export interface OpenSearchHealthStackProps extends StackProps {
     readonly opensearchDomainStack: OpenSearchDomainStack;
@@ -25,6 +27,14 @@ export class OpenSearchHealthWorkflowStack extends Stack {
             timeout: Duration.minutes(15),
             stateMachineName: 'OpenSearchHealthWorkflow'
         })
+
+        new Rule(this, 'HealthWorkflow', {
+            /* 6PM UTC every day
+               This would be 10:00 AM PST
+            */
+            schedule: Schedule.expression('cron(0 18 * * ? *)'),
+            targets: [new SfnStateMachine(opensearchHealthWorkflow)],
+        });
     }
 
     private createHealthTask(scope: Construct, opensearchDomainStack: OpenSearchDomainStack,

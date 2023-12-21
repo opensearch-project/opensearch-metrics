@@ -14,6 +14,7 @@ export interface OpenSearchStackProps {
     readonly region: string;
     readonly account: string;
     readonly vpcStack: VpcStack;
+    readonly enableNginx: boolean;
 }
 
 export interface OpenSearchDomainConfig {
@@ -164,14 +165,16 @@ export class OpenSearchDomainStack extends Stack {
 
         this.domain.node.addDependency(serviceLinkedRole);
 
-        new OpenSearchHealthNginx(this, "OpenSearchHealthNginx", {
-            region: this.props.region,
-            vpc: props.vpcStack.vpc,
-            securityGroup: props.vpcStack.securityGroup,
-            opensearchDashboardUrlProps: {
-                opensearchDashboardVpcUrl: this.domain.domainEndpoint,
-                cognitoDomain: healthCognito.userPoolDomain.domain
-            }
-        });
+        if(props.enableNginx) {
+            new OpenSearchHealthNginx(this, "OpenSearchHealthNginx", {
+                region: this.props.region,
+                vpc: props.vpcStack.vpc,
+                securityGroup: props.vpcStack.securityGroup,
+                opensearchDashboardUrlProps: {
+                    opensearchDashboardVpcUrl: this.domain.domainEndpoint,
+                    cognitoDomain: healthCognito.userPoolDomain.domain
+                }
+            });
+        }
     }
 }

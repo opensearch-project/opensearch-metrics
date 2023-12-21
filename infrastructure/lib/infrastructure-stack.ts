@@ -3,8 +3,11 @@ import { Construct } from 'constructs';
 import { VpcStack } from "./stacks/vpc";
 import { OpenSearchDomainStack } from "./stacks/opensearch";
 import { OpenSearchHealthWorkflowStack } from './stacks/workflow';
-import Region from './enums/region';
-import Account from './enums/account';
+import Project from './enums/project';
+import {OpenSearchHealthFrontendServer} from "./constructs/opensearchFrontendServer";
+import {ARecord, HostedZone, RecordTarget} from "aws-cdk-lib/aws-route53";
+import {Certificate, CertificateValidation} from "aws-cdk-lib/aws-certificatemanager";
+import {OpenSearchHealthRoute53} from "./constructs/route53";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -13,15 +16,39 @@ export class InfrastructureStack extends Stack {
     const appName = 'OpenSearchHealth';
 
     const vpcStack = new VpcStack(app, `${appName}-VPC`, {});
+
     const openSearchDomainStack = new OpenSearchDomainStack(app, `${appName}-OpenSearch`, {
-      region: Region.IAD,
-      account: Account.AWS_TEST,
+      region: Project.IAD,
+      account: Project.AWS_TEST,
       vpcStack: vpcStack,
+      enableNginx: true,
     })
+
     const openSearchHealthWorkflowStack = new OpenSearchHealthWorkflowStack(app, `${appName}-Workflow`, {
       opensearchDomainStack: openSearchDomainStack, vpcStack: vpcStack
     })
     openSearchHealthWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
+
+
+
+
+    //FrontEnd
+    const hostedZone = new OpenSearchHealthRoute53(app, `${appName}-HostedZone`, {
+      hostedZone: Project.HOSTED_ZONE,
+    });
+
+
+    const openSearchHealthFrontendServer = new OpenSearchHealthFrontendServer(app, `${appName}-FrontendServer`, {
+      region: Project.IAD,
+      vpc: vpcStack.vpc,
+      opensearchUrl: openSearchDomainStack.domain.domainEndpoint,
+      nlbProps: {
+        hostedZone: hostedZone,
+        certificateArn: hostedZone.certificateArn,
+      },
+      securityGroup: vpcStack.securityGroup,
+    });
+    openSearchHealthFrontendServer.node.addDependency(vpcStack, hostedZone);
 
   }
 }
