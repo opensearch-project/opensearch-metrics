@@ -48,15 +48,33 @@ public class OpenSearchUtil {
             createIndexRequest.settings(Settings.builder()
                     .put("index.number_of_replicas", NUM_REPLICAS)
                     .build());
-            log.info("Creating index {}", index);
+            System.out.println("Creating index " + index);
             CreateIndexResponse createIndexResponse =
                     client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
-            log.info("Create index {}, acknowledged = {}, shard acknowledged = {}",
-                    createIndexResponse.index(), createIndexResponse.isAcknowledged(), createIndexResponse.isShardsAcknowledged());
+            System.out.println("Create index " + createIndexResponse.index() + ", acknowledged = " + createIndexResponse.isAcknowledged() + ", shard acknowledged = " + createIndexResponse.isShardsAcknowledged());
         } else {
-            log.info("Index {} already exists, skip creating index.", index);
+            System.out.println("Index " + index + " already exists, skip creating index.");
         }
     }
+
+    /*public long processScrolling(String scrollId, long cumulativeTotalHits) throws IOException {
+        while (true) {
+            SearchResponse nextSearchResponse = client.scroll(
+                    new SearchScrollRequest(scrollId).scroll(TimeValue.timeValueMinutes(2)),
+                    RequestOptions.DEFAULT
+            );
+
+            if (nextSearchResponse.getHits().getHits().length == 0) {
+                break;
+            }
+
+            cumulativeTotalHits += nextSearchResponse.getHits().getTotalHits().value; // Increment the cumulative count
+            scrollId = nextSearchResponse.getScrollId();
+        }
+        ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
+        clearScrollRequest.addScrollId(scrollId);
+        return cumulativeTotalHits;
+    }*/
 
     public void createIndexAlias(String index, String alias) {
         try {
@@ -84,7 +102,7 @@ public class OpenSearchUtil {
      */
     public void bulkIndex(@NonNull String index, @NonNull Map<String, String> jsonMap) throws Exception {
         if (jsonMap.isEmpty()) {
-            log.info("Empty data received for indexing");
+            System.out.println("Empty data received for indexing");
             return;
         }
         var forkJoinPool = new ForkJoinPool(NUM_THREADS);
@@ -95,7 +113,7 @@ public class OpenSearchUtil {
     }
 
     private void bulkIndexInBatches(String index, List<Map.Entry<String, String>> partition) {
-        log.info("Started bulk indexing...");
+        System.out.println("Started bulk indexing...");
         BulkRequest bulkRequest = new BulkRequest();
         for (Map.Entry<String, String> entry : partition) {
             bulkRequest.add(new IndexRequest()
@@ -110,17 +128,17 @@ public class OpenSearchUtil {
         if (bulkRequest.numberOfActions() > 0) {
             execBulkRequest(bulkRequest, client);
         }
-        log.info("Bulk indexing finished on thread");
+        System.out.println("Bulk indexing finished on thread");
     }
 
     private static void execBulkRequest(BulkRequest bulkRequest, RestHighLevelClient client) {
         try {
             BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
             if (response.hasFailures()) {
-                log.error("Bulk index has errors: {}", response.buildFailureMessage());
+                System.out.println("Bulk index has errors: " + response.buildFailureMessage());
             }
         } catch (IOException ioException) {
-            log.error("Error", ioException);
+            System.out.println ("Error " + ioException);
         }
     }
 

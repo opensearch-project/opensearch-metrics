@@ -1,41 +1,50 @@
 package org.opensearchhealth.health.githubhealth;
 
+import lombok.Getter;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearchhealth.dagger.DaggerServiceComponent;
 import org.opensearchhealth.dagger.ServiceComponent;
-import org.opensearchhealth.health.AggregationType;
 import org.opensearchhealth.health.Factors;
 import org.opensearchhealth.health.model.HealthRequest;
+import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-
+@Getter
 public enum GitHubFactors implements Factors {
 
-    UNTRIAGED_ISSUES("Number of Untriaged issues"),
-    GITHUB_AUDIT("GitHub Audit"),
-    UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS("Number of Untriaged issues greater than 30 days"),
+    UNTRIAGED_ISSUES("Untriaged issues", "The total number of issues labeled as untriaged in the repository."),
+    GITHUB_AUDIT("GitHub Audit", "Repository Security Audit Status: 1 means non-compliant, and 0 indicates compliant."),
+    UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS("Untriaged issues greater than 30 days", "The total number of issues labeled as untriaged in the repository that are older than 30 days."),
 
-    ISSUES_NOT_RESPONDED_THIRTY_DAYS("Number of ISSUES not responded for 30 days"),
-    PRS_NOT_RESPONDED_THIRTY_DAYS("Number of PRs not responded for 30 days");
+    ISSUES_NOT_RESPONDED_THIRTY_DAYS("Issues not responded for 30 days", "The total number of issues in the repository that are older than 30 days and have received no comments or responses."),
+    PRS_NOT_RESPONDED_THIRTY_DAYS("Pull Requests not responded for 30 days", "The total number of pull requests in the repository that are older than 30 days and have not received any comments or responses.");
 
     private final String fullName;
+
+    private final String description;
+
     final ServiceComponent COMPONENT = DaggerServiceComponent.create();
 
-    GitHubFactors(String fullName) {
+    GitHubFactors(String fullName, String description) {
 
         this.fullName = fullName;
+        this.description = description;
     }
 
     @Override
     public String getFullName() {
         return fullName;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
     }
 
 
@@ -46,8 +55,8 @@ public enum GitHubFactors implements Factors {
             case GITHUB_AUDIT:
                 if (request.getRepository() != null) {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
-                    boolQueryBuilder.must(QueryBuilders.matchQuery("audit_status", "noncompliant"));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery(request.getDateField()).gte("now").lte("now-1d"));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("audit_status.keyword", "noncompliant"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("current_date").from("now-1d").to("now"));
                 }
                 return boolQueryBuilder;
             case UNTRIAGED_ISSUES:
@@ -64,7 +73,7 @@ public enum GitHubFactors implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("issue_labels.keyword", "untriaged"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery(request.getDateField()).gte("now").lte("now-30d"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
                 }
                 return boolQueryBuilder;
             case ISSUES_NOT_RESPONDED_THIRTY_DAYS:
@@ -73,7 +82,7 @@ public enum GitHubFactors implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("comments", 0));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery(request.getDateField()).gte("now").lte("now-30d"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
                 }
                 return boolQueryBuilder;
             case PRS_NOT_RESPONDED_THIRTY_DAYS:
@@ -81,18 +90,17 @@ public enum GitHubFactors implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("comments",0));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery(request.getDateField()).gte("now").lte("now-30d"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
                 }
                 return boolQueryBuilder;
 
             default:
-                throw new RuntimeException("Unknown Community Factor to getBoolQueryBuilder");
+                throw new RuntimeException("Unknown Github Repo Factor to getBoolQueryBuilder");
         }
     }
 
     @Override
-    public SearchRequest createSearchRequest(HealthRequest request, DateHistogramInterval interval,
-                                             BoolQueryBuilder queryBuilder, AggregationType aggregationType) {
+    public SearchRequest createSearchRequest(HealthRequest request, BoolQueryBuilder queryBuilder) {
         SearchRequest searchRequest = new SearchRequest(request.getIndex());
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         switch (this) {
@@ -105,13 +113,12 @@ public enum GitHubFactors implements Factors {
                 searchRequest.source(searchSourceBuilder);
                 return searchRequest;
             default:
-                throw new RuntimeException("Unknown Community Factor to createSearchRequest");
+                throw new RuntimeException("Unknown Github Repo Factor to createSearchRequest");
         }
     }
 
     @Override
-    public long performSearch(SearchRequest request, HealthRequest.AggType aggType,
-                                         AggregationType aggregationType) throws IOException {
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
         SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
@@ -132,7 +139,21 @@ public enum GitHubFactors implements Factors {
                     return searchResponse.getHits().getTotalHits().value;
                 }
             default:
-                throw new RuntimeException("Unknown Community Factor to performSearch");
+                throw new RuntimeException("Unknown Github Repo Factor to performSearch");
+        }
+    }
+
+    @Override
+    public String getFactorStringValue(long factorValue) {
+        switch (this) {
+            case GITHUB_AUDIT:
+                if(factorValue == 0) {
+                    return "compliant";
+                } else {
+                    return "non-compliant";
+                }
+            default:
+                return null;
         }
     }
 
