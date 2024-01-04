@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.communityhealth;
+package org.opensearchhealth.health.repocommunityhealth;
 
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
@@ -6,35 +6,38 @@ import org.opensearch.core.rest.RestStatus;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
-import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearchhealth.dagger.DaggerServiceComponent;
 import org.opensearchhealth.dagger.ServiceComponent;
-import org.opensearchhealth.health.AggregationType;
 import org.opensearchhealth.health.Factors;
 import org.opensearchhealth.health.model.HealthRequest;
+import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public enum CommunityFactors implements Factors {
+public enum RepoCommunityFactors implements Factors {
 
 
-    TOTAL_GITHUB_ISSUES_CREATED("GitHub issues created"),
-    TOTAL_GITHUB_PULLS_CREATED("GitHub pulls created"),
-    TOTAL_GITHUB_PULLS_MERGED("GitHub pulls merged"),
-    GITHUB_OPEN_ISSUES("GitHub open issues"),
-    GITHUB_OPEN_PULLS("GitHub open pulls"),
-    TOTAL_FORKS("Number of forks"),
-    TOTAL_STARS("Number of stars"),
-    TOTAl_SUBSCRIBERS("Number of subscribers"),
-    TOTAL_SIZE("Repo size");
+    TOTAL_GITHUB_ISSUES_CREATED("GitHub issues created", "The total number of issues created for the repo."),
+    TOTAL_GITHUB_PULLS_CREATED("GitHub pulls created", "The total number of pull requests created for the repo."),
+    TOTAL_GITHUB_PULLS_MERGED("GitHub pulls merged", "The total number of pull requests merged for the repo."),
+    GITHUB_OPEN_ISSUES("GitHub open issues", "The total number of issues that are currently in the open state."),
+
+    GITHUB_CLOSED_ISSUES("GitHub closed issues", "The total number of issues that are currently in the closed state."),
+    GITHUB_OPEN_PULLS("GitHub open pulls", "The total number of pull requests that are currently in the open state."),
+    TOTAL_FORKS("Number of forks", "The total number of forks for a repository."),
+    TOTAL_STARS("Number of stars", "The total number of stars for a repository."),
+    TOTAl_SUBSCRIBERS("Number of subscribers", "The total number of subscribers for the repository."),
+    TOTAL_SIZE("Repo size in megabytes (MB)", "The total size of the repository.");
 
     private final String fullName;
+    private final String description;
     final ServiceComponent COMPONENT = DaggerServiceComponent.create();
-    CommunityFactors(String fullName) {
+    RepoCommunityFactors(String fullName, String description) {
 
         this.fullName = fullName;
+        this.description = description;
     }
 
     @Override
@@ -59,7 +62,7 @@ public enum CommunityFactors implements Factors {
             case TOTAL_GITHUB_PULLS_MERGED:
                 if (request.getRepository() != null) {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
-                    boolQueryBuilder.must(QueryBuilders.matchQuery("merged", true));
+                    boolQueryBuilder.must(QueryBuilders.existsQuery("merged_at"));
                 }
                 return boolQueryBuilder;
             case GITHUB_OPEN_ISSUES:
@@ -69,6 +72,13 @@ public enum CommunityFactors implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                 }
                 return boolQueryBuilder;
+            case GITHUB_CLOSED_ISSUES:
+                if (request.getRepository() != null) {
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "closed"));
+                }
+                return boolQueryBuilder;
             case GITHUB_OPEN_PULLS:
                 if (request.getRepository() != null) {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
@@ -77,12 +87,12 @@ public enum CommunityFactors implements Factors {
                 return boolQueryBuilder;
 
             default:
-                throw new RuntimeException("Unknown Community Factor to getBoolQueryBuilder");
+                throw new RuntimeException("Unknown Repo Community Factor to getBoolQueryBuilder");
         }
     }
 
     @Override
-    public SearchRequest createSearchRequest(HealthRequest request, DateHistogramInterval interval, BoolQueryBuilder queryBuilder, AggregationType aggregationType) {
+    public SearchRequest createSearchRequest(HealthRequest request, BoolQueryBuilder queryBuilder) {
         SearchRequest searchRequest = new SearchRequest(request.getIndex());
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         switch (this) {
@@ -90,6 +100,7 @@ public enum CommunityFactors implements Factors {
             case TOTAL_GITHUB_PULLS_CREATED:
             case TOTAL_GITHUB_PULLS_MERGED:
             case GITHUB_OPEN_ISSUES:
+            case GITHUB_CLOSED_ISSUES:
             case GITHUB_OPEN_PULLS:
             case TOTAL_FORKS:
             case TOTAL_STARS:
@@ -99,12 +110,12 @@ public enum CommunityFactors implements Factors {
                 searchRequest.source(searchSourceBuilder);
                 return searchRequest;
             default:
-                throw new RuntimeException("Unknown Community Factor to createSearchRequest");
+                throw new RuntimeException("Unknown Repo Community Factor to createSearchRequest");
         }
     }
 
     @Override
-    public long performSearch(SearchRequest request, HealthRequest.AggType aggType, AggregationType aggregationType) throws IOException {
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
         SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
@@ -112,6 +123,7 @@ public enum CommunityFactors implements Factors {
             case TOTAL_GITHUB_PULLS_CREATED:
             case TOTAL_GITHUB_PULLS_MERGED:
             case GITHUB_OPEN_ISSUES:
+            case GITHUB_CLOSED_ISSUES:
             case GITHUB_OPEN_PULLS:
                 if (status == RestStatus.OK) {
                     return searchResponse.getHits().getTotalHits().value;
@@ -145,12 +157,25 @@ public enum CommunityFactors implements Factors {
                     }
                 }
             default:
-                throw new RuntimeException("Unknown Community Factor to performSearch");
+                throw new RuntimeException("Unknown Repo Community Factor to performSearch");
         }
     }
 
     @Override
     public String getFullName() {
         return fullName;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public String getFactorStringValue(long factorValue) {
+        switch (this) {
+            default:
+                return null;
+        }
     }
 }

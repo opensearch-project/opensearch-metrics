@@ -58,7 +58,8 @@ public class HealthLambda extends AbstractBaseLambda {
                 .map(bucket -> bucket.getKeyAsString())
                 .collect(Collectors.toList());
         try {
-            healthCalculation.generate(keys);
+            healthCalculation.generateRepos(keys);
+            healthCalculation.generateProject();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {

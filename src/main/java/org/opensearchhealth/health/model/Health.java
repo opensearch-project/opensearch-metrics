@@ -35,6 +35,8 @@ public final class Health {
     public static class Theme {
         @JsonProperty("theme_name")
         private String name;
+        @JsonProperty("theme_description")
+        private String themeDescription;
         @JsonProperty("factors")
         private List<Factor> factors;
     }
@@ -43,14 +45,22 @@ public final class Health {
     public static class Factor {
         @JsonProperty("factor_name")
         private String name;
+
+        @JsonProperty("factor_description")
+        private String factorDescription;
+
         @JsonSerialize(using = CustomLongSerializer.class)
         @JsonInclude(JsonInclude.Include.ALWAYS)
         @JsonProperty("factor_value")
         private long count;
+
+        @JsonProperty("factor_string_value")
+        private String factorStringValue;
+
         @JsonSerialize(using = CustomLongSerializer.class)
-        @JsonInclude(JsonInclude.Include.ALWAYS)
         @JsonProperty("factor_threshold")
         private long allowedValue;
+
         @JsonProperty("factor_status")
         private String thresholdStatus;
     }
@@ -71,7 +81,11 @@ class CustomLongSerializer extends JsonSerializer<Long> {
     @Override
     public void serialize(Long value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
             throws IOException {
-        if (value == null || value == 0 || value == 0L) {
+        if (value == null) {
+            // If the value is null, simply return without serializing
+            return;
+        }
+        if (value == 0 || value == 0L) {
             jsonGenerator.writeNumber(0);
         } else {
             jsonGenerator.writeNumber(value);

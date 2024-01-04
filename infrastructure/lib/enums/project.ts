@@ -5,6 +5,6 @@ enum Project{
     // Temp until the project is public
     RESTRICTED_PREFIX = '<SECURITY_GROUP_PRRFIX>',
     // Temp until the repo is public
-    FRONTEND_CODE_S3_LOCATION = 's3://<BUCKET>/opensearch-health-dashboard'
+    FRONTEND_CODE_S3_LOCATION = 's3://<BUCKET_PATH>'
 }
 export default Project;
