@@ -1,5 +1,6 @@
 package org.opensearchhealth.health.repocommunityhealth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.core.rest.RestStatus;
@@ -7,14 +8,13 @@ import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.builder.SearchSourceBuilder;
-import org.opensearchhealth.dagger.DaggerServiceComponent;
-import org.opensearchhealth.dagger.ServiceComponent;
 import org.opensearchhealth.health.Factors;
 import org.opensearchhealth.health.model.HealthRequest;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public enum RepoCommunityFactors implements Factors {
 
@@ -33,7 +33,6 @@ public enum RepoCommunityFactors implements Factors {
 
     private final String fullName;
     private final String description;
-    final ServiceComponent COMPONENT = DaggerServiceComponent.create();
     RepoCommunityFactors(String fullName, String description) {
 
         this.fullName = fullName;
@@ -115,8 +114,8 @@ public enum RepoCommunityFactors implements Factors {
     }
 
     @Override
-    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
-        SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
             case TOTAL_GITHUB_ISSUES_CREATED:
@@ -173,6 +172,14 @@ public enum RepoCommunityFactors implements Factors {
 
     @Override
     public String getFactorStringValue(long factorValue) {
+        switch (this) {
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public Map<String, Long> performSearchMapValue(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
         switch (this) {
             default:
                 return null;

@@ -1,12 +1,13 @@
 package org.opensearchhealth.health;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchhealth.health.model.Health;
 import org.opensearchhealth.health.model.HealthRequest;
+import org.opensearchhealth.health.model.Release;
+import org.opensearchhealth.health.releasestats.ReleaseStats;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.time.LocalDateTime;
@@ -54,13 +55,14 @@ public class HealthCalculation {
                     factor.setFactorDescription(healthRequest.getFactor().getDescription());
                     BoolQueryBuilder countBoolQueryBuilder = healthRequest.getFactor().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
                     SearchRequest countSearchRequest = healthRequest.getFactor().createSearchRequest(healthRequest,  countBoolQueryBuilder);
-                    long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest);
+                    long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
                     factor.setCount(factorCount);
                     factor.setFactorStringValue(healthRequest.getFactor().getFactorStringValue(factorCount));
+                    factor.setFactorMapValue(healthRequest.getFactor().performSearchMapValue(opensearchUtil, countSearchRequest, objectMapper));
                     if (healthRequest.getFactorThresholds() != null) {
                         BoolQueryBuilder thresholdBoolQueryBuilder = healthRequest.getFactorThresholds().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
                         SearchRequest thresholdSearchRequest = healthRequest.getFactorThresholds().createSearchRequest(healthRequest,  thresholdBoolQueryBuilder);
-                        long thresholdCount = healthRequest.getFactorThresholds().performSearch(opensearchUtil, thresholdSearchRequest);
+                        long thresholdCount = healthRequest.getFactorThresholds().performSearch(opensearchUtil, thresholdSearchRequest, objectMapper);
                         factor.setAllowedValue(thresholdCount);
                         if (factorCount > thresholdCount) {
                             factor.setThresholdStatus("red");
@@ -77,7 +79,7 @@ public class HealthCalculation {
             }
             row.setActionItems(actionItems);
             row.setThemes(themes);
-            healthData.put(row.getId(), getJson(row));
+            healthData.put(row.getId(), row.getJson(row, objectMapper));
         }
         opensearchUtil.createIndexIfNotExists("opensearch_repo_health");
         opensearchUtil.bulkIndex("opensearch_repo_health", healthData);
@@ -102,7 +104,7 @@ public class HealthCalculation {
                 factor.setFactorDescription(healthRequest.getFactor().getDescription());
                 BoolQueryBuilder countBoolQueryBuilder = healthRequest.getFactor().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
                 SearchRequest countSearchRequest = healthRequest.getFactor().createSearchRequest(healthRequest,  countBoolQueryBuilder);
-                long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest);
+                long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
                 factor.setCount(factorCount);
                 factors.add(factor);
             }
@@ -111,18 +113,39 @@ public class HealthCalculation {
         }
         row.setActionItems(actionItems);
         row.setThemes(themes);
-        healthData.put(row.getId(), getJson(row));
+        healthData.put(row.getId(), row.getJson(row, objectMapper));
         opensearchUtil.createIndexIfNotExists("opensearch_project_health");
         opensearchUtil.bulkIndex("opensearch_project_health", healthData);
     }
 
-
-    private String getJson(Health row) {
-        try {
-            return row.toJson(objectMapper);
-        } catch (JsonProcessingException e) {
-            log.error("Error while serializing ReportDataRow to JSON", e);
-            throw new RuntimeException(e);
+    public void generateReleaseStats(List<String> repositories) throws Exception {
+        ReleaseStats releaseStats = new ReleaseStats(opensearchUtil, objectMapper);
+        List<Release.ReleaseIssue> buildReleaseIssues = releaseStats.getBuildReleaseIssues();
+        for(Release.ReleaseIssue releaseIssue: buildReleaseIssues) {
+            Map<String, String> releaseData = new HashMap<>();
+            Release release = new Release();
+            release.setId(String.valueOf((UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE)));
+            release.setCurrentDate(currentDate.toString());
+            release.setReleaseVersion(releaseIssue.getTitle().substring(releaseIssue.getTitle().lastIndexOf(' ') + 1));
+            release.setReleaseIssueNumber(releaseIssue.getNumber());
+            release.setReleaseIssueUrl(releaseIssue.getHtmlUrl());
+            List<Release.Plugins> plugins = new ArrayList<>();
+            for (String repo : repositories) {
+                Release.Plugins plugin = new Release.Plugins();
+                plugin.setName(repo);
+                Release.ReleaseIssue pluginReleaseIssue = releaseStats.getPluginReleaseIssue(repo, "v"+releaseIssue.getTitle().substring(releaseIssue.getTitle().lastIndexOf(' ') + 1));
+                if(pluginReleaseIssue != null) {
+                    plugin.setPluginReleaseIssueNumber(pluginReleaseIssue.getNumber());
+                    plugin.setPluginReleaseIssueUrl(pluginReleaseIssue.getHtmlUrl());
+                }
+                plugin.setPluginReleaseLabelOpenIssues(releaseStats.getPluginReleaseIssues(repo, "v"+releaseIssue.getTitle().substring(releaseIssue.getTitle().lastIndexOf(' ') + 1)));
+                plugins.add(plugin);
+            }
+            release.setPlugins(plugins);
+            releaseData.put(release.getId(), release.getJson(release, objectMapper));
+            System.out.println("The releaseData is " + releaseData);
+            opensearchUtil.createIndexIfNotExists("opensearch_release_stats");
+            opensearchUtil.bulkIndex("opensearch_release_stats", releaseData);
         }
     }
 }
