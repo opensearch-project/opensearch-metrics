@@ -1,20 +1,27 @@
 package org.opensearchhealth.health.githubhealth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
+import org.opensearch.search.SearchHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearchhealth.dagger.DaggerServiceComponent;
 import org.opensearchhealth.dagger.ServiceComponent;
 import org.opensearchhealth.health.Factors;
+import org.opensearchhealth.health.model.CodeCov;
 import org.opensearchhealth.health.model.HealthRequest;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @Getter
 public enum GitHubFactors implements Factors {
 
@@ -23,7 +30,9 @@ public enum GitHubFactors implements Factors {
     UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS("Untriaged issues greater than 30 days", "The total number of issues labeled as untriaged in the repository that are older than 30 days."),
 
     ISSUES_NOT_RESPONDED_THIRTY_DAYS("Issues not responded for 30 days", "The total number of issues in the repository that are older than 30 days and have received no comments or responses."),
-    PRS_NOT_RESPONDED_THIRTY_DAYS("Pull Requests not responded for 30 days", "The total number of pull requests in the repository that are older than 30 days and have not received any comments or responses.");
+    PRS_NOT_RESPONDED_THIRTY_DAYS("Pull Requests not responded for 30 days", "The total number of pull requests in the repository that are older than 30 days and have not received any comments or responses."),
+
+    CODECOV_COVERAGE("CodeCov Coverage Percentage", "CodeCov Coverage Score for the Repository.");
 
     private final String fullName;
 
@@ -93,7 +102,12 @@ public enum GitHubFactors implements Factors {
                     boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
                 }
                 return boolQueryBuilder;
-
+            case CODECOV_COVERAGE:
+                if (request.getRepository() != null) {
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("current_date").from("now-1d").to("now"));
+                }
+                return boolQueryBuilder;
             default:
                 throw new RuntimeException("Unknown Github Repo Factor to getBoolQueryBuilder");
         }
@@ -112,14 +126,19 @@ public enum GitHubFactors implements Factors {
                 searchSourceBuilder.query(queryBuilder);
                 searchRequest.source(searchSourceBuilder);
                 return searchRequest;
+            case CODECOV_COVERAGE:
+                searchSourceBuilder.query(queryBuilder);
+                searchSourceBuilder.fetchSource(new String[]{"branch", "coverage"}, null);
+                searchRequest.source(searchSourceBuilder);
+                return searchRequest;
             default:
                 throw new RuntimeException("Unknown Github Repo Factor to createSearchRequest");
         }
     }
 
     @Override
-    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
-        SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
             case GITHUB_AUDIT:
@@ -138,6 +157,8 @@ public enum GitHubFactors implements Factors {
                 if (status == RestStatus.OK) {
                     return searchResponse.getHits().getTotalHits().value;
                 }
+            case CODECOV_COVERAGE:
+                return 0;
             default:
                 throw new RuntimeException("Unknown Github Repo Factor to performSearch");
         }
@@ -157,4 +178,27 @@ public enum GitHubFactors implements Factors {
         }
     }
 
+    @Override
+    public Map<String, Long> performSearchMapValue(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
+        RestStatus status = searchResponse.status();
+        Map<String, Long> factorMapValue = new HashMap<>();
+        switch (this) {
+            case CODECOV_COVERAGE:
+                if (status == RestStatus.OK) {
+                    SearchHits hits = searchResponse.getHits();
+                    SearchHit[] searchHits = hits.getHits();
+                    for (SearchHit searchHit : searchHits) {
+                        String hitJson = searchHit.getSourceAsString();
+                        CodeCov codeCovResult = objectMapper.readValue(hitJson, CodeCov.class);
+                        factorMapValue.put(codeCovResult.getBranch(), codeCovResult.getCoverage());
+                    }
+                }
+                if(!factorMapValue.isEmpty()) {
+                    return factorMapValue;
+                }
+            default:
+                return null;
+        }
+    }
 }

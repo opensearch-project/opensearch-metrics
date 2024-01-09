@@ -60,6 +60,7 @@ public class HealthLambda extends AbstractBaseLambda {
         try {
             healthCalculation.generateRepos(keys);
             healthCalculation.generateProject();
+            healthCalculation.generateReleaseStats(keys);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {

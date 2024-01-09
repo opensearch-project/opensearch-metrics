@@ -57,6 +57,10 @@ public final class Health {
         @JsonProperty("factor_string_value")
         private String factorStringValue;
 
+        @JsonSerialize(using = CustomMapSerializer.class)
+        @JsonProperty("factor_map_value")
+        private Map<String, Long> factorMapValue;
+
         @JsonSerialize(using = CustomLongSerializer.class)
         @JsonProperty("factor_threshold")
         private long allowedValue;
@@ -74,6 +78,15 @@ public final class Health {
         data.put("action_items", actionItems);
         return mapper.writeValueAsString(data);
     }
+
+    public String getJson(Health health, ObjectMapper objectMapper) {
+        try {
+            return health.toJson(objectMapper);
+        } catch (JsonProcessingException e) {
+            System.out.println("Error while serializing ReportDataRow to JSON " +  e);
+            throw new RuntimeException(e);
+        }
+    }
 }
 
 class CustomLongSerializer extends JsonSerializer<Long> {
@@ -90,5 +103,23 @@ class CustomLongSerializer extends JsonSerializer<Long> {
         } else {
             jsonGenerator.writeNumber(value);
         }
+    }
+}
+
+class CustomMapSerializer extends JsonSerializer<Map<String, Long>> {
+
+    @Override
+    public void serialize(Map<String, Long> map, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+            throws IOException {
+
+        if (map == null) {
+            return;
+        }
+        jsonGenerator.writeStartObject();
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
+            jsonGenerator.writeFieldName(entry.getKey());
+            jsonGenerator.writeNumber(entry.getValue() != null && entry.getValue() != 0 ? entry.getValue() : 0);
+        }
+        jsonGenerator.writeEndObject();
     }
 }

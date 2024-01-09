@@ -1,5 +1,6 @@
 package org.opensearchhealth.health.githubhealth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.core.rest.RestStatus;
@@ -14,6 +15,7 @@ import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public enum GitHubFactorThresholds implements Factors {
 
@@ -98,8 +100,8 @@ public enum GitHubFactorThresholds implements Factors {
     }
 
     @Override
-    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
-        SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
             case UNTRIAGED_ISSUES:
@@ -134,6 +136,14 @@ public enum GitHubFactorThresholds implements Factors {
 
     @Override
     public String getFactorStringValue(long factorValue) {
+        switch (this) {
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public Map<String, Long> performSearchMapValue(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
         switch (this) {
             default:
                 return null;

@@ -40,7 +40,8 @@ public enum RepoThemeFactors {
                         new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.UNTRIAGED_ISSUES, GitHubFactorThresholds.UNTRIAGED_ISSUES, "github_issues", repository),
                         new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS, GitHubFactorThresholds.UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS,  "github_issues", repository),
                         new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.ISSUES_NOT_RESPONDED_THIRTY_DAYS, GitHubFactorThresholds.ISSUES_NOT_RESPONDED_THIRTY_DAYS,  "github_issues", repository),
-                        new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.PRS_NOT_RESPONDED_THIRTY_DAYS, GitHubFactorThresholds.PRS_NOT_RESPONDED_THIRTY_DAYS,  "github_pulls", repository)
+                        new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.PRS_NOT_RESPONDED_THIRTY_DAYS, GitHubFactorThresholds.PRS_NOT_RESPONDED_THIRTY_DAYS,  "github_pulls", repository),
+                        new HealthRequest(String.valueOf(this).toLowerCase(Locale.ROOT), GitHubFactors.CODECOV_COVERAGE, null,  "codecov_coverage", repository)
                 );
             case COMMUNITY_HEALTH:
                 return List.of(

@@ -1,5 +1,6 @@
 package org.opensearchhealth.health.projectcommunityhealth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.common.unit.TimeValue;
@@ -13,14 +14,13 @@ import org.opensearch.search.aggregations.metrics.Cardinality;
 import org.opensearch.search.aggregations.metrics.CardinalityAggregationBuilder;
 import org.opensearch.search.aggregations.metrics.Sum;
 import org.opensearch.search.builder.SearchSourceBuilder;
-import org.opensearchhealth.dagger.DaggerServiceComponent;
-import org.opensearchhealth.dagger.ServiceComponent;
 import org.opensearchhealth.health.Factors;
 import org.opensearchhealth.health.model.HealthRequest;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public enum ProjectCommunityFactors implements Factors {
 
@@ -43,7 +43,6 @@ public enum ProjectCommunityFactors implements Factors {
 
     private final String fullName;
     private final String description;
-    final ServiceComponent COMPONENT = DaggerServiceComponent.create();
     ProjectCommunityFactors(String fullName, String description) {
 
         this.fullName = fullName;
@@ -152,8 +151,8 @@ public enum ProjectCommunityFactors implements Factors {
     }
 
     @Override
-    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request) throws IOException {
-        SearchResponse searchResponse = COMPONENT.getOpenSearchUtil().search(request);
+    public long performSearch(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
         RestStatus status = searchResponse.status();
         switch (this) {
             case TOTAL_GITHUB_ISSUES_CREATED:
@@ -209,6 +208,14 @@ public enum ProjectCommunityFactors implements Factors {
 
     @Override
     public String getFactorStringValue(long factorValue) {
+        switch (this) {
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public Map<String, Long> performSearchMapValue(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
         switch (this) {
             default:
                 return null;
