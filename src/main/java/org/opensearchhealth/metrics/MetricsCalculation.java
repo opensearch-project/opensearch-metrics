@@ -1,13 +1,13 @@
-package org.opensearchhealth.health;
+package org.opensearchhealth.metrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
-import org.opensearchhealth.health.model.Health;
-import org.opensearchhealth.health.model.HealthRequest;
-import org.opensearchhealth.health.model.Release;
-import org.opensearchhealth.health.releasestats.ReleaseStats;
+import org.opensearchhealth.metrics.model.MetricsRequest;
+import org.opensearchhealth.metrics.model.Metrics;
+import org.opensearchhealth.metrics.model.Release;
+import org.opensearchhealth.metrics.releasestats.ReleaseStats;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.time.LocalDateTime;
@@ -19,14 +19,14 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-public class HealthCalculation {
+public class MetricsCalculation {
 
     private final LocalDateTime currentDate;
     private final OpenSearchUtil opensearchUtil;
     private final ObjectMapper objectMapper;
 
 
-    public HealthCalculation(OpenSearchUtil opensearchUtil, ObjectMapper objectMapper) {
+    public MetricsCalculation(OpenSearchUtil opensearchUtil, ObjectMapper objectMapper) {
         this.currentDate = LocalDateTime.now(ZoneId.of("UTC"));
         this.opensearchUtil = opensearchUtil;
         this.objectMapper = objectMapper;
@@ -38,35 +38,35 @@ public class HealthCalculation {
 
         Map<String, String> healthData = new HashMap<>();
         for (String repo : repositories) {
-            Health row = new Health();
+            Metrics row = new Metrics();
             row.setId(String.valueOf((UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE)));
             row.setCurrentDate(currentDate.toString());
             row.setRepository(repo);
-            List<Health.Theme> themes = new ArrayList<>();
+            List<Metrics.Theme> themes = new ArrayList<>();
             List<String> actionItems = new ArrayList<>();
             for (RepoThemeFactors themeFactor : RepoThemeFactors.values()) {
-                Health.Theme theme = new Health.Theme();
+                Metrics.Theme theme = new Metrics.Theme();
                 theme.setName(themeFactor.getFullName());
                 theme.setThemeDescription(themeFactor.getDescription());
-                List<Health.Factor> factors = new ArrayList<>();
-                for (HealthRequest healthRequest : themeFactor.getFactors(repo)) {
-                    Health.Factor factor = new Health.Factor();
-                    factor.setName(healthRequest.getFactor().getFullName());
-                    factor.setFactorDescription(healthRequest.getFactor().getDescription());
-                    BoolQueryBuilder countBoolQueryBuilder = healthRequest.getFactor().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
-                    SearchRequest countSearchRequest = healthRequest.getFactor().createSearchRequest(healthRequest,  countBoolQueryBuilder);
-                    long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
+                List<Metrics.Factor> factors = new ArrayList<>();
+                for (MetricsRequest metricsRequest : themeFactor.getFactors(repo)) {
+                    Metrics.Factor factor = new Metrics.Factor();
+                    factor.setName(metricsRequest.getFactor().getFullName());
+                    factor.setFactorDescription(metricsRequest.getFactor().getDescription());
+                    BoolQueryBuilder countBoolQueryBuilder = metricsRequest.getFactor().getBoolQueryBuilder(metricsRequest, currentDate, currentDate);
+                    SearchRequest countSearchRequest = metricsRequest.getFactor().createSearchRequest(metricsRequest,  countBoolQueryBuilder);
+                    long factorCount = metricsRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
                     factor.setCount(factorCount);
-                    factor.setFactorStringValue(healthRequest.getFactor().getFactorStringValue(factorCount));
-                    factor.setFactorMapValue(healthRequest.getFactor().performSearchMapValue(opensearchUtil, countSearchRequest, objectMapper));
-                    if (healthRequest.getFactorThresholds() != null) {
-                        BoolQueryBuilder thresholdBoolQueryBuilder = healthRequest.getFactorThresholds().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
-                        SearchRequest thresholdSearchRequest = healthRequest.getFactorThresholds().createSearchRequest(healthRequest,  thresholdBoolQueryBuilder);
-                        long thresholdCount = healthRequest.getFactorThresholds().performSearch(opensearchUtil, thresholdSearchRequest, objectMapper);
-                        factor.setAllowedValue(thresholdCount);
+                    factor.setFactorStringValue(metricsRequest.getFactor().getFactorStringValue(factorCount));
+                    factor.setFactorMapValue(metricsRequest.getFactor().performSearchMapValue(opensearchUtil, countSearchRequest, objectMapper));
+                    if (metricsRequest.getFactorThresholds() != null) {
+                        BoolQueryBuilder thresholdBoolQueryBuilder = metricsRequest.getFactorThresholds().getBoolQueryBuilder(metricsRequest, currentDate, currentDate);
+                        SearchRequest thresholdSearchRequest = metricsRequest.getFactorThresholds().createSearchRequest(metricsRequest,  thresholdBoolQueryBuilder);
+                        long thresholdCount = metricsRequest.getFactorThresholds().performSearch(opensearchUtil, thresholdSearchRequest, objectMapper);
+                        // factor.setAllowedValue(thresholdCount);
                         if (factorCount > thresholdCount) {
                             factor.setThresholdStatus("red");
-                            actionItems.add(healthRequest.getFactor().getFullName());
+                            actionItems.add(String.format("%s: %s", themeFactor.getFullName(), metricsRequest.getFactor().getFullName()));
                         } else {
                             factor.setThresholdStatus("green");
                         }
@@ -81,31 +81,45 @@ public class HealthCalculation {
             row.setThemes(themes);
             healthData.put(row.getId(), row.getJson(row, objectMapper));
         }
-        opensearchUtil.createIndexIfNotExists("opensearch_repo_health");
-        opensearchUtil.bulkIndex("opensearch_repo_health", healthData);
+        opensearchUtil.createIndexIfNotExists("opensearch_repo_metrics");
+        opensearchUtil.bulkIndex("opensearch_repo_metrics", healthData);
     }
 
     public void generateProject() throws Exception {
         Map<String, String> healthData = new HashMap<>();
-        Health row = new Health();
+        Metrics row = new Metrics();
         row.setId(String.valueOf((UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE)));
         row.setCurrentDate(currentDate.toString());
         row.setRepository("opensearch-project");
-        List<Health.Theme> themes = new ArrayList<>();
+        List<Metrics.Theme> themes = new ArrayList<>();
         List<String> actionItems = new ArrayList<>();
         for (ProjectThemeFactors projectThemeFactor : ProjectThemeFactors.values()) {
-            Health.Theme theme = new Health.Theme();
+            Metrics.Theme theme = new Metrics.Theme();
             theme.setName(projectThemeFactor.getFullName());
             theme.setThemeDescription(projectThemeFactor.getDescription());
-            List<Health.Factor> factors = new ArrayList<>();
-            for (HealthRequest healthRequest : projectThemeFactor.getFactors()) {
-                Health.Factor factor = new Health.Factor();
-                factor.setName(healthRequest.getFactor().getFullName());
-                factor.setFactorDescription(healthRequest.getFactor().getDescription());
-                BoolQueryBuilder countBoolQueryBuilder = healthRequest.getFactor().getBoolQueryBuilder(healthRequest, currentDate, currentDate);
-                SearchRequest countSearchRequest = healthRequest.getFactor().createSearchRequest(healthRequest,  countBoolQueryBuilder);
-                long factorCount = healthRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
+            List<Metrics.Factor> factors = new ArrayList<>();
+            for (MetricsRequest metricsRequest : projectThemeFactor.getFactors()) {
+                Metrics.Factor factor = new Metrics.Factor();
+                factor.setName(metricsRequest.getFactor().getFullName());
+                factor.setFactorDescription(metricsRequest.getFactor().getDescription());
+                BoolQueryBuilder countBoolQueryBuilder = metricsRequest.getFactor().getBoolQueryBuilder(metricsRequest, currentDate, currentDate);
+                SearchRequest countSearchRequest = metricsRequest.getFactor().createSearchRequest(metricsRequest,  countBoolQueryBuilder);
+                long factorCount = metricsRequest.getFactor().performSearch(opensearchUtil, countSearchRequest, objectMapper);
                 factor.setCount(factorCount);
+                factor.setFactorMapValue(metricsRequest.getFactor().performSearchMapValue(opensearchUtil, countSearchRequest, objectMapper));
+                if (metricsRequest.getFactorThresholds() != null) {
+                    BoolQueryBuilder thresholdBoolQueryBuilder = metricsRequest.getFactorThresholds().getBoolQueryBuilder(metricsRequest, currentDate, currentDate);
+                    SearchRequest thresholdSearchRequest = metricsRequest.getFactorThresholds().createSearchRequest(metricsRequest,  thresholdBoolQueryBuilder);
+                    long thresholdCount = metricsRequest.getFactorThresholds().performSearch(opensearchUtil, thresholdSearchRequest, objectMapper);
+                    // factor.setAllowedValue(thresholdCount);
+                    if (factorCount > thresholdCount) {
+                        factor.setThresholdStatus("red");
+                        actionItems.add(String.format("%s: %s", projectThemeFactor.getFullName(), metricsRequest.getFactor().getFullName()));
+                    } else {
+                        factor.setThresholdStatus("green");
+                    }
+
+                }
                 factors.add(factor);
             }
             theme.setFactors(factors);
@@ -114,8 +128,8 @@ public class HealthCalculation {
         row.setActionItems(actionItems);
         row.setThemes(themes);
         healthData.put(row.getId(), row.getJson(row, objectMapper));
-        opensearchUtil.createIndexIfNotExists("opensearch_project_health");
-        opensearchUtil.bulkIndex("opensearch_project_health", healthData);
+        opensearchUtil.createIndexIfNotExists("opensearch_project_metrics");
+        opensearchUtil.bulkIndex("opensearch_project_metrics", healthData);
     }
 
     public void generateReleaseStats(List<String> repositories) throws Exception {
@@ -143,7 +157,6 @@ public class HealthCalculation {
             }
             release.setPlugins(plugins);
             releaseData.put(release.getId(), release.getJson(release, objectMapper));
-            System.out.println("The releaseData is " + releaseData);
             opensearchUtil.createIndexIfNotExists("opensearch_release_stats");
             opensearchUtil.bulkIndex("opensearch_release_stats", releaseData);
         }

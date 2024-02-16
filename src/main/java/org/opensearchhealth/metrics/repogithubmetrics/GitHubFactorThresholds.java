@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.githubhealth;
+package org.opensearchhealth.metrics.repogithubmetrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
@@ -9,8 +9,8 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearchhealth.dagger.DaggerServiceComponent;
 import org.opensearchhealth.dagger.ServiceComponent;
-import org.opensearchhealth.health.Factors;
-import org.opensearchhealth.health.model.HealthRequest;
+import org.opensearchhealth.metrics.Factors;
+import org.opensearchhealth.metrics.model.MetricsRequest;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
@@ -24,6 +24,7 @@ public enum GitHubFactorThresholds implements Factors {
     GITHUB_AUDIT("GitHub Audit", "Repository Security Audit Status: 1 means non-compliant, and 0 indicates compliant."),
     UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS("Untriaged issues greater than 30 days", "The total number of issues labeled as untriaged in the repository that are older than 30 days."),
 
+    PRS_NOT_RESPONDED("Pull Requests not responded", "The total number of pull requests in the repository that have not received any comments or responses."),
     ISSUES_NOT_RESPONDED_THIRTY_DAYS("Issues not responded for 30 days", "The total number of issues in the repository that are older than 30 days and have received no comments or responses."),
     PRS_NOT_RESPONDED_THIRTY_DAYS("Pull Requests not responded for 30 days", "The total number of pull requests in the repository that are older than 30 days and have not received any comments or responses.");
 
@@ -38,7 +39,7 @@ public enum GitHubFactorThresholds implements Factors {
     }
 
     @Override
-    public BoolQueryBuilder getBoolQueryBuilder(HealthRequest request, LocalDateTime startDate, LocalDateTime endDate) {
+    public BoolQueryBuilder getBoolQueryBuilder(MetricsRequest request, LocalDateTime startDate, LocalDateTime endDate) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         switch (this) {
             case GITHUB_AUDIT:
@@ -55,7 +56,7 @@ public enum GitHubFactorThresholds implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d/d").to("now-29d/d"));
                 }
                 return boolQueryBuilder;
             case ISSUES_NOT_RESPONDED_THIRTY_DAYS:
@@ -64,7 +65,14 @@ public enum GitHubFactorThresholds implements Factors {
                     boolQueryBuilder.filter(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.filter(QueryBuilders.matchQuery("comments", 0));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d/d").to("now-29d/d"));
+                }
+                return boolQueryBuilder;
+            case PRS_NOT_RESPONDED:
+                if (request.getRepository() != null) {
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("comments", 0));
                 }
                 return boolQueryBuilder;
             case PRS_NOT_RESPONDED_THIRTY_DAYS:
@@ -72,7 +80,7 @@ public enum GitHubFactorThresholds implements Factors {
                     boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", request.getRepository()));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
                     boolQueryBuilder.must(QueryBuilders.matchQuery("comments", 0));
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d").to("now"));
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("created_at").from("now-30d/d").to("now-29d/d"));
                 }
                 return boolQueryBuilder;
             default:
@@ -81,7 +89,7 @@ public enum GitHubFactorThresholds implements Factors {
     }
 
     @Override
-    public SearchRequest createSearchRequest(HealthRequest request, BoolQueryBuilder queryBuilder) {
+    public SearchRequest createSearchRequest(MetricsRequest request, BoolQueryBuilder queryBuilder) {
         SearchRequest searchRequest = new SearchRequest(request.getIndex());
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         switch (this) {
@@ -91,6 +99,7 @@ public enum GitHubFactorThresholds implements Factors {
             case UNTRIAGED_ISSUES_GREATER_THAN_THIRTY_DAYS:
             case ISSUES_NOT_RESPONDED_THIRTY_DAYS:
             case PRS_NOT_RESPONDED_THIRTY_DAYS:
+            case PRS_NOT_RESPONDED:
                 searchSourceBuilder.query(queryBuilder);
                 searchRequest.source(searchSourceBuilder);
                 return searchRequest;
@@ -114,6 +123,7 @@ public enum GitHubFactorThresholds implements Factors {
                 }
             case ISSUES_NOT_RESPONDED_THIRTY_DAYS:
             case PRS_NOT_RESPONDED_THIRTY_DAYS:
+            case PRS_NOT_RESPONDED:
                 if (status == RestStatus.OK) {
                     return (Math.round(0.02 * searchResponse.getHits().getTotalHits().value));
                 }

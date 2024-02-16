@@ -127,7 +127,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
         }),);
 
         // Commands run on provisioning
-        this.asg.addUserData(...this.getUserData(props.opensearchUrl, props.region, "opensearch_repo_health", "opensearch_project_health"));
+        this.asg.addUserData(...this.getUserData(props.opensearchUrl, props.region, "opensearch_repo_metrics", "opensearch_project_metrics", "opensearch_release_stats"));
     }
 
     private createInstanceRole(): Role {
@@ -194,7 +194,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
                 }
             }'`;
     }
-    private getUserData(opensearchUrl: string, region: string, repoIndex: string, projectIndex: string): string[] {
+    private getUserData(opensearchUrl: string, region: string, repoIndex: string, projectIndex: string, releaseStatsIndex: string): string[] {
         return [
             'sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm',
             'sudo amazon-linux-extras install nginx1.12 -y',
@@ -209,7 +209,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
             'sudo chmod a+x /usr/local/sbin/docker-compose',
             'sudo aws s3 sync ' +  Project.FRONTEND_CODE_S3_LOCATION + ' opensearch-health-dashboard',
             'cd opensearch-health-dashboard',
-            'DOMAIN_ENDPOINT=https://' + opensearchUrl + ' DOMAIN_REGION=' + region + ' HEALTH_INDEX=' + repoIndex + ' PROJECT_INDEX=' + projectIndex + ' ENABLE_SIGV4=true' + ' docker-compose up -d'
+            'DOMAIN_ENDPOINT=https://' + opensearchUrl + ' DOMAIN_REGION=' + region + ' HEALTH_INDEX=' + repoIndex + ' MAIN_INDEX=' + projectIndex + ' ENABLE_SIGV4=true' + ' RELEASE_INDEX=' + releaseStatsIndex + ' docker-compose up -d'
         ];
     }
 }

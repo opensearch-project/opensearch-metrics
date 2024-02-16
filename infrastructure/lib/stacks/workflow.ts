@@ -42,7 +42,7 @@ export class OpenSearchHealthWorkflowStack extends Stack {
         const openSearchDomain = opensearchDomainStack.domain;
         const healthLambda = new OpenSearchLambda(scope, "OpenSearchHealthLambdaFunction", {
             lambdaNameBase: "OpenSearchHealth",
-            handler: "org.opensearchhealth.lambda.HealthLambda",
+            handler: "org.opensearchhealth.lambda.MetricsLambda",
             vpc: vpcStack.vpc,
             securityGroup: vpcStack.securityGroup,
             role: opensearchDomainStack.openSearchLambdaRole,

@@ -11,8 +11,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearchhealth.health.HealthCalculation;
-import org.opensearchhealth.util.HealthScoreCalculation;
+import org.opensearchhealth.metrics.MetricsCalculation;
 import org.opensearchhealth.util.OpenSearchUtil;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -69,15 +68,9 @@ public class CommonModule {
         return new OpenSearchUtil(client);
     }
 
-    @Singleton
-    @Provides
-    public HealthScoreCalculation getHealthScoreCalculation() {
-        return new HealthScoreCalculation();
-    }
-
     @Provides
     @Singleton
-    public HealthCalculation getGitHubHealthCalculation(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper) {
-        return new HealthCalculation(openSearchUtil, objectMapper);
+    public MetricsCalculation getGitHubHealthCalculation(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper) {
+        return new MetricsCalculation(openSearchUtil, objectMapper);
     }
 }

@@ -29,7 +29,7 @@ export class OpenSearchLambda extends Construct {
                 subnetType: SubnetType.PRIVATE_WITH_EGRESS}),
             securityGroups: props.securityGroup ? [props.securityGroup] : undefined,
             role: props.role ? props.role : undefined,
-            code: Code.fromAsset(path.join(__dirname, '../../../build/distributions/opensearch-health-1.0-SNAPSHOT.zip')),
+            code: Code.fromAsset(path.join(__dirname, '../../../build/distributions/opensearch-insights-1.0-SNAPSHOT.zip')),
             handler: props.handler,
             timeout: Duration.minutes(15),
             runtime: Runtime.JAVA_17,

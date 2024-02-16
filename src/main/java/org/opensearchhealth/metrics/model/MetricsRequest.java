@@ -1,10 +1,10 @@
-package org.opensearchhealth.health.model;
+package org.opensearchhealth.metrics.model;
 
 import lombok.Data;
-import org.opensearchhealth.health.Factors;
+import org.opensearchhealth.metrics.Factors;
 
 @Data
-public class HealthRequest {
+public class MetricsRequest {
 
     private final String theme;
 
@@ -14,7 +14,7 @@ public class HealthRequest {
     private final String index;
     private final String repository;
 
-    public HealthRequest(String theme, Factors factor, Factors factorThresholds, String index, String repository) {
+    public MetricsRequest(String theme, Factors factor, Factors factorThresholds, String index, String repository) {
         this.theme = theme;
         this.factor = factor;
         this.factorThresholds = factorThresholds;

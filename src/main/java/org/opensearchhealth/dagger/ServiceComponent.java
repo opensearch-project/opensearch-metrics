@@ -2,7 +2,7 @@ package org.opensearchhealth.dagger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dagger.Component;
-import org.opensearchhealth.health.HealthCalculation;
+import org.opensearchhealth.metrics.MetricsCalculation;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import javax.inject.Singleton;
@@ -15,6 +15,6 @@ public interface ServiceComponent {
 
     OpenSearchUtil getOpenSearchUtil();
 
-    HealthCalculation getGitHubHealthCalculation();
+    MetricsCalculation getGitHubHealthCalculation();
 
 }

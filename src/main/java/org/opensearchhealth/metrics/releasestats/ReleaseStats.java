@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.releasestats;
+package org.opensearchhealth.metrics.releasestats;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
@@ -9,7 +9,7 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
-import org.opensearchhealth.health.model.Release;
+import org.opensearchhealth.metrics.model.Release;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
@@ -41,6 +41,7 @@ public class ReleaseStats {
         SearchRequest searchRequest = new SearchRequest("github_issues");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
+        searchSourceBuilder.size(9000);
         searchSourceBuilder.fetchSource(new String[]{"number", "html_url", "title"}, null);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = openSearchUtil.search(searchRequest);
@@ -67,6 +68,7 @@ public class ReleaseStats {
         SearchRequest searchRequest = new SearchRequest("github_issues");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
+        searchSourceBuilder.size(9000);
         searchSourceBuilder.fetchSource(new String[]{"html_url", "title"}, null);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = openSearchUtil.search(searchRequest);
@@ -93,6 +95,7 @@ public class ReleaseStats {
         SearchRequest searchRequest = new SearchRequest("github_issues");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
+        searchSourceBuilder.size(9000);
         searchSourceBuilder.fetchSource(new String[]{"number", "html_url", "title"}, null);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = openSearchUtil.search(searchRequest);

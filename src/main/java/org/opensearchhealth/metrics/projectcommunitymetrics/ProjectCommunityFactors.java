@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.projectcommunityhealth;
+package org.opensearchhealth.metrics.projectcommunitymetrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.action.search.SearchRequest;
@@ -9,18 +9,22 @@ import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.aggregations.Aggregation;
 import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.bucket.terms.Terms;
 import org.opensearch.search.aggregations.metrics.Avg;
 import org.opensearch.search.aggregations.metrics.Cardinality;
 import org.opensearch.search.aggregations.metrics.CardinalityAggregationBuilder;
 import org.opensearch.search.aggregations.metrics.Sum;
 import org.opensearch.search.builder.SearchSourceBuilder;
-import org.opensearchhealth.health.Factors;
-import org.opensearchhealth.health.model.HealthRequest;
+import org.opensearchhealth.metrics.Factors;
+import org.opensearchhealth.metrics.model.MetricsRequest;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public enum ProjectCommunityFactors implements Factors {
 
@@ -39,7 +43,7 @@ public enum ProjectCommunityFactors implements Factors {
     ISSUES_AVG_TIME_OPEN("Average Issue Open Time: Measured in Days", "The average duration, measured in days, from the date an issue was created to the current day."),
     ISSUES_AVG_TIME_CLOSE("Average Issue Close Time: Measured in Days", "The average duration, measured in days, from the date an issue was initiated to when it was marked closed."),
     PRS_AVG_TIME_OPEN("Average Pull Request Open Time: Measured in Days", "The average duration, measured in days, from the date a pull request was created to the current day."),
-    PRS_AVG_TIME_CLOSE("Average Pull Request Merge Time: Measured in Days", "The average duration, measured in days, from the date a pull request was created to when it was marked merged.");
+    PRS_AVG_TIME_MERGED("Average Pull Request Merge Time: Measured in Days", "The average duration, measured in days, from the date a pull request was created to when it was marked merged.");
 
     private final String fullName;
     private final String description;
@@ -50,19 +54,19 @@ public enum ProjectCommunityFactors implements Factors {
     }
 
     @Override
-    public BoolQueryBuilder getBoolQueryBuilder(HealthRequest request, LocalDateTime startDate, LocalDateTime endDate) {
+    public BoolQueryBuilder getBoolQueryBuilder(MetricsRequest request, LocalDateTime startDate, LocalDateTime endDate) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         switch (this) {
             case TOTAL_GITHUB_ISSUES_CREATED:
             case TOTAL_POSITIVE_REACTIONS_ISSUES:
+            case TOTAL_NEGATIVE_REACTIONS_ISSUES:
                 boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
                 return boolQueryBuilder;
             case TOTAL_GITHUB_PULLS_CREATED:
             case NUMBER_OF_CONTRIBUTORS:
-            case TOTAL_NEGATIVE_REACTIONS_ISSUES:
                 return boolQueryBuilder;
             case TOTAL_GITHUB_PULLS_MERGED:
-            case PRS_AVG_TIME_CLOSE:
+            case PRS_AVG_TIME_MERGED:
                 boolQueryBuilder.must(QueryBuilders.existsQuery("merged_at"));
                 return boolQueryBuilder;
             case GITHUB_OPEN_ISSUES:
@@ -87,20 +91,25 @@ public enum ProjectCommunityFactors implements Factors {
     }
 
     @Override
-    public SearchRequest createSearchRequest(HealthRequest request, BoolQueryBuilder queryBuilder) {
+    public SearchRequest createSearchRequest(MetricsRequest request, BoolQueryBuilder queryBuilder) {
         SearchRequest searchRequest = new SearchRequest(request.getIndex());
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         switch (this) {
             case TOTAL_GITHUB_ISSUES_CREATED:
             case TOTAL_GITHUB_PULLS_CREATED:
             case TOTAL_GITHUB_PULLS_MERGED:
-            case GITHUB_OPEN_ISSUES:
             case GITHUB_CLOSED_ISSUES:
             case GITHUB_OPEN_PULLS:
+            case GITHUB_OPEN_ISSUES:
                 searchSourceBuilder.size(9000);
                 searchRequest.scroll(TimeValue.timeValueMinutes(2));
                 searchSourceBuilder.query(queryBuilder);
                 searchRequest.source(searchSourceBuilder);
+                searchSourceBuilder.aggregation(
+                        AggregationBuilders.terms("repo_aggregation")
+                                .field("repository.keyword")
+                                .size(100000)
+                );
                 return searchRequest;
             case TOTAL_POSITIVE_REACTIONS_ISSUES:
                 searchSourceBuilder.query(queryBuilder);
@@ -138,7 +147,7 @@ public enum ProjectCommunityFactors implements Factors {
                 );
                 searchRequest.source(searchSourceBuilder);
                 return searchRequest;
-            case PRS_AVG_TIME_CLOSE:
+            case PRS_AVG_TIME_MERGED:
                 searchSourceBuilder.query(queryBuilder);
                 searchSourceBuilder.aggregation(
                         AggregationBuilders.avg("avg_close_field").field("time_to_merge_days")
@@ -183,14 +192,12 @@ public enum ProjectCommunityFactors implements Factors {
             case PRS_AVG_TIME_OPEN:
                 Aggregation openAggregation = searchResponse.getAggregations().get("avg_open_field");
                 Avg avgOpenAgg = (Avg) openAggregation;
-                long avgOpenValue = (long) avgOpenAgg.getValue();
-                return avgOpenValue;
+                return (avgOpenAgg.getValue() != Double.POSITIVE_INFINITY) ? Math.round(avgOpenAgg.getValue()) : 0;
             case ISSUES_AVG_TIME_CLOSE:
-            case PRS_AVG_TIME_CLOSE:
+            case PRS_AVG_TIME_MERGED:
                 Aggregation closeAggregation = searchResponse.getAggregations().get("avg_close_field");
                 Avg avgCloseAgg = (Avg) closeAggregation;
-                long avgCloseValue = (long) avgCloseAgg.getValue();
-                return avgCloseValue;
+                return (avgCloseAgg.getValue() != Double.POSITIVE_INFINITY) ? Math.round(avgCloseAgg.getValue()) : 0;
             default:
                 throw new RuntimeException("Unknown Project Community Factor to performSearch");
         }
@@ -216,7 +223,28 @@ public enum ProjectCommunityFactors implements Factors {
 
     @Override
     public Map<String, Long> performSearchMapValue(OpenSearchUtil opensearchUtil, SearchRequest request, ObjectMapper objectMapper) throws IOException {
+        SearchResponse searchResponse = opensearchUtil.search(request);
+        RestStatus status = searchResponse.status();
+        Map<String, Long> factorMapValue = new HashMap<>();
         switch (this) {
+            case TOTAL_GITHUB_ISSUES_CREATED:
+            case TOTAL_GITHUB_PULLS_CREATED:
+            case TOTAL_GITHUB_PULLS_MERGED:
+            case GITHUB_CLOSED_ISSUES:
+            case GITHUB_OPEN_PULLS:
+            case GITHUB_OPEN_ISSUES:
+                if (status == RestStatus.OK) {
+                    Terms repoAggregation = searchResponse.getAggregations().get("repo_aggregation");
+                    for (Terms.Bucket bucket : repoAggregation.getBuckets()) {
+                        factorMapValue.put(bucket.getKeyAsString(), bucket.getDocCount());
+                    }
+                }
+                if(!factorMapValue.isEmpty()) {
+                    return factorMapValue.entrySet()
+                            .stream()
+                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+                }
             default:
                 return null;
         }

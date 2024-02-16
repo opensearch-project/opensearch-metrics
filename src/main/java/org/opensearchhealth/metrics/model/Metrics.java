@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.model;
+package org.opensearchhealth.metrics.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public final class Health {
+public final class Metrics {
 
     @JsonProperty("id")
     private String id;
@@ -59,6 +59,7 @@ public final class Health {
 
         @JsonSerialize(using = CustomMapSerializer.class)
         @JsonProperty("factor_map_value")
+        @JsonInclude(JsonInclude.Include.ALWAYS)
         private Map<String, Long> factorMapValue;
 
         @JsonSerialize(using = CustomLongSerializer.class)
@@ -79,10 +80,11 @@ public final class Health {
         return mapper.writeValueAsString(data);
     }
 
-    public String getJson(Health health, ObjectMapper objectMapper) {
+    public String getJson(Metrics health, ObjectMapper objectMapper) {
         try {
             return health.toJson(objectMapper);
         } catch (JsonProcessingException e) {
+            System.out.println("The health is " + health);
             System.out.println("Error while serializing ReportDataRow to JSON " +  e);
             throw new RuntimeException(e);
         }
@@ -105,21 +107,22 @@ class CustomLongSerializer extends JsonSerializer<Long> {
         }
     }
 }
-
 class CustomMapSerializer extends JsonSerializer<Map<String, Long>> {
 
     @Override
     public void serialize(Map<String, Long> map, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
             throws IOException {
-
         if (map == null) {
             return;
         }
         jsonGenerator.writeStartObject();
         for (Map.Entry<String, Long> entry : map.entrySet()) {
-            jsonGenerator.writeFieldName(entry.getKey());
+            jsonGenerator.writeFieldName("\"" + entry.getKey().replaceAll("\\.\\.", "\\\\\"") + "\"");
+            //"\"" + fieldName + "\"";
+            //jsonGenerator.writeObjectField(entry.getKey().trim(), entry.getValue() != null && entry.getValue() != 0 ? entry.getValue() : 0);;
             jsonGenerator.writeNumber(entry.getValue() != null && entry.getValue() != 0 ? entry.getValue() : 0);
         }
         jsonGenerator.writeEndObject();
     }
 }
+

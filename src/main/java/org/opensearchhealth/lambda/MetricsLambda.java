@@ -12,7 +12,7 @@ import org.opensearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearchhealth.dagger.DaggerServiceComponent;
 import org.opensearchhealth.dagger.ServiceComponent;
-import org.opensearchhealth.health.HealthCalculation;
+import org.opensearchhealth.metrics.MetricsCalculation;
 import org.opensearchhealth.util.OpenSearchUtil;
 
 import java.io.IOException;
@@ -20,22 +20,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class HealthLambda extends AbstractBaseLambda {
+public class MetricsLambda extends AbstractBaseLambda {
     private static final ServiceComponent COMPONENT = DaggerServiceComponent.create();
     private final OpenSearchUtil openSearchUtil;
 
-    private final HealthCalculation healthCalculation;
+    private final MetricsCalculation metricsCalculation;
 
-    public HealthLambda() {
+    public MetricsLambda() {
 
         this(COMPONENT.getOpenSearchUtil(), COMPONENT.getGitHubHealthCalculation());
     }
 
     @VisibleForTesting
-    HealthLambda(@NonNull OpenSearchUtil openSearchUtil, @NonNull HealthCalculation healthCalculation) {
+    MetricsLambda(@NonNull OpenSearchUtil openSearchUtil, @NonNull MetricsCalculation metricsCalculation) {
 
         this.openSearchUtil = openSearchUtil;
-        this.healthCalculation = healthCalculation;
+        this.metricsCalculation = metricsCalculation;
     }
 
     @Override
@@ -58,9 +58,9 @@ public class HealthLambda extends AbstractBaseLambda {
                 .map(bucket -> bucket.getKeyAsString())
                 .collect(Collectors.toList());
         try {
-            healthCalculation.generateRepos(keys);
-            healthCalculation.generateProject();
-            healthCalculation.generateReleaseStats(keys);
+            metricsCalculation.generateRepos(keys);
+            metricsCalculation.generateProject();
+            metricsCalculation.generateReleaseStats(keys);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {

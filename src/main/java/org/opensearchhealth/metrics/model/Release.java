@@ -1,4 +1,4 @@
-package org.opensearchhealth.health.model;
+package org.opensearchhealth.metrics.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
