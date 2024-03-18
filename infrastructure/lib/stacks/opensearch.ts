@@ -2,19 +2,20 @@ import {RemovalPolicy, Stack} from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as opensearch from "aws-cdk-lib/aws-opensearchservice";
 import { Domain } from "aws-cdk-lib/aws-opensearchservice";
+import { aws_opensearchservice as opensearchservice } from 'aws-cdk-lib';
 import * as iam from "aws-cdk-lib/aws-iam";
 import { ArnPrincipal, CompositePrincipal, Effect, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { VpcStack } from "./vpc";
 import * as fs from 'fs';
-import {OpenSearchHealthCognito} from "../constructs/opensearchCognito";
-import {OpenSearchHealthNginx} from "../constructs/opensearchNginxProxy";
+import {OpenSearchMetricsCognito} from "../constructs/opensearchCognito";
+import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";;
 
 
 export interface OpenSearchStackProps {
     readonly region: string;
     readonly account: string;
     readonly vpcStack: VpcStack;
-    readonly enableNginx: boolean;
+    readonly enableNginxCognito: boolean;
 }
 
 export interface OpenSearchDomainConfig {
@@ -35,9 +36,10 @@ export class OpenSearchDomainStack extends Stack {
         super(scope, id);
         this.props = props;
 
+
         this.openSearchLambdaRole = new Role(this, 'OpenSearchDomainLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-            description: "role to upload data from s3 to opensearch",
+            description: "OpenSearch Metrics Lambda Execution Role",
             roleName: "OpenSearchLambdaRole",
 
             inlinePolicies: {
@@ -59,38 +61,12 @@ export class OpenSearchDomainStack extends Stack {
                         })
                     ]
                 }),
-                "sesAssumeRolePolicy": new PolicyDocument({
-                    statements: [
-                        new PolicyStatement({
-                            effect: iam.Effect.ALLOW,
-                            actions: ["ses:SendEmail", "ses:SendRawEmail"],
-                            resources: ['*']
-                        })
-                    ]
-                }),
             },
             managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'),
                 ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
                 ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaVPCAccessExecutionRole'),
-                ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite')
             ]
         });
-
-        const secureRolesList = [this.openSearchLambdaRole]
-        this.fullAccessRole = new Role(this, 'OpenSearchFullAccessRole', {
-            assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new iam.ArnPrincipal(role.roleArn))),
-            description: "Master role for OpenSearch full access",
-            roleName: "OpenSearchFullAccessRole",
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName("AmazonOpenSearchServiceFullAccess")
-            ]
-        });
-
-        const healthCognito = new OpenSearchHealthCognito(this, "OpenSearchHealthCognito", {
-            region: props.region,
-        });
-
 
         this.opensearchDomainConfig = {
             domainName: 'opensearch-health',
@@ -101,8 +77,32 @@ export class OpenSearchDomainStack extends Stack {
 
         const domainArn = `arn:aws:es:${props.region}:${props.account}:domain/${this.opensearchDomainConfig.domainName}/*`;
 
+        const secureRolesList = [this.openSearchLambdaRole]
+        this.fullAccessRole = new Role(this, 'OpenSearchFullAccessRole', {
+            assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new iam.ArnPrincipal(role.roleArn))),
+            description: "Master role for OpenSearch full access",
+            roleName: "OpenSearchFullAccessRole",
+            inlinePolicies: {
+                "opensearchFullAccess": new PolicyDocument({
+                    statements: [
+                        new PolicyStatement({
+                            effect: iam.Effect.ALLOW,
+                            actions: ["es:*"],
+                            resources: [domainArn]
+                        })
+                    ]
+                })
+            }
+        });
+
+        const metricsCognito = new OpenSearchMetricsCognito(this, "OpenSearchHealthCognito", {
+            region: props.region,
+        });
+
+
+
         this.domain = new opensearch.Domain(this, 'OpenSearchHealthDomain', {
-            version: opensearch.EngineVersion.OPENSEARCH_2_9,
+            version: opensearch.EngineVersion.OPENSEARCH_2_11,
             vpc: props.vpcStack.vpc,
             // vpcSubnets: [props.vpcStack.subnets],
             vpcSubnets: [this.props.vpcStack.subnets],
@@ -128,12 +128,12 @@ export class OpenSearchDomainStack extends Stack {
                 enabled: true
             },
             cognitoDashboardsAuth: {
-                identityPoolId: healthCognito.identityPool.ref,
-                userPoolId: healthCognito.userPool.ref,
-                role: healthCognito.healthCognitoAccessRole
+                identityPoolId: metricsCognito.identityPool.ref,
+                userPoolId: metricsCognito.userPool.ref,
+                role: metricsCognito.metricsCognitoAccessRole
             },
             fineGrainedAccessControl: {
-                masterUserArn: healthCognito.identityPoolAdminRole.roleArn,
+                masterUserArn: metricsCognito.identityPoolAdminRole.roleArn,
             },
             accessPolicies: [
                 new PolicyStatement({
@@ -141,7 +141,7 @@ export class OpenSearchDomainStack extends Stack {
                     actions: ["es:ESHttp*"],
                     principals: [
                         new ArnPrincipal(
-                            healthCognito.identityPoolAuthRole.roleArn
+                            metricsCognito.identityPoolAuthRole.roleArn
                         ),
                         new ArnPrincipal(
                             this.fullAccessRole.roleArn
@@ -165,14 +165,14 @@ export class OpenSearchDomainStack extends Stack {
 
         this.domain.node.addDependency(serviceLinkedRole);
 
-        if(props.enableNginx) {
-            new OpenSearchHealthNginx(this, "OpenSearchHealthNginx", {
+        if(props.enableNginxCognito) {
+            new OpenSearchMetricsNginxCognito(this, "OpenSearchMetricsNginx", {
                 region: this.props.region,
                 vpc: props.vpcStack.vpc,
                 securityGroup: props.vpcStack.securityGroup,
                 opensearchDashboardUrlProps: {
                     opensearchDashboardVpcUrl: this.domain.domainEndpoint,
-                    cognitoDomain: healthCognito.userPoolDomain.domain
+                    cognitoDomain: metricsCognito.userPoolDomain.domain
                 }
             });
         }

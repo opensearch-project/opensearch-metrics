@@ -22,13 +22,16 @@ import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
 import Project from "../enums/project";
 import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
 import {OpenSearchHealthRoute53} from "./route53";
+import {S3} from "aws-cdk-lib/aws-ses-actions";
 
 export interface ServerProps {
     readonly vpc: Vpc;
     readonly securityGroup: SecurityGroup;
     readonly opensearchUrl: string;
+    readonly domainName: string;
     readonly nlbProps?: nlbProps
     readonly region: string;
+    readonly account: string;
 }
 
 export interface nlbProps {
@@ -44,7 +47,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
 
         super(scope, id);
 
-        const instanceRole = this.createInstanceRole();
+        const instanceRole = this.createInstanceRole(props);
         this.asg = new AutoScalingGroup(this, 'OpenSearchHealth-FrontendServer', {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
             blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
@@ -93,7 +96,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
 
             const aRecord = new ARecord(this, "OpenSearchHealth-DNS", {
                 zone: props.nlbProps.hostedZone.zone,
-                recordName: Project.HOSTED_ZONE,
+                recordName: Project.HEALTH_HOSTED_ZONE,
                 target: RecordTarget.fromAlias(new LoadBalancerTarget(lb)),
             });
         }
@@ -130,7 +133,7 @@ export class OpenSearchHealthFrontendServer extends Stack {
         this.asg.addUserData(...this.getUserData(props.opensearchUrl, props.region, "opensearch_repo_metrics", "opensearch_project_metrics", "opensearch_release_stats"));
     }
 
-    private createInstanceRole(): Role {
+    private createInstanceRole(serverProps: ServerProps): Role {
         const role = new Role(this, `OpenSearchHealth-FrontendServerRole`, {
             assumedBy: new ServicePrincipal('ec2.amazonaws.com'),
             roleName: "OpenSearchFrontEndServer",
@@ -139,7 +142,33 @@ export class OpenSearchHealthFrontendServer extends Stack {
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonOpenSearchServiceReadOnlyAccess'));
         // Temp access until the GitHub repo is public, to fetch the code from s3
-        role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'));
+        // role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'));
+
+        const domainArn = `arn:aws:es:${serverProps.region}:${serverProps.account}:domain/${serverProps.domainName}/*`;
+        role.addToPolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+                "es:Describe*",
+                "es:List*",
+                "es:Get*",
+                "es:ESHttpGet",
+                "es:ESHttpPost"
+            ],
+            resources: [domainArn]
+        }));
+
+        const [, bucketName, objectKey] = Project.FRONTEND_CODE_S3_LOCATION.match(/s3:\/\/([^/]+)\/(.+)/) || [];
+        role.addToPolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            resources: [
+                "arn:aws:s3:::${bucketName}/${objectKey}",
+                "arn:aws:s3:::${bucketName}/${objectKey}/*"
+            ],
+        }));
 
         role.addToPolicy(new PolicyStatement({
             effect: Effect.ALLOW,

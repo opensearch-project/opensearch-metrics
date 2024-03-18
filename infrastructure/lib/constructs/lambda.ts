@@ -7,6 +7,7 @@ import { IRole } from "aws-cdk-lib/aws-iam";
 
 export class OpenSearchLambdaProps {
     readonly lambdaNameBase: string; // Component name cannot be longer then 22, so base should be shorter than 20
+    readonly lambdaZipPath: string;
     readonly handler: string;
     readonly vpc?: IVpc;
     readonly securityGroup?: ISecurityGroup;
@@ -29,7 +30,7 @@ export class OpenSearchLambda extends Construct {
                 subnetType: SubnetType.PRIVATE_WITH_EGRESS}),
             securityGroups: props.securityGroup ? [props.securityGroup] : undefined,
             role: props.role ? props.role : undefined,
-            code: Code.fromAsset(path.join(__dirname, '../../../build/distributions/opensearch-insights-1.0-SNAPSHOT.zip')),
+            code: Code.fromAsset(path.join(__dirname, props.lambdaZipPath)),
             handler: props.handler,
             timeout: Duration.minutes(15),
             runtime: Runtime.JAVA_17,

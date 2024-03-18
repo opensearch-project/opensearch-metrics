@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 public enum ProjectThemeFactors {
-    GITHUB_PROJECT_METRICS("Github Project Metrics", "OpenSearch Project GitHub metrics"),
+    GITHUB_PROJECT_METRICS("Github Project MetricsData", "OpenSearch Project GitHub metrics"),
     COMMUNITY_ENGAGEMENT("Community Engagement", "OpenSearch Project community metrics");
 
     private final String fullName;

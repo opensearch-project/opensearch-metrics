@@ -17,6 +17,7 @@ export class OpenSearchHealthWorkflowStack extends Stack {
     constructor(scope: Construct, id: string, props: OpenSearchHealthStackProps) {
         super(scope, id, props);
 
+
         const healthTask = this.createHealthTask(
             this,
             props.opensearchDomainStack,
@@ -43,6 +44,7 @@ export class OpenSearchHealthWorkflowStack extends Stack {
         const healthLambda = new OpenSearchLambda(scope, "OpenSearchHealthLambdaFunction", {
             lambdaNameBase: "OpenSearchHealth",
             handler: "org.opensearchhealth.lambda.MetricsLambda",
+            lambdaZipPath: "../../../build/distributions/opensearch-insights-1.0-SNAPSHOT.zip",
             vpc: vpcStack.vpc,
             securityGroup: vpcStack.securityGroup,
             role: opensearchDomainStack.openSearchLambdaRole,

@@ -5,6 +5,7 @@ import {Certificate, CertificateValidation} from "aws-cdk-lib/aws-certificateman
 
 export interface Route53Props {
     readonly hostedZone: string,
+    readonly appName: string,
 }
 
 export class OpenSearchHealthRoute53 extends Stack {
@@ -14,13 +15,13 @@ export class OpenSearchHealthRoute53 extends Stack {
 
         super(scope, id);
 
-        this.zone = new HostedZone(this, "OpenSearchHealth-HostedZone", {
+        this.zone = new HostedZone(this, `${props.appName}.-HostedZone`, {
             zoneName: props.hostedZone,
         });
 
-        const certificate = new Certificate(this, "OpenSearchHealth-Certificate", {
+        const certificate = new Certificate(this, `${props.appName}-Certificate`, {
             domainName: props.hostedZone,
-            certificateName: "OpenSearchHealth",
+            certificateName: props.appName,
             validation: CertificateValidation.fromDns(this.zone),
         });
         this.certificateArn = certificate.certificateArn;

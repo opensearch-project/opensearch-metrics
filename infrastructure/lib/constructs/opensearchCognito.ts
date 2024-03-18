@@ -7,11 +7,11 @@ export interface OpenSearchMetricsCognitoProps {
     readonly region: string;
 }
 
-export class OpenSearchHealthCognito extends Construct {
+export class OpenSearchMetricsCognito extends Construct {
     public readonly identityPool: cognito.CfnIdentityPool;
     public readonly userPool: cognito.CfnUserPool;
     public readonly userPoolDomain: cognito.CfnUserPoolDomain;
-    public readonly healthCognitoAccessRole: Role;
+    public readonly metricsCognitoAccessRole: Role;
     public readonly identityPoolAuthRole: Role;
     public readonly identityPoolAdminRole: Role;
 
@@ -20,7 +20,7 @@ export class OpenSearchHealthCognito extends Construct {
         super(scope, id);
 
         const userPoolDomainName = "opensearch-health-user-pool"
-        this.userPool = new cognito.CfnUserPool(this, "OpenSearchMetricsUserPool", {
+        this.userPool = new cognito.CfnUserPool(this, "OpenSearchHealthUserPool", {
             userPoolName: userPoolDomainName,
             adminCreateUserConfig: {
                 allowAdminCreateUserOnly: true
@@ -121,7 +121,7 @@ export class OpenSearchHealthCognito extends Construct {
 
         adminGroup.addPropertyOverride('RoleArn', this.identityPoolAdminRole.roleArn)
 
-        this.healthCognitoAccessRole = new Role(this, "AmazonOpenSearchServiceCognitoAccess", {
+        this.metricsCognitoAccessRole = new Role(this, "AmazonOpenSearchServiceCognitoAccess", {
             assumedBy: new ServicePrincipal("es.amazonaws.com"),
             managedPolicies: [
                 ManagedPolicy.fromAwsManagedPolicyName("AmazonOpenSearchServiceCognitoAccess")

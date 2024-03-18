@@ -13,7 +13,7 @@ import java.util.Locale;
 * */
 public enum RepoThemeFactors {
 
-    GITHUB_REPO_METRICS("GitHub Repo Metrics", "Repo overall GitHub data"),
+    GITHUB_REPO_METRICS("GitHub Repo MetricsData", "Repo overall GitHub data"),
     COMMUNITY_ENGAGEMENT("Community Engagement", "Repo overall community metrics");
 
     private final String fullName;
