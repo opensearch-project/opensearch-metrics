@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class ReleaseRepoFetcherTest {
@@ -29,6 +30,22 @@ public class ReleaseRepoFetcherTest {
         assertEquals(expectedContent, actualContent);
     }
 
+    @Test
+    public void testReleaseRepoExceptionList() {
+        // Create an instance of your class containing the method to be tested
+        ReleaseRepoFetcher fetcher = new ReleaseRepoFetcher();
+
+        // Call the method under test
+        List<String> result = fetcher.releaseRepoExceptionList();
+        List<String> expectedList = new ArrayList<>();
+        expectedList.add("opensearch-build");
+        expectedList.add("performance-analyzer-rca");
+        expectedList.add("project-website");
+        expectedList.add("documentation-website");
+
+        // Assert that the result matches the expected list
+        assertEquals(expectedList, result);
+    }
     @Test
     public void testCreateURL() {
         String url = "https://example.com";
@@ -76,7 +93,8 @@ public class ReleaseRepoFetcherTest {
         ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
         Mockito.doReturn("Test content").when(fetcher).readUrl(Mockito.anyString());
         List<String> repos = fetcher.getReleaseRepos("1.0.0");
-        assertEquals(0, repos.size());
+        // Default will always have 4 repos part of exception list
+        assertEquals(4, repos.size());
     }
 
     @Test
@@ -92,8 +110,9 @@ public class ReleaseRepoFetcherTest {
             return null;
         }).when(fetcher).parseYaml(Mockito.anyString(), Mockito.anyList());
         List<String> repos = fetcher.getReleaseRepos("1.0.0");
-        assertEquals(1, repos.size());
-        assertEquals("repo1", repos.get(0));
+        // Default will always have 4 repos part of exception list
+        assertEquals(5, repos.size());
+        assertTrue(repos.contains("repo1"));
     }
 
 }

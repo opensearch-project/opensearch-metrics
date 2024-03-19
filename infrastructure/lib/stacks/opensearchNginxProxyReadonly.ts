@@ -63,8 +63,8 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             // associatePublicIpAddress: true,
             associatePublicIpAddress: false,
             allowAllOutbound: true,
-            desiredCapacity: 1,
-            minCapacity: 1,
+            desiredCapacity: 2,
+            minCapacity: 2,
             vpc: props.vpc,
             vpcSubnets: {
                // subnetType: SubnetType.PUBLIC,
@@ -197,8 +197,8 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
         const domainArn = `arn:aws:es:${nginxProps.region}:${nginxProps.account}:domain/${nginxProps.opensearchDashboardUrlProps.openSearchDomainName}/*`;
         // SSM integration - https://aws.amazon.com/systems-manager/
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
-        // role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonOpenSearchServiceReadOnlyAccess'));
 
+         /// Test with "es:ESHttpPost" and remove if required
         role.addToPolicy(new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [
@@ -209,16 +209,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 "es:ESHttpPost"
             ],
             resources: [domainArn]
-        }));
-
-        role.addToPolicy(new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: [
-                'ssm:GetCommandInvocation',
-            ],
-            resources: [
-                '*'
-            ]
         }));
         return role;
     }

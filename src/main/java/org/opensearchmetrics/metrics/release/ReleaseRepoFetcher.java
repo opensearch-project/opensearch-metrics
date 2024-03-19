@@ -22,6 +22,9 @@ public class ReleaseRepoFetcher {
 
     public List<String> getReleaseRepos(String releaseVersion) {
         List<String> repoNames = new ArrayList<>();
+        repoNames.add("opensearch-build");
+        repoNames.add("performance-analyzer-rca");
+        repoNames.add("project-website");
         String[] urls = {
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-%s.yml", releaseVersion, releaseVersion),
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-dashboards-%s.yml", releaseVersion, releaseVersion)
@@ -30,10 +33,20 @@ public class ReleaseRepoFetcher {
             String responseBody = readUrl(url);
             parseYaml(responseBody, repoNames);
         }
+        repoNames.addAll(releaseRepoExceptionList());
         return repoNames.stream()
                 .distinct()
                 .collect(Collectors.toList());
     }
+
+    public List<String> releaseRepoExceptionList() {
+        List<String> repoExceptionList = new ArrayList<>();
+        repoExceptionList.add("opensearch-build");
+        repoExceptionList.add("performance-analyzer-rca");
+        repoExceptionList.add("project-website");
+        repoExceptionList.add("documentation-website");
+        return repoExceptionList;
+    };
 
     public String readUrl(String url) {
         StringBuilder content = new StringBuilder();

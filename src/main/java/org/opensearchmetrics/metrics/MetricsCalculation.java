@@ -149,15 +149,6 @@ public class MetricsCalculation {
     }
 
     public void generateReleaseMetrics() {
-        // Need to handle OpenSearch, OpenSearch-Dashboards, opensearch-dashboards-functional-test: version increment
-        // Ensure the release notes is added to `main` and then backported to the release branch
-        // Handle, closed and manually created version increment PR's with differnt title.
-        /*ReleaseInput[] releaseInputs = {
-                new ReleaseInput() {{ setVersion("3.0.0"); setState("open"); setBranch("main"); }},
-                new ReleaseInput() {{ setVersion("2.12.0"); setState("closed"); setBranch("2.12"); }},
-                new ReleaseInput() {{ setVersion("2.13.0"); setState("open"); setBranch("2.x"); }},
-                new ReleaseInput() {{ setVersion("1.3.15"); setState("closed"); setBranch("1.3"); }},
-        };*/
         ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
 
         Map<String, String> metricFinalData =

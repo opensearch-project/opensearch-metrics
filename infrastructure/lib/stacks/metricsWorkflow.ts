@@ -11,6 +11,7 @@ import {SfnStateMachine} from "aws-cdk-lib/aws-events-targets";
 export interface OpenSearchMetricsStackProps extends StackProps {
     readonly opensearchDomainStack: OpenSearchDomainStack;
     readonly vpcStack: VpcStack;
+    readonly lambdaPackage: string
 }
 export class OpenSearchMetricsWorkflowStack extends Stack {
     constructor(scope: Construct, id: string, props: OpenSearchMetricsStackProps) {
@@ -20,6 +21,7 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
             this,
             props.opensearchDomainStack,
             props.vpcStack,
+            props.lambdaPackage
         );
         const opensearchMetricsWorkflow = new StateMachine(this, 'OpenSearchMetricsWorkflow', {
             definition: metricsTask,
@@ -34,12 +36,12 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
     }
 
     private createMetricsTask(scope: Construct, opensearchDomainStack: OpenSearchDomainStack,
-                             vpcStack: VpcStack) {
+                             vpcStack: VpcStack, lambdaPackage: string) {
         const openSearchDomain = opensearchDomainStack.domain;
         const metricsLambda = new OpenSearchLambda(scope, "OpenSearchMetricsLambdaFunction", {
             lambdaNameBase: "OpenSearchMetricsDashboards",
             handler: "org.opensearchmetrics.lambda.MetricsLambda",
-            lambdaZipPath: "../../../build/distributions/opensearch-insights-1.0-SNAPSHOT.zip",
+            lambdaZipPath: `../../../build/distributions/${lambdaPackage}`,
             vpc: vpcStack.vpc,
             securityGroup: vpcStack.securityGroup,
             role: opensearchDomainStack.openSearchLambdaRole,

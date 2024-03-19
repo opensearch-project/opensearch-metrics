@@ -134,18 +134,6 @@ export class OpenSearchMetricsNginxCognito extends Construct {
         });
         // SSM integration - https://aws.amazon.com/systems-manager/
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
-
-        role.addToPolicy(new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: [
-                'ssm:GetCommandInvocation'
-            ],
-            resources: [
-                '*'
-            ]
-        }));
-
-
         return role;
     }
 
@@ -182,7 +170,7 @@ export class OpenSearchMetricsNginxCognito extends Construct {
                     # Update cookie domain and path
                     proxy_cookie_domain $os_endpoint $host;
                     
-            
+     
                     # Response buffer settings
                     proxy_buffer_size 128k;
                     proxy_buffers 4 256k;
