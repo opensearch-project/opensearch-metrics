@@ -15,23 +15,23 @@
 
 ### General Metrics
 
-| metric_name                        | metric_description |
-|------------------------------------|--------------------|
-| Closed Issues                      |                    |
-| Created Issues                     |                    |
-| Issue Comments                     |                    |
-| Negative Reactions                 |                    |
-| Positive Reactions                 |                    |
-| Merged Pull Requests               |                    |
-| Open Issues                        |                    |
-| Open Pull Requests                 |                    |
-| Pull Requests comments             |                    |
-| Uncommented Pull Requests          |                    |
-| Unlabelled Issues                  |                    |
-| Unlabelled Pull Requests           |                    |
-| Untriaged Issues                   |                    |
-| Avgerag: Pull Requests Open/Closed |                    |
-| Avgerag: Issues Open/Closed        |                    |
+| metric_name                         | metric_description                                                                                                         |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| Closed Issues                       | This metric simply counts the total number of issues that have been closed.                                                |
+| Created Issues                      | Metrics related to created issues on GitHub.                                                                               |
+| Issue Comments                      | This metric counts the total number of comments made on issues.                                                            |
+| Negative Reactions                  | Look for reactions such as 👎 or similar GitHub negative indicators.                                                       |
+| Positive Reactions                  | Look for reactions such as 👍 or similar GitHub positive indicators.                                                       |
+| Merged Pull Requests                | The metric that counts the total number of pull requests that have been successfully merged.                               |
+| Open Issues                         | The metric that counts the total number of issues that are currently open and unresolved.                                  |
+| Open Pull Requests                  | The metric that counts the total number of pull requests that are currently open and awaiting review and merge.            |
+| Pull Requests comments              | The metric that counts the number of open pull requests that have not received any comments from reviewers or maintainers. |
+| Uncommented Pull Requests           | The metric that counts the total number of open pull requests that haven't received any comments.                          |
+| Unlabelled Issues                   | The metric that counts the total number of issues that do not have any labels assigned to them.                            |
+| Unlabelled Pull Requests            | The metric that counts the total number of pull requests that do not have any labels assigned to them.                     |
+| Untriaged Issues                    | The metric that counts the total number of issues that have triaged or acknowledged.                                       |
+| Avgerage: Pull Requests Open/Closed | The metric that determines the duration from the PR creation date to the PR close date.                                    |
+| Avgerage: Issues Open/Closed        | The metric that determines the duration from the issue creation date to the issue close date.                              |
 
 
 ### GitHub Label Metrics

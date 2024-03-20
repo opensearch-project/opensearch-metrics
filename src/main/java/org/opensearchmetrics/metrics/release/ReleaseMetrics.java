@@ -61,8 +61,8 @@ public class ReleaseMetrics {
     }
 
 
-    public Boolean getReleaseNotes (String releaseVersion, String repo) {
-        return releaseNotesChecker.releaseNotes(releaseVersion, repo);
+    public Boolean getReleaseNotes (String releaseVersion, String repo, String releaseBranch) {
+        return releaseNotesChecker.releaseNotes(releaseVersion, repo, releaseBranch);
     }
 
 

@@ -8,8 +8,8 @@ import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
-import org.opensearchmetrics.model.LabelData;
-import org.opensearchmetrics.model.MetricsData;
+import org.opensearchmetrics.model.label.LabelData;
+import org.opensearchmetrics.model.general.MetricsData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
@@ -173,7 +173,7 @@ public class MetricsCalculation {
                             releaseMetricsData.setPullsOpen(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repo, "open"));
                             releaseMetricsData.setPullsClosed(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repo, "closed"));
                             releaseMetricsData.setVersionIncrement(releaseMetrics.getReleaseVersionIncrement(releaseInput.getVersion(), repo, releaseInput.getBranch()));
-                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repo));
+                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repo, releaseInput.getBranch()));
                             releaseMetricsData.setReleaseBranch(releaseMetrics.getReleaseBranch(releaseInput.getVersion(), repo));
                             return Stream.of(releaseMetricsData);
                         }))

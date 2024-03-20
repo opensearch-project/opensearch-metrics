@@ -3,8 +3,6 @@ package org.opensearchmetrics.metrics.release;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ReleaseNotesChecker extends UrlResponse {
 
@@ -14,9 +12,7 @@ public class ReleaseNotesChecker extends UrlResponse {
         this.urlResponse = urlResponse;
     }
 
-    public Boolean releaseNotes (String releaseVersion, String repo) {
-        Matcher matcher = Pattern.compile("(\\d+)\\.(\\d+)").matcher(releaseVersion);
-        String releaseBranch = matcher.find() ? matcher.group(1) + "." + matcher.group(2) : "";
+    public Boolean releaseNotes(String releaseVersion, String repo, String releaseBranch) {
         String releaseNotesUrl;
         if(repo.equals("OpenSearch")) {
             releaseNotesUrl = String.format("https://raw.githubusercontent.com/opensearch-project/%s/%s/release-notes/opensearch.release-notes-%s.md", repo, releaseBranch, releaseVersion);

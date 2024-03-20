@@ -55,9 +55,9 @@ public class ReleaseMetricsTest {
         MockitoAnnotations.openMocks(this);
 
         boolean expectedNotes = true;
-        when(releaseNotesChecker.releaseNotes(anyString(), anyString()))
+        when(releaseNotesChecker.releaseNotes(anyString(), anyString(), anyString()))
                 .thenReturn(expectedNotes);
-        boolean result = releaseNotesChecker.releaseNotes("1.0.0", "testRepo");
+        boolean result = releaseNotesChecker.releaseNotes("1.0.0", "testRepo", "1.0");
         assertEquals(expectedNotes, result);
     }
 

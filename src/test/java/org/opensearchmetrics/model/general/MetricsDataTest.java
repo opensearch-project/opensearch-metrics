@@ -1,4 +1,4 @@
-package org.opensearchmetrics.model;
+package org.opensearchmetrics.model.general;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.when;
 
-public class LabelDataTest {
+public class MetricsDataTest {
 
     @Mock
     ObjectMapper objectMapper;
@@ -28,26 +28,24 @@ public class LabelDataTest {
     @Test
     void toJson() throws JsonProcessingException {
         // Arrange
-        LabelData labelData = new LabelData();
-        labelData.setId("1");
-        labelData.setCurrentDate("2024-03-15");
-        labelData.setRepository("test-repo");
-        labelData.setLabelName("bug");
-        labelData.setLabelIssueCount(10L);
-        labelData.setLabelPullCount(5L);
+        MetricsData metricsData = new MetricsData();
+        metricsData.setId("1");
+        metricsData.setCurrentDate("2024-03-15");
+        metricsData.setRepository("test-repo");
+        metricsData.setMetricName("bugs");
+        metricsData.setMetricCount(10L);
 
         Map<String, Object> expectedData = new HashMap<>();
         expectedData.put("id", "1");
         expectedData.put("current_date", "2024-03-15");
         expectedData.put("repository", "test-repo");
-        expectedData.put("label_name", "bug");
-        expectedData.put("label_issue_count", 10L);
-        expectedData.put("label_pull_count", 5L);
+        expectedData.put("metric_name", "bugs");
+        expectedData.put("metric_count", 10L);
 
         when(objectMapper.writeValueAsString(expectedData)).thenReturn("expectedJson");
 
         // Act
-        String actualJson = labelData.toJson(objectMapper);
+        String actualJson = metricsData.toJson(objectMapper);
 
         // Assert
         assertEquals("expectedJson", actualJson);
@@ -56,18 +54,17 @@ public class LabelDataTest {
     @Test
     void getJson() throws JsonProcessingException {
         // Arrange
-        LabelData labelData = new LabelData();
-        labelData.setId("1");
-        labelData.setCurrentDate("2024-03-15");
-        labelData.setRepository("test-repo");
-        labelData.setLabelName("bug");
-        labelData.setLabelIssueCount(10L);
-        labelData.setLabelPullCount(5L);
+        MetricsData metricsData = new MetricsData();
+        metricsData.setId("1");
+        metricsData.setCurrentDate("2024-03-15");
+        metricsData.setRepository("test-repo");
+        metricsData.setMetricName("bugs");
+        metricsData.setMetricCount(10L);
 
         when(objectMapper.writeValueAsString(anyMap())).thenReturn("expectedJson");
 
         // Act
-        String actualJson = labelData.getJson(labelData, objectMapper);
+        String actualJson = metricsData.getJson(metricsData, objectMapper);
 
         // Assert
         assertEquals("expectedJson", actualJson);
@@ -76,17 +73,16 @@ public class LabelDataTest {
     @Test
     void getJson_WithJsonProcessingException() throws JsonProcessingException {
         // Arrange
-        LabelData labelData = new LabelData();
-        labelData.setId("1");
-        labelData.setCurrentDate("2024-03-15");
-        labelData.setRepository("test-repo");
-        labelData.setLabelName("bug");
-        labelData.setLabelIssueCount(10L);
-        labelData.setLabelPullCount(5L);
+        MetricsData metricsData = new MetricsData();
+        metricsData.setId("1");
+        metricsData.setCurrentDate("2024-03-15");
+        metricsData.setRepository("test-repo");
+        metricsData.setMetricName("bugs");
+        metricsData.setMetricCount(10L);
 
         when(objectMapper.writeValueAsString(anyMap())).thenThrow(JsonProcessingException.class);
 
         // Act and Assert
-        assertThrows(RuntimeException.class, () -> labelData.getJson(labelData, objectMapper));
+        assertThrows(RuntimeException.class, () -> metricsData.getJson(metricsData, objectMapper));
     }
 }

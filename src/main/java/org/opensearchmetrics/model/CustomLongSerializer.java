@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
 
-class CustomLongSerializer extends JsonSerializer<Long> {
+public class CustomLongSerializer extends JsonSerializer<Long> {
 
     @Override
     public void serialize(Long value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)

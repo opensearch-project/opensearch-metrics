@@ -1,10 +1,11 @@
-package org.opensearchmetrics.model;
+package org.opensearchmetrics.model.label;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import org.opensearchmetrics.model.CustomLongSerializer;
 
 import java.util.HashMap;
 import java.util.Map;

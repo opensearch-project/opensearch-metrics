@@ -23,7 +23,7 @@ public class ReleaseNotesCheckerTest {
 
         ReleaseNotesChecker releaseNotesChecker = new ReleaseNotesChecker(urlResponseMock);
 
-        assertTrue(releaseNotesChecker.releaseNotes("1.0", "OpenSearch"));
+        assertTrue(releaseNotesChecker.releaseNotes("1.0", "OpenSearch", "1.0"));
     }
 
     @Test
@@ -36,6 +36,6 @@ public class ReleaseNotesCheckerTest {
 
         ReleaseNotesChecker releaseNotesChecker = new ReleaseNotesChecker(urlResponseMock);
 
-        assertFalse(releaseNotesChecker.releaseNotes("1.0", "OpenSearch"));
+        assertFalse(releaseNotesChecker.releaseNotes("1.0", "OpenSearch", "1.0"));
     }
 }
