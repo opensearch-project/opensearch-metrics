@@ -20,9 +20,42 @@ public class MetricsDataTest {
     @Mock
     ObjectMapper objectMapper;
 
+    private MetricsData metricsData;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        metricsData = new MetricsData();
+    }
+
+    @Test
+    public void testId() {
+        metricsData.setId("123");
+        assertEquals("123", metricsData.getId());
+    }
+
+    @Test
+    public void testCurrentDate() {
+        metricsData.setCurrentDate("2024-03-20");
+        assertEquals("2024-03-20", metricsData.getCurrentDate());
+    }
+
+    @Test
+    public void testRepository() {
+        metricsData.setRepository("exampleRepo");
+        assertEquals("exampleRepo", metricsData.getRepository());
+    }
+
+    @Test
+    public void testMetricName() {
+        metricsData.setMetricName("coverage");
+        assertEquals("coverage", metricsData.getMetricName());
+    }
+
+    @Test
+    public void testMetricCount() {
+        metricsData.setMetricCount(100L);
+        assertEquals(100L, metricsData.getMetricCount());
     }
 
     @Test

@@ -1,6 +1,6 @@
 
 import {IpAddresses, Peer, Port, SecurityGroup, SelectedSubnets, Subnet, SubnetType, Vpc} from 'aws-cdk-lib/aws-ec2';
-import {Stack, StackProps} from "aws-cdk-lib";
+import {CfnOutput, Stack, StackProps} from "aws-cdk-lib";
 import {Construct} from "constructs";
 
 

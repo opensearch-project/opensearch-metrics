@@ -2,11 +2,9 @@ import {RemovalPolicy, Stack} from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as opensearch from "aws-cdk-lib/aws-opensearchservice";
 import { Domain } from "aws-cdk-lib/aws-opensearchservice";
-import { aws_opensearchservice as opensearchservice } from 'aws-cdk-lib';
 import * as iam from "aws-cdk-lib/aws-iam";
 import { ArnPrincipal, CompositePrincipal, Effect, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { VpcStack } from "./vpc";
-import * as fs from 'fs';
 import {OpenSearchMetricsCognito} from "../constructs/opensearchCognito";
 import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";;
 
@@ -16,7 +14,14 @@ export interface OpenSearchStackProps {
     readonly account: string;
     readonly vpcStack: VpcStack;
     readonly enableNginxCognito: boolean;
+    readonly jenkinsAccess?: jenkinsAccess;
 }
+
+
+export interface jenkinsAccess {
+    jenkinsAccountRoles: iam.IPrincipal[]
+}
+
 
 export interface OpenSearchDomainConfig {
     domainName: string
@@ -48,19 +53,13 @@ export class OpenSearchDomainStack extends Stack {
                         new PolicyStatement({
                             effect: iam.Effect.ALLOW,
                             actions: ["sts:AssumeRole"],
-                            resources: ['*']
+                            resources: ['*'],
+                            conditions: {
+                                StringEquals: { 'aws:PrincipalAccount': props.account, 'aws:RequestedRegion': props.region,},
+                            }
                         })
                     ]
-                }),
-                "kmsAccessPolicy": new PolicyDocument({
-                    statements: [
-                        new PolicyStatement({
-                            effect: iam.Effect.ALLOW,
-                            actions: ["kms:*"],
-                            resources: ['*']
-                        })
-                    ]
-                }),
+                })
             },
             managedPolicies: [
                 ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
@@ -100,6 +99,28 @@ export class OpenSearchDomainStack extends Stack {
         });
 
 
+        const clusterAccessPolicy = new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ["es:ESHttp*"],
+            principals: [
+                new ArnPrincipal(
+                    metricsCognito.identityPoolAuthRole.roleArn
+                ),
+                new ArnPrincipal(
+                    this.fullAccessRole.roleArn
+                )
+            ],
+            resources: [domainArn]
+        })
+
+        if(props.jenkinsAccess) {
+            const jenkinsAccessRole = new Role(this, 'OpenSearchJenkinsAccessRole', {
+                assumedBy: new iam.CompositePrincipal(...props.jenkinsAccess.jenkinsAccountRoles),
+                description: "Role to Allow OpenSearch build Jenkins accessing the Cluster",
+                roleName: "OpenSearchJenkinsAccessRole",
+            });
+            clusterAccessPolicy.addPrincipals(new ArnPrincipal(jenkinsAccessRole.roleArn))
+        }
 
         this.domain = new opensearch.Domain(this, 'OpenSearchHealthDomain', {
             version: opensearch.EngineVersion.OPENSEARCH_2_11,
@@ -135,28 +156,16 @@ export class OpenSearchDomainStack extends Stack {
             fineGrainedAccessControl: {
                 masterUserArn: metricsCognito.identityPoolAdminRole.roleArn,
             },
-            accessPolicies: [
-                new PolicyStatement({
-                    effect: Effect.ALLOW,
-                    actions: ["es:ESHttp*"],
-                    principals: [
-                        new ArnPrincipal(
-                            metricsCognito.identityPoolAuthRole.roleArn
-                        ),
-                        new ArnPrincipal(
-                            this.fullAccessRole.roleArn
-                        )
-                    ],
-                    resources: [domainArn]
-                })
-            ],
+            accessPolicies: [clusterAccessPolicy],
             logging: {
+                auditLogEnabled: true,
                 appLogEnabled: true,
-                slowSearchLogEnabled: false,
-                slowIndexLogEnabled: false,
+                slowSearchLogEnabled: true,
+                slowIndexLogEnabled: true,
             },
             removalPolicy: RemovalPolicy.RETAIN
         });
+
 
         const serviceLinkedRole = new iam.CfnServiceLinkedRole(this, 'OpensearchServiceLinkedRole', {
             awsServiceName: 'es.amazonaws.com',

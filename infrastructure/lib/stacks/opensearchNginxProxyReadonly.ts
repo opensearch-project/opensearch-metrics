@@ -14,24 +14,28 @@ import {
 import * as iam from "aws-cdk-lib/aws-iam";
 import {Aspects, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {ListenerCertificate, NetworkLoadBalancer, Protocol} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import {
+    ApplicationLoadBalancer, ApplicationProtocol,
+    ListenerCertificate,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
 import {Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {OpenSearchHealthRoute53} from "./route53";
 import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
 import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
+import {OpenSearchWAF} from "./waf";
 
 
 export interface NginxProps {
     readonly vpc: Vpc;
     readonly securityGroup: SecurityGroup;
     readonly opensearchDashboardUrlProps: opensearchDashboardUrlProps;
-    readonly nlbProps?: nlbProps
+    readonly albProps?: albProps
     readonly region: string;
     readonly account: string;
 }
 
-export interface nlbProps {
+export interface albProps {
     hostedZone: OpenSearchHealthRoute53;
     certificateArn: string,
 }
@@ -59,56 +63,65 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             machineImage: new AmazonLinuxImage({
                 generation: AmazonLinuxGeneration.AMAZON_LINUX_2,
             }),
-            // Temp added private subnet
-            // associatePublicIpAddress: true,
             associatePublicIpAddress: false,
             allowAllOutbound: true,
             desiredCapacity: 2,
             minCapacity: 2,
             vpc: props.vpc,
             vpcSubnets: {
-               // subnetType: SubnetType.PUBLIC,
                 subnetType: SubnetType.PRIVATE_WITH_EGRESS
             },
             role: instanceRole,
-            // Update the existing instance instead of leaving it running.  This will build a new ASG
-            // and then destroy the old one in order to maintain availability
             updatePolicy: UpdatePolicy.replacingUpdate()
         });
         Tags.of(this.asg).add("Name", "OpenSearchMetricsReadonly")
-        this.asg.addSecurityGroup(props.securityGroup);
 
-        // Allow traffic from the VPC
-        this.asg.connections.allowFrom(Peer.ipv4(props.vpc.vpcCidrBlock), Port.allTcp(), 'Local VPC Access Readonly');
+        if (props.albProps) {
+            const albSecurityGroup = new SecurityGroup(this, 'ALBSecurityGroup', {
+                vpc,
+                allowAllOutbound: true,
+            });
+            albSecurityGroup.addIngressRule(Peer.prefixList(Project.RESTRICTED_PREFIX), Port.tcp(443));
 
-        if (props.nlbProps) {
-            const lb = new NetworkLoadBalancer(this, `OpenSearchMetricsReadonly-NginxProxyNlb`, {
+            const openSearchApplicationLoadBalancer = new ApplicationLoadBalancer(this, 'OpenSearchMetricsReadonly-NginxProxyAlb', {
                 loadBalancerName: "OpenSearchMetricsReadonly",
                 vpc: vpc,
-                internetFacing: true
+                internetFacing: true,
+                securityGroup: albSecurityGroup
             });
 
-            const listenerCertificate = ListenerCertificate.fromArn(props.nlbProps.certificateArn);
+            const openSearchWAF = new OpenSearchWAF(this, "OpenSearchWAF", {
+                loadBalancer: openSearchApplicationLoadBalancer,
+                appName: "OpenSearchMetricsWAF"
+            });
+            openSearchWAF.node.addDependency(openSearchApplicationLoadBalancer)
 
-            const listener = lb.addListener(`OpenSearchMetricsReadonly-NginxProxyNlbListener`, {
+            const listenerCertificate = ListenerCertificate.fromArn(props.albProps.certificateArn);
+
+            const listener = openSearchApplicationLoadBalancer.addListener(`OpenSearchMetricsReadonly-NginxProxyAlbListener`, {
                 port: 443,
-                protocol: Protocol.TLS,
+                protocol: ApplicationProtocol.HTTPS,
                 certificates: [listenerCertificate]
             });
 
-            listener.addTargets(`OpenSearchMetricsReadonly-NginxProxyNlbTarget`, {
+            listener.addTargets(`OpenSearchMetricsReadonly-NginxProxyAlbTarget`, {
                 port: 443,
+                protocol: ApplicationProtocol.HTTPS,
+                healthCheck: {
+                    port: '80',
+                    path: '/',
+                },
                 targets: [this.asg]
             });
 
             const aRecord = new ARecord(this, "OpenSearchMetricsReadonly-DNS", {
-                zone: props.nlbProps.hostedZone.zone,
+                zone: props.albProps.hostedZone.zone,
                 recordName: Project.METRICS_HOSTED_ZONE,
-                target: RecordTarget.fromAlias(new LoadBalancerTarget(lb)),
+                target: RecordTarget.fromAlias(new LoadBalancerTarget(openSearchApplicationLoadBalancer)),
             });
         }
 
-        // Enforces IMDSv2
+
         const launchConfiguration = this.asg.node.findChild('LaunchConfig') as CfnLaunchConfiguration;
         launchConfiguration.metadataOptions = {
             httpPutResponseHopLimit: 2,
@@ -116,27 +129,12 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             httpTokens: "required"
         };
 
-        this.asg.addSecurityGroup(securityGroup);
-        // Allow traffic from the VPC
-        this.asg.connections.allowFrom(
-            Peer.ipv4(vpc.vpcCidrBlock),
-            Port.allTcp(),
-            "Local VPC Access"
-        );
-
-        this.asg.connections.allowFrom(
-            Peer.prefixList(Project.RESTRICTED_PREFIX),
-            Port.tcp(443),
-            "Allow All"
-        );
-
         const instanceName = `OpenSearchMetricsReadonly-NginxProxyHost`;
         Aspects.of(this.asg).add(new Tag('name', instanceName, {
             applyToLaunchedInstances: true,
             includeResourceTypes: ['AWS::AutoScaling::AutoScalingGroup']
         }),);
 
-        // Commands run on provisioning
         this.asg.addUserData(...this.getUserData(props));
     }
 
@@ -198,7 +196,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
         // SSM integration - https://aws.amazon.com/systems-manager/
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
 
-         /// Test with "es:ESHttpPost" and remove if required
         role.addToPolicy(new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [

@@ -1,4 +1,10 @@
-import { BlockDeviceVolume, CfnLaunchConfiguration, HealthCheck, UpdatePolicy, AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
+import {
+    BlockDeviceVolume,
+    HealthCheck,
+    UpdatePolicy,
+    AutoScalingGroup,
+    CfnLaunchConfiguration
+} from 'aws-cdk-lib/aws-autoscaling';
 import {
     InstanceClass,
     InstanceSize,
@@ -12,21 +18,28 @@ import {
     AmazonLinuxImage
 } from 'aws-cdk-lib/aws-ec2';
 import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import {Aspects, Duration, Tag, Tags} from 'aws-cdk-lib';
+import {Aspects, CfnOutput, Duration, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {ListenerCertificate, NetworkLoadBalancer, Protocol} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import {
+    ApplicationLoadBalancer, ApplicationProtocol,
+    ListenerCertificate,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
+import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
+import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
+import {OpenSearchHealthRoute53} from "../stacks/route53";
 
 
 export interface NginxProps {
     readonly vpc: Vpc;
     readonly securityGroup: SecurityGroup;
     readonly opensearchDashboardUrlProps: opensearchDashboardUrlProps;
-    readonly nlbProps?: nlbProps
+    readonly albProps?: albProps
     readonly region: string;
 }
 
-export interface nlbProps {
+export interface albProps {
+    hostedZone: OpenSearchHealthRoute53;
     certificateArn: string,
 }
 
@@ -52,14 +65,14 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             machineImage: new AmazonLinuxImage({
                 generation: AmazonLinuxGeneration.AMAZON_LINUX_2,
             }),
-            // Temp added private subnet
-            // associatePublicIpAddress: true,
+            // Temp added public subnet and IP, until backed up by ALB
             associatePublicIpAddress: true,
             allowAllOutbound: true,
             desiredCapacity: 1,
             minCapacity: 1,
             vpc: props.vpc,
             vpcSubnets: {
+                // Temp added public subnet and IP, until backed up by ALB
                // subnetType: SubnetType.PUBLIC,
                 subnetType: SubnetType.PUBLIC
             },
@@ -68,34 +81,37 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             // and then destroy the old one in order to maintain availability
             updatePolicy: UpdatePolicy.replacingUpdate()
         });
-        this.asg.addSecurityGroup(props.securityGroup);
         Tags.of(this.asg).add("Name", "OpenSearchMetricsCognito")
 
-        // Allow traffic from the VPC
-        this.asg.connections.allowFrom(Peer.ipv4(props.vpc.vpcCidrBlock), Port.allTcp(), 'Local VPC Access');
-
-        if (props.nlbProps) {
-            const lb = new NetworkLoadBalancer(this, `OpenSearchMetricsCognito-NginxProxyNlb`, {
+        if (props.albProps) {
+            const openSearchCognitoApplicationLoadBalancer = new ApplicationLoadBalancer(this, `OpenSearchMetricsCognito-NginxProxyAlb`, {
                 loadBalancerName: "OpenSearchMetricsCognito",
                 vpc: vpc,
                 internetFacing: true
             });
 
-            const listenerCertificate = ListenerCertificate.fromArn(props.nlbProps.certificateArn);
+            const listenerCertificate = ListenerCertificate.fromArn(props.albProps.certificateArn);
 
-            const listener = lb.addListener(`OpenSearchMetricsCognito-NginxProxyNlbListener`, {
+            const listener = openSearchCognitoApplicationLoadBalancer.addListener(`OpenSearchMetricsCognito-NginxProxyAlbListener`, {
                 port: 443,
-                protocol: Protocol.TLS,
+                protocol: ApplicationProtocol.HTTPS,
                 certificates: [listenerCertificate]
             });
 
-            listener.addTargets(`OpenSearchMetricsCognito-NginxProxyNlbTarget`, {
+            listener.addTargets(`OpenSearchMetricsCognito-NginxProxyAlbTarget`, {
                 port: 443,
+                protocol: ApplicationProtocol.HTTPS,
                 targets: [this.asg]
+            });
+
+
+            const aRecord = new ARecord(this, "OpenSearchMetricsCognito-DNS", {
+                zone: props.albProps.hostedZone.zone,
+                recordName: Project.METRICS_HOSTED_ZONE,
+                target: RecordTarget.fromAlias(new LoadBalancerTarget(openSearchCognitoApplicationLoadBalancer)),
             });
         }
 
-        // Enforces IMDSv2
         const launchConfiguration = this.asg.node.findChild('LaunchConfig') as CfnLaunchConfiguration;
         launchConfiguration.metadataOptions = {
             httpPutResponseHopLimit: 2,
@@ -103,13 +119,11 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             httpTokens: "required"
         };
 
-        this.asg.addSecurityGroup(securityGroup);
-        // Allow traffic from the VPC
-        this.asg.connections.allowFrom(
-            Peer.ipv4(vpc.vpcCidrBlock),
-            Port.allTcp(),
-            "Local VPC Access"
-        );
+        // To ensure the Cfn outputs are not deleted
+        new CfnOutput(this, 'VpcCidr', {
+            value: vpc.vpcCidrBlock,
+            description: 'VPC CIDR',
+        });
 
         this.asg.connections.allowFrom(
             Peer.prefixList(Project.RESTRICTED_PREFIX),
@@ -132,7 +146,6 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             assumedBy: new ServicePrincipal('ec2.amazonaws.com'),
             roleName: "OpenSearchCognitoUserAccess",
         });
-        // SSM integration - https://aws.amazon.com/systems-manager/
         role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
         return role;
     }

@@ -19,11 +19,91 @@ public class ReleaseMetricsDataTest {
     @Mock
     ObjectMapper objectMapper;
 
+    private ReleaseMetricsData releaseMetricsData;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        releaseMetricsData = new ReleaseMetricsData();
     }
 
+    @Test
+    public void testId() {
+        releaseMetricsData.setId("123");
+        assertEquals("123", releaseMetricsData.getId());
+    }
+
+    @Test
+    public void testCurrentDate() {
+        releaseMetricsData.setCurrentDate("2024-03-20");
+        assertEquals("2024-03-20", releaseMetricsData.getCurrentDate());
+    }
+
+    @Test
+    public void testRepository() {
+        releaseMetricsData.setRepository("exampleRepo");
+        assertEquals("exampleRepo", releaseMetricsData.getRepository());
+    }
+
+    @Test
+    public void testReleaseVersion() {
+        releaseMetricsData.setReleaseVersion("1.0");
+        assertEquals("1.0", releaseMetricsData.getReleaseVersion());
+    }
+
+    @Test
+    public void testReleaseState() {
+        releaseMetricsData.setReleaseState("planned");
+        assertEquals("planned", releaseMetricsData.getReleaseState());
+    }
+
+    @Test
+    public void testIssuesOpen() {
+        releaseMetricsData.setIssuesOpen(10L);
+        assertEquals(10L, releaseMetricsData.getIssuesOpen());
+    }
+
+    @Test
+    public void testAutocutIssuesOpen() {
+        releaseMetricsData.setAutocutIssuesOpen(5L);
+        assertEquals(5L, releaseMetricsData.getAutocutIssuesOpen());
+    }
+
+    @Test
+    public void testIssuesClosed() {
+        releaseMetricsData.setIssuesClosed(20L);
+        assertEquals(20L, releaseMetricsData.getIssuesClosed());
+    }
+
+    @Test
+    public void testPullsOpen() {
+        releaseMetricsData.setPullsOpen(3L);
+        assertEquals(3L, releaseMetricsData.getPullsOpen());
+    }
+
+    @Test
+    public void testPullsClosed() {
+        releaseMetricsData.setPullsClosed(7L);
+        assertEquals(7L, releaseMetricsData.getPullsClosed());
+    }
+
+    @Test
+    public void testVersionIncrement() {
+        releaseMetricsData.setVersionIncrement(true);
+        assertEquals(true, releaseMetricsData.isVersionIncrement());
+    }
+
+    @Test
+    public void testReleaseNotes() {
+        releaseMetricsData.setReleaseNotes(true);
+        assertEquals(true, releaseMetricsData.isReleaseNotes());
+    }
+
+    @Test
+    public void testReleaseBranch() {
+        releaseMetricsData.setReleaseBranch(true);
+        assertEquals(true, releaseMetricsData.isReleaseBranch());
+    }
     @Test
     void toJson() throws JsonProcessingException {
         // Arrange
