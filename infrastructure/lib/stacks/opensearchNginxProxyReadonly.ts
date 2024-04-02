@@ -16,7 +16,7 @@ import {Aspects, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
     ApplicationLoadBalancer, ApplicationProtocol,
-    ListenerCertificate,
+    ListenerCertificate, SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
 import {Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
@@ -101,6 +101,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             const listener = openSearchApplicationLoadBalancer.addListener(`OpenSearchMetricsReadonly-NginxProxyAlbListener`, {
                 port: 443,
                 protocol: ApplicationProtocol.HTTPS,
+                sslPolicy: SslPolicy.RECOMMENDED_TLS,
                 certificates: [listenerCertificate]
             });
 
