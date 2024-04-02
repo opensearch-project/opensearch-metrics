@@ -20,9 +20,48 @@ public class LabelDataTest {
     @Mock
     ObjectMapper objectMapper;
 
+    private LabelData labelData;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        labelData = new LabelData();
+    }
+
+    @Test
+    public void testId() {
+        labelData.setId("123");
+        assertEquals("123", labelData.getId());
+    }
+
+    @Test
+    public void testCurrentDate() {
+        labelData.setCurrentDate("2024-03-20");
+        assertEquals("2024-03-20", labelData.getCurrentDate());
+    }
+
+    @Test
+    public void testRepository() {
+        labelData.setRepository("exampleRepo");
+        assertEquals("exampleRepo", labelData.getRepository());
+    }
+
+    @Test
+    public void testLabelName() {
+        labelData.setLabelName("bug");
+        assertEquals("bug", labelData.getLabelName());
+    }
+
+    @Test
+    public void testLabelIssueCount() {
+        labelData.setLabelIssueCount(10L);
+        assertEquals(10L, labelData.getLabelIssueCount());
+    }
+
+    @Test
+    public void testLabelPullCount() {
+        labelData.setLabelPullCount(5L);
+        assertEquals(5L, labelData.getLabelPullCount());
     }
 
     @Test

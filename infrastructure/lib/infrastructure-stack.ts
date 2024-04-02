@@ -1,11 +1,12 @@
 import {App, CfnOutput, Stack, StackProps} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { VpcStack } from "./stacks/vpc";
-import { OpenSearchDomainStack } from "./stacks/opensearch";
+import {jenkinsAccess, OpenSearchDomainStack} from "./stacks/opensearch";
 import Project from './enums/project';
 import {OpenSearchHealthRoute53} from "./stacks/route53";
 import {OpenSearchMetricsWorkflowStack} from "./stacks/metricsWorkflow";
 import {OpenSearchMetricsNginxReadonly} from "./stacks/opensearchNginxProxyReadonly";
+import {ArnPrincipal, IPrincipal} from "aws-cdk-lib/aws-iam";
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
@@ -17,12 +18,18 @@ export class InfrastructureStack extends Stack {
     const vpcStack = new VpcStack(app, "OpenSearchHealth-VPC", {});
 
 
-    // Create OpenSearch Domain, roles, permissions, cognito setup
+    // Create OpenSearch Domain, roles, permissions, cognito setup, cross account OpenSearch access for jenkins
     const openSearchDomainStack = new OpenSearchDomainStack(app, "OpenSearchHealth-OpenSearch", {
       region: Project.REGION,
       account: Project.AWS_ACCOUNT,
       vpcStack: vpcStack,
       enableNginxCognito: true,
+      jenkinsAccess: {
+        jenkinsAccountRoles:  [
+          new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
+          new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
+        ]
+      }
     });
 
 
@@ -48,7 +55,7 @@ export class InfrastructureStack extends Stack {
         opensearchDashboardVpcUrl: openSearchDomainStack.domain.domainEndpoint,
         openSearchDomainName: openSearchDomainStack.domain.domainName
       },
-      nlbProps: {
+      albProps: {
         hostedZone: metricsHostedZone,
         certificateArn: metricsHostedZone.certificateArn,
       },
