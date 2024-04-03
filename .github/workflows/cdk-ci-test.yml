@@ -1,0 +1,21 @@
+name: CDK Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v2.4.1
+        with:
+          node-version: '20.8.0'
+
+      - name: Run CDK Test
+        run: |
+          cd infrastructure
+          npm install
+          npm test
