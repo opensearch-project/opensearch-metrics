@@ -4,7 +4,7 @@ import { Effect, FederatedPrincipal, ManagedPolicy, PolicyStatement, Role, Servi
 import * as cognito from "aws-cdk-lib/aws-cognito";
 
 export interface OpenSearchMetricsCognitoProps {
-    readonly region: string;
+    readonly openSearchDomainArn: string;
 }
 
 export class OpenSearchMetricsCognito extends Construct {
@@ -99,16 +99,16 @@ export class OpenSearchMetricsCognito extends Construct {
         this.identityPoolAuthRole.addToPolicy(
             new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ['mobileanalytics:PutEvents', 'cognito-sync:*', 'cognito-identity:*', 'es:ESHttp*'],
-                resources: ['*'],
+                actions: ["es:ESHttpGet", "es:ESHttpPost"],
+                resources: [`${props.openSearchDomainArn}`],
             }),
         );
 
         this.identityPoolAdminRole.addToPolicy(
             new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ['mobileanalytics:PutEvents', 'cognito-sync:*', 'cognito-identity:*', 'es:ESHttp*'],
-                resources: ['*'],
+                actions: ["es:ESHttp*", ],
+                resources: [`${props.openSearchDomainArn}`],
             }),
         );
 
