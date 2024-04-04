@@ -53,7 +53,7 @@ export class OpenSearchDomainStack extends Stack {
                         new PolicyStatement({
                             effect: iam.Effect.ALLOW,
                             actions: ["sts:AssumeRole"],
-                            resources: ['*'],
+                            resources: [`arn:aws:iam::${props.account}:role/OpenSearchFullAccessRole`],
                             conditions: {
                                 StringEquals: { 'aws:PrincipalAccount': props.account, 'aws:RequestedRegion': props.region,},
                             }
@@ -80,6 +80,7 @@ export class OpenSearchDomainStack extends Stack {
         this.fullAccessRole = new Role(this, 'OpenSearchFullAccessRole', {
             assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new iam.ArnPrincipal(role.roleArn))),
             description: "Master role for OpenSearch full access",
+            // The Name used in openSearchLambdaRole
             roleName: "OpenSearchFullAccessRole",
             inlinePolicies: {
                 "opensearchFullAccess": new PolicyDocument({
@@ -95,7 +96,7 @@ export class OpenSearchDomainStack extends Stack {
         });
 
         const metricsCognito = new OpenSearchMetricsCognito(this, "OpenSearchHealthCognito", {
-            region: props.region,
+            openSearchDomainArn: domainArn
         });
 
 
