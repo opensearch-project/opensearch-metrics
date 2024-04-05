@@ -1,9 +1,3 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as Infrastructure from '../lib/infrastructure-stack';
-
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/infrastructure-stack.ts
 import {App} from "aws-cdk-lib";
 import {Template} from "aws-cdk-lib/assertions";
 import {OpenSearchDomainStack} from "../lib/stacks/opensearch";
@@ -27,4 +21,7 @@ test('OpenSearchDomain Stack Test', () => {
     });
     const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);
     openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Role', 8);
+    openSearchDomainStackTemplate.resourceCountIs('AWS::Cognito::UserPool', 1);
+    openSearchDomainStackTemplate.resourceCountIs('AWS::Cognito::UserPoolGroup', 1);
+    openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Policy', 4);
 });

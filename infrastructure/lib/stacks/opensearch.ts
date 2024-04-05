@@ -6,7 +6,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { ArnPrincipal, CompositePrincipal, Effect, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { VpcStack } from "./vpc";
 import {OpenSearchMetricsCognito} from "../constructs/opensearchCognito";
-import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";;
+import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";
 
 
 export interface OpenSearchStackProps {
