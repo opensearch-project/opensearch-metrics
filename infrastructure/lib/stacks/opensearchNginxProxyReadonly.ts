@@ -9,7 +9,7 @@ import {
     SubnetType,
     Vpc,
     AmazonLinuxGeneration,
-    AmazonLinuxImage
+    AmazonLinuxImage, MachineImage
 } from 'aws-cdk-lib/aws-ec2';
 import * as iam from "aws-cdk-lib/aws-iam";
 import {Aspects, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
@@ -60,9 +60,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
             blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
             healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
-            machineImage: new AmazonLinuxImage({
-                generation: AmazonLinuxGeneration.AMAZON_LINUX_2,
-            }),
+            machineImage: MachineImage.latestAmazonLinux2(),
             associatePublicIpAddress: false,
             allowAllOutbound: true,
             desiredCapacity: 2,
