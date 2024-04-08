@@ -49,6 +49,9 @@ export interface opensearchDashboardUrlProps {
 }
 
 export class OpenSearchMetricsNginxCognito extends Construct {
+
+    static readonly COGNITO_ALB_ARN: string = 'cognitoAlbArn';
+
     readonly asg: AutoScalingGroup;
 
     constructor(scope: Construct, id: string, props: NginxProps) {
@@ -64,28 +67,37 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
             machineImage: MachineImage.latestAmazonLinux2(),
             // Temp added public subnet and IP, until backed up by ALB
-            associatePublicIpAddress: true,
+            associatePublicIpAddress: false,
             allowAllOutbound: true,
             desiredCapacity: 1,
             minCapacity: 1,
             vpc: props.vpc,
             vpcSubnets: {
-                // Temp added public subnet and IP, until backed up by ALB
-               // subnetType: SubnetType.PUBLIC,
-                subnetType: SubnetType.PUBLIC
+                subnetType: SubnetType.PRIVATE_WITH_EGRESS
             },
             role: instanceRole,
-            // Actually update the existing instance instead of leaving it running.  This will build a new ASG
-            // and then destroy the old one in order to maintain availability
             updatePolicy: UpdatePolicy.replacingUpdate()
         });
         Tags.of(this.asg).add("Name", "OpenSearchMetricsCognito")
 
         if (props.albProps) {
+
+            const albSecurityGroup = new SecurityGroup(this, 'ALBSecurityGroup', {
+                vpc,
+                allowAllOutbound: true,
+            });
+            albSecurityGroup.addIngressRule(Peer.prefixList(Project.RESTRICTED_PREFIX), Port.tcp(443));
+
             const openSearchCognitoApplicationLoadBalancer = new ApplicationLoadBalancer(this, `OpenSearchMetricsCognito-NginxProxyAlb`, {
                 loadBalancerName: "OpenSearchMetricsCognito",
                 vpc: vpc,
-                internetFacing: true
+                internetFacing: true,
+                securityGroup: albSecurityGroup
+            });
+
+            new CfnOutput(this, 'cognitoAlbArn', {
+                value: openSearchCognitoApplicationLoadBalancer.loadBalancerArn,
+                exportName: OpenSearchMetricsNginxCognito.COGNITO_ALB_ARN,
             });
 
             const listenerCertificate = ListenerCertificate.fromArn(props.albProps.certificateArn);
@@ -99,13 +111,17 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             listener.addTargets(`OpenSearchMetricsCognito-NginxProxyAlbTarget`, {
                 port: 443,
                 protocol: ApplicationProtocol.HTTPS,
+                healthCheck: {
+                    port: '80',
+                    path: '/',
+                },
                 targets: [this.asg]
             });
 
 
             const aRecord = new ARecord(this, "OpenSearchMetricsCognito-DNS", {
                 zone: props.albProps.hostedZone.zone,
-                recordName: Project.METRICS_HOSTED_ZONE,
+                recordName: Project.METRICS_COGNITO_HOSTED_ZONE,
                 target: RecordTarget.fromAlias(new LoadBalancerTarget(openSearchCognitoApplicationLoadBalancer)),
             });
         }

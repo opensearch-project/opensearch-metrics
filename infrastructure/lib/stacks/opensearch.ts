@@ -6,7 +6,11 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { ArnPrincipal, CompositePrincipal, Effect, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { VpcStack } from "./vpc";
 import {OpenSearchMetricsCognito} from "../constructs/opensearchCognito";
-import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";;
+import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";
+import {OpenSearchHealthRoute53} from "./route53";
+import Project from "../enums/project";
+
+;
 
 
 export interface OpenSearchStackProps {
@@ -176,6 +180,10 @@ export class OpenSearchDomainStack extends Stack {
         this.domain.node.addDependency(serviceLinkedRole);
 
         if(props.enableNginxCognito) {
+            const metricsHostedZone = new OpenSearchHealthRoute53(this, "OpenSearchMetricsCognito-HostedZone", {
+                hostedZone: Project.METRICS_COGNITO_HOSTED_ZONE,
+                appName: "OpenSearchMetricsCognito"
+            });
             new OpenSearchMetricsNginxCognito(this, "OpenSearchMetricsNginx", {
                 region: this.props.region,
                 vpc: props.vpcStack.vpc,
@@ -183,7 +191,11 @@ export class OpenSearchDomainStack extends Stack {
                 opensearchDashboardUrlProps: {
                     opensearchDashboardVpcUrl: this.domain.domainEndpoint,
                     cognitoDomain: metricsCognito.userPoolDomain.domain
-                }
+                },
+                albProps: {
+                    hostedZone: metricsHostedZone,
+                    certificateArn: metricsHostedZone.certificateArn,
+                },
             });
         }
     }

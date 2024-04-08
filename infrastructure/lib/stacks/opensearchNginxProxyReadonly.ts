@@ -12,7 +12,7 @@ import {
     AmazonLinuxImage, MachineImage
 } from 'aws-cdk-lib/aws-ec2';
 import * as iam from "aws-cdk-lib/aws-iam";
-import {Aspects, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
+import {Aspects, CfnOutput, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
     ApplicationLoadBalancer, ApplicationProtocol,
@@ -46,6 +46,9 @@ export interface opensearchDashboardUrlProps {
 }
 
 export class OpenSearchMetricsNginxReadonly extends Stack {
+
+    static readonly READONLY_ALB_ARN: string = 'readOnlyAlbArn';
+
     readonly asg: AutoScalingGroup;
 
     constructor(scope: Construct, id: string, props: NginxProps) {
@@ -54,8 +57,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
         super(scope, id);
 
         const instanceRole = this.createNginxReadonlyInstanceRole(props);
-
-
             this.asg = new AutoScalingGroup(this, 'OpenSearchMetricsReadonly-MetricsProxyAsg', {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
             blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
@@ -88,11 +89,13 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 securityGroup: albSecurityGroup
             });
 
-            const openSearchWAF = new OpenSearchWAF(this, "OpenSearchWAF", {
-                loadBalancer: openSearchApplicationLoadBalancer,
-                appName: "OpenSearchMetricsWAF"
+            new CfnOutput(this, 'readOnlyAlbArn', {
+                value: openSearchApplicationLoadBalancer.loadBalancerArn,
+                exportName: OpenSearchMetricsNginxReadonly.READONLY_ALB_ARN,
             });
-            openSearchWAF.node.addDependency(openSearchApplicationLoadBalancer)
+
+            //const importedArnSecretBucketValue = Fn.importValue(`${CIConfigStack.CERTIFICATE_ARN_SECRET_EXPORT_VALUE}`);
+
 
             const listenerCertificate = ListenerCertificate.fromArn(props.albProps.certificateArn);
 
