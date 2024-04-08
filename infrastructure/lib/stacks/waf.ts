@@ -105,16 +105,21 @@ export class WebACLAssociation extends CfnWebACLAssociation {
 }
 
 export interface WafProps extends StackProps{
-    loadBalancer: ApplicationLoadBalancer,
+    readOnlyLoadBalancerArn: string,
+    cognitoLoadBalancerArn: string
     appName: string
 }
 
-export class OpenSearchWAF extends Construct {
+export class OpenSearchWAF extends Stack {
     constructor(scope: Construct, id: string, props: WafProps) {
         super(scope, id);
         const waf = new WAF(this, `${props.appName}-WAFv2`);
-        new WebACLAssociation(this, 'wafALBassociation', {
-            resourceArn: props.loadBalancer.loadBalancerArn,
+        new WebACLAssociation(this, 'wafReadOnlyALBassociation', {
+            resourceArn: props.readOnlyLoadBalancerArn,
+            webAclArn: waf.attrArn,
+        });
+        new WebACLAssociation(this, 'wafCognitoALBassociation', {
+            resourceArn: props.cognitoLoadBalancerArn,
             webAclArn: waf.attrArn,
         });
     }

@@ -1,4 +1,4 @@
-import {App, CfnOutput, Stack, StackProps} from 'aws-cdk-lib';
+import {App, Fn, Stack, StackProps} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { VpcStack } from "./stacks/vpc";
 import {jenkinsAccess, OpenSearchDomainStack} from "./stacks/opensearch";
@@ -7,6 +7,8 @@ import {OpenSearchHealthRoute53} from "./stacks/route53";
 import {OpenSearchMetricsWorkflowStack} from "./stacks/metricsWorkflow";
 import {OpenSearchMetricsNginxReadonly} from "./stacks/opensearchNginxProxyReadonly";
 import {ArnPrincipal, IPrincipal} from "aws-cdk-lib/aws-iam";
+import {OpenSearchWAF} from "./stacks/waf";
+import {OpenSearchMetricsNginxCognito} from "./constructs/opensearchNginxProxyCognito";
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
@@ -61,6 +63,14 @@ export class InfrastructureStack extends Stack {
       },
     });
     openSearchMetricsNginxReadonly.node.addDependency(vpcStack, openSearchDomainStack);
+
+    // Create an OpenSearch WAF stack
+    const openSearchWAF = new OpenSearchWAF(app, "OpenSearchWAF", {
+      readOnlyLoadBalancerArn: Fn.importValue(`${OpenSearchMetricsNginxReadonly.READONLY_ALB_ARN}`),
+      cognitoLoadBalancerArn: Fn.importValue(`${OpenSearchMetricsNginxCognito.COGNITO_ALB_ARN}`),
+      appName: "OpenSearchMetricsWAF"
+    });
+    openSearchWAF.node.addDependency(openSearchDomainStack, openSearchMetricsNginxReadonly);
 
   }
 }

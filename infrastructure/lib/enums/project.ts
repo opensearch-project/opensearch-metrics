@@ -4,7 +4,7 @@ enum Project{
     JENKINS_AGENT_ROLE = '',
     REGION = '',
     METRICS_HOSTED_ZONE = 'metrics.opensearch.org',
-    // Temp until the project is public
+    METRICS_COGNITO_HOSTED_ZONE = 'metrics.login.opensearch.org',
     RESTRICTED_PREFIX = '',
     LAMBDA_PACKAGE = 'opensearch-metrics-1.0.zip',
 }
