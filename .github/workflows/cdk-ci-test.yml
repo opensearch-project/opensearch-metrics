@@ -16,6 +16,7 @@ jobs:
 
       - name: Run CDK Test
         run: |
+          ./gradlew clean build
           cd infrastructure
           npm install
           npm test
