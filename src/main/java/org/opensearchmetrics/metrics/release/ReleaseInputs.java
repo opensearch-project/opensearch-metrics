@@ -3,7 +3,9 @@ package org.opensearchmetrics.metrics.release;
 public enum ReleaseInputs {
     VERSION_3_0_0("3.0.0", "open", "main"),
     VERSION_2_12_0("2.12.0", "closed", "2.12"),
-    VERSION_2_13_0("2.13.0", "open", "2.x"),
+    VERSION_2_13_0("2.13.0", "closed", "2.13"),
+
+    VERSION_2_14_0("2.14.0", "open", "2.x"),
     VERSION_1_3_15("1.3.15", "closed", "1.3");
 
     private final String version;

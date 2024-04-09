@@ -12,6 +12,7 @@ public class ReleaseInputsTest {
         assertEquals("3.0.0", ReleaseInputs.VERSION_3_0_0.getVersion());
         assertEquals("2.12.0", ReleaseInputs.VERSION_2_12_0.getVersion());
         assertEquals("2.13.0", ReleaseInputs.VERSION_2_13_0.getVersion());
+        assertEquals("2.14.0", ReleaseInputs.VERSION_2_14_0.getVersion());
         assertEquals("1.3.15", ReleaseInputs.VERSION_1_3_15.getVersion());
     }
 
@@ -19,7 +20,8 @@ public class ReleaseInputsTest {
     public void testGetState() {
         assertEquals("open", ReleaseInputs.VERSION_3_0_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_12_0.getState());
-        assertEquals("open", ReleaseInputs.VERSION_2_13_0.getState());
+        assertEquals("open", ReleaseInputs.VERSION_2_14_0.getState());
+        assertEquals("closed", ReleaseInputs.VERSION_2_13_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_15.getState());
     }
 
@@ -27,17 +29,19 @@ public class ReleaseInputsTest {
     public void testGetBranch() {
         assertEquals("main", ReleaseInputs.VERSION_3_0_0.getBranch());
         assertEquals("2.12", ReleaseInputs.VERSION_2_12_0.getBranch());
-        assertEquals("2.x", ReleaseInputs.VERSION_2_13_0.getBranch());
+        assertEquals("2.13", ReleaseInputs.VERSION_2_13_0.getBranch());
+        assertEquals("2.x", ReleaseInputs.VERSION_2_14_0.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_15.getBranch());
     }
 
     @Test
     public void testGetAllReleaseInputs() {
         ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
-        assertEquals(4, releaseInputs.length);
+        assertEquals(5, releaseInputs.length);
         assertEquals(ReleaseInputs.VERSION_3_0_0, releaseInputs[0]);
         assertEquals(ReleaseInputs.VERSION_2_12_0, releaseInputs[1]);
         assertEquals(ReleaseInputs.VERSION_2_13_0, releaseInputs[2]);
-        assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[3]);
+        assertEquals(ReleaseInputs.VERSION_2_14_0, releaseInputs[3]);
+        assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[4]);
     }
 }
