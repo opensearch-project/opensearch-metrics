@@ -26,6 +26,39 @@ test('Workflow Stack Test', () => {
         lambdaPackage: Project.LAMBDA_PACKAGE
     });
     const template = Template.fromStack(OpenSearchMetricsWorkflow);
-    template.resourceCountIs('AWS::Lambda::Function', 1);
     template.resourceCountIs('AWS::IAM::Role', 2);
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+        "FunctionName": "OpenSearchMetricsDashboardsLambda",
+        "Handler": "org.opensearchmetrics.lambda.MetricsLambda"
+    });
+    template.resourceCountIs('AWS::StepFunctions::StateMachine', 1);
+    template.hasResourceProperties('AWS::StepFunctions::StateMachine', {
+        "DefinitionString": {
+            "Fn::Join": [
+                "",
+                [
+                    "{\"StartAt\":\"Metrics Lambda\",\"States\":{\"Metrics Lambda\":{\"End\":true,\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2},{\"ErrorEquals\":[\"States.ALL\"]}],\"Type\":\"Task\",\"TimeoutSeconds\":900,\"ResultPath\":null,\"Resource\":\"arn:",
+                    {
+                        "Ref": "AWS::Partition"
+                    },
+                    ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+                    {
+                        "Fn::GetAtt": [
+                            "OpenSearchMetricsDashboardsLambda6F1E44E4",
+                            "Arn"
+                        ]
+                    },
+                    "\",\"Payload.$\":\"$\"}}},\"TimeoutSeconds\":900}"
+                ]
+            ]
+        },
+        "RoleArn": {
+            "Fn::GetAtt": [
+                "OpenSearchMetricsWorkflowRole3ECE841A",
+                "Arn"
+            ]
+        },
+        "StateMachineName": "OpenSearchMetricsWorkflow"
+    });
 });
