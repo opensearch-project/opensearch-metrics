@@ -10,8 +10,6 @@ import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyC
 import {OpenSearchHealthRoute53} from "./route53";
 import Project from "../enums/project";
 
-;
-
 
 export interface OpenSearchStackProps {
     readonly region: string;

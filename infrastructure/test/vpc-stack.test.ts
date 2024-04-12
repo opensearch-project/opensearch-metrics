@@ -14,4 +14,24 @@ test('VPC Stack Test', () => {
     const vpcStackTemplate = Template.fromStack(vpcStack);
     vpcStackTemplate.resourceCountIs('AWS::EC2::VPC', 1);
     vpcStackTemplate.resourceCountIs('AWS::EC2::Subnet', 4);
+    vpcStackTemplate.hasResourceProperties('AWS::EC2::SecurityGroup', {
+        "SecurityGroupEgress": [
+            {
+                "CidrIp": "0.0.0.0/0",
+                "Description": "Allow all outbound traffic by default",
+                "IpProtocol": "-1"
+            }
+        ]
+    });
+    vpcStackTemplate.hasResourceProperties('AWS::EC2::SecurityGroup', {
+        "SecurityGroupIngress": [
+            {
+                "Description": "Allow inbound HTTPS traffic",
+                "FromPort": 443,
+                "IpProtocol": "tcp",
+                "ToPort": 443
+            }
+        ]
+    });
+
 });
