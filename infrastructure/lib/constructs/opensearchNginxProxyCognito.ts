@@ -22,12 +22,13 @@ import {Aspects, CfnOutput, Duration, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
     ApplicationLoadBalancer, ApplicationProtocol,
-    ListenerCertificate,
+    ListenerCertificate, Protocol,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
 import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
 import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
 import {OpenSearchHealthRoute53} from "../stacks/route53";
+import {StringParameter} from "aws-cdk-lib/aws-ssm";
 
 
 export interface NginxProps {
@@ -36,6 +37,7 @@ export interface NginxProps {
     readonly opensearchDashboardUrlProps: opensearchDashboardUrlProps;
     readonly albProps?: albProps
     readonly region: string;
+    readonly ami?: string
 }
 
 export interface albProps {
@@ -53,7 +55,6 @@ export class OpenSearchMetricsNginxCognito extends Construct {
     static readonly COGNITO_ALB_ARN: string = 'cognitoAlbArn';
 
     readonly asg: AutoScalingGroup;
-
     constructor(scope: Construct, id: string, props: NginxProps) {
         const { vpc, securityGroup, opensearchDashboardUrlProps } = props;
 
@@ -65,8 +66,9 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
             blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
             healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
-            machineImage: MachineImage.latestAmazonLinux2(),
-            // Temp added public subnet and IP, until backed up by ALB
+            machineImage: props && props.ami ?
+                MachineImage.fromSsmParameter(props.ami) :
+                MachineImage.latestAmazonLinux2(),
             associatePublicIpAddress: false,
             allowAllOutbound: true,
             desiredCapacity: 1,
@@ -114,6 +116,7 @@ export class OpenSearchMetricsNginxCognito extends Construct {
                 healthCheck: {
                     port: '80',
                     path: '/',
+                    protocol: Protocol.HTTP
                 },
                 targets: [this.asg]
             });
@@ -174,7 +177,6 @@ export class OpenSearchMetricsNginxCognito extends Construct {
                 listen 443;
                 server_name $host;
                 rewrite ^/$ https://$host/_dashboards redirect;
-            
                 ssl_certificate /etc/nginx/cert.crt;
                 ssl_certificate_key /etc/nginx/cert.key;
             
@@ -223,7 +225,8 @@ export class OpenSearchMetricsNginxCognito extends Construct {
     private getUserData(opensearchDashboardUrlProps: opensearchDashboardUrlProps, region: string): string[] {
         return [
             'sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm',
-            'sudo amazon-linux-extras install nginx1.12 -y',
+            'sudo wget https://nginx.org/packages/amzn/2023/x86_64/RPMS/nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm',
+            'sudo yum install nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm -y',
             'sudo openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/nginx/cert.key -out /etc/nginx/cert.crt -days 365 -subj \'/CN=SH\'',
             'sudo echo ' + this.buildOpenSearchDashboardConf(opensearchDashboardUrlProps, region) + ' > /etc/nginx/conf.d/opensearchdashboard.conf',
             'sudo systemctl start nginx',
