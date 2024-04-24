@@ -190,6 +190,7 @@ export class OpenSearchDomainStack extends Stack {
                     opensearchDashboardVpcUrl: this.domain.domainEndpoint,
                     cognitoDomain: metricsCognito.userPoolDomain.domain
                 },
+                ami: Project.EC2_AMI_SSM.toString(),
                 albProps: {
                     hostedZone: metricsHostedZone,
                     certificateArn: metricsHostedZone.certificateArn,

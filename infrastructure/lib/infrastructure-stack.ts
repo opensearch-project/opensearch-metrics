@@ -57,6 +57,7 @@ export class InfrastructureStack extends Stack {
         opensearchDashboardVpcUrl: openSearchDomainStack.domain.domainEndpoint,
         openSearchDomainName: openSearchDomainStack.domain.domainName
       },
+      ami: Project.EC2_AMI_SSM.toString(),
       albProps: {
         hostedZone: metricsHostedZone,
         certificateArn: metricsHostedZone.certificateArn,

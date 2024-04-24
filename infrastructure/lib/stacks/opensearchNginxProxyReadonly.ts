@@ -1,29 +1,35 @@
-import { BlockDeviceVolume, CfnLaunchConfiguration, HealthCheck, UpdatePolicy, AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
+import {
+    AutoScalingGroup,
+    BlockDeviceVolume,
+    CfnLaunchConfiguration,
+    HealthCheck,
+    UpdatePolicy
+} from 'aws-cdk-lib/aws-autoscaling';
 import {
     InstanceClass,
     InstanceSize,
     InstanceType,
+    MachineImage,
     Peer,
     Port,
     SecurityGroup,
     SubnetType,
-    Vpc,
-    AmazonLinuxGeneration,
-    AmazonLinuxImage, MachineImage
+    Vpc
 } from 'aws-cdk-lib/aws-ec2';
-import * as iam from "aws-cdk-lib/aws-iam";
+import {Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {Aspects, CfnOutput, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import {Construct} from 'constructs';
 import {
-    ApplicationLoadBalancer, ApplicationProtocol,
-    ListenerCertificate, SslPolicy,
+    ApplicationLoadBalancer,
+    ApplicationProtocol,
+    ListenerCertificate,
+    Protocol,
+    SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
-import {Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {OpenSearchHealthRoute53} from "./route53";
 import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
 import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
-import {OpenSearchWAF} from "./waf";
 
 
 export interface NginxProps {
@@ -33,6 +39,7 @@ export interface NginxProps {
     readonly albProps?: albProps
     readonly region: string;
     readonly account: string;
+    readonly ami?: string
 }
 
 export interface albProps {
@@ -61,7 +68,9 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
             blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
             healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
-            machineImage: MachineImage.latestAmazonLinux2(),
+            machineImage: props && props.ami ?
+                MachineImage.fromSsmParameter(props.ami) :
+                MachineImage.latestAmazonLinux2(),
             associatePublicIpAddress: false,
             allowAllOutbound: true,
             desiredCapacity: 2,
@@ -94,9 +103,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 exportName: OpenSearchMetricsNginxReadonly.READONLY_ALB_ARN,
             });
 
-            //const importedArnSecretBucketValue = Fn.importValue(`${CIConfigStack.CERTIFICATE_ARN_SECRET_EXPORT_VALUE}`);
-
-
             const listenerCertificate = ListenerCertificate.fromArn(props.albProps.certificateArn);
 
             const listener = openSearchApplicationLoadBalancer.addListener(`OpenSearchMetricsReadonly-NginxProxyAlbListener`, {
@@ -112,6 +118,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 healthCheck: {
                     port: '80',
                     path: '/',
+                    protocol: Protocol.HTTP
                 },
                 targets: [this.asg]
             });
@@ -150,7 +157,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 listen 443;
                 server_name $host;
                 rewrite ^/$ https://$host/_dashboards redirect;
-            
                 ssl_certificate /etc/nginx/cert.crt;
                 ssl_certificate_key /etc/nginx/cert.key;
             
@@ -177,15 +183,16 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
     private getUserData(nginxProps: NginxProps): string[] {
         return [
             'sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm',
-            'sudo amazon-linux-extras install nginx1.12 -y',
+            'sudo wget https://nginx.org/packages/amzn/2023/x86_64/RPMS/nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm',
+            'sudo yum install nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm -y',
             'sudo openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/nginx/cert.key -out /etc/nginx/cert.crt -days 365 -subj \'/CN=SH\'',
             'sudo echo ' + this.buildOpenSearchDashboardConf(nginxProps) + ' > /etc/nginx/conf.d/opensearchdashboard.conf',
             'sudo systemctl start nginx',
             'sudo systemctl enable nginx',
-            'sudo amazon-linux-extras install docker -y',
+            'sudo yum install docker -y',
             'sudo systemctl enable docker',
             'sudo systemctl start docker',
-            'docker run --rm -tid -v ~/.aws:/root/.aws -p 8081:8080 public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 -v --name es --region us-east-1'
+            `docker run --rm -tid -v ~/.aws:/root/.aws -p 8081:8080 public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 -v --name es --region ${nginxProps.region}`
         ];
     }
 

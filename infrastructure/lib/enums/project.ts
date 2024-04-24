@@ -7,5 +7,6 @@ enum Project{
     METRICS_COGNITO_HOSTED_ZONE = 'metrics.login.opensearch.org',
     RESTRICTED_PREFIX = '',
     LAMBDA_PACKAGE = 'opensearch-metrics-1.0.zip',
+    EC2_AMI_SSM = '',
 }
 export default Project;
