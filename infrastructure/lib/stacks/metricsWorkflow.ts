@@ -34,7 +34,7 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
             targets: [new SfnStateMachine(opensearchMetricsWorkflow)],
         });
 
-        // This rule is to ensure OpenSearch Dashboards does not show 0 values in visualizations when used now/d-now-1/d
+        // This rule is to ensure OpenSearch Dashboards does not show 0 values in visualizations when used now/d to now+1d/d
         new Rule(this, 'MetricsWorkflow-12AM-PDT', {
             schedule: Schedule.expression('cron(0 7 * * ? *)'),
             targets: [new SfnStateMachine(opensearchMetricsWorkflow)],
