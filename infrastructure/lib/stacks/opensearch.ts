@@ -176,7 +176,6 @@ export class OpenSearchDomainStack extends Stack {
         });
 
         this.domain.node.addDependency(serviceLinkedRole);
-
         if(props.enableNginxCognito) {
             const metricsHostedZone = new OpenSearchHealthRoute53(this, "OpenSearchMetricsCognito-HostedZone", {
                 hostedZone: Project.METRICS_COGNITO_HOSTED_ZONE,

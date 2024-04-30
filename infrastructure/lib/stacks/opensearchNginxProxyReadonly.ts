@@ -159,13 +159,17 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 rewrite ^/$ https://$host/_dashboards redirect;
                 ssl_certificate /etc/nginx/cert.crt;
                 ssl_certificate_key /etc/nginx/cert.key;
-            
                 ssl on;
                 ssl_session_cache builtin:1000 shared:SSL:10m;
-                ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+                ssl_protocols TLSv1.2 TLSv1.3;
                 ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
                 ssl_prefer_server_ciphers on;
-            
+           
+                add_header Strict-Transport-Security "max-age=47304000; includeSubDomains";
+                add_header X-Content-Type-Options "nosniff";
+                add_header X-Frame-Options "DENY";  
+                add_header Cache-Control "no-store, no-cache";
+                
                 set $os_endpoint ${nginxProps.opensearchDashboardUrlProps.opensearchDashboardVpcUrl};
                 set $frontend_endpoint localhost:8081;
                 proxy_cookie_domain $frontend_endpoint $host;
