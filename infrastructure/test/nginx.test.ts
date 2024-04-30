@@ -67,6 +67,7 @@ test('OpenSearchMetricsNginxReadonly Stack Test', () => {
             }
         ]
     });
+    template.resourceCountIs('AWS::AutoScaling::LaunchConfiguration', 1);
 });
 
 test('OpenSearchMetricsNginxCognito Test', () => {
@@ -89,6 +90,8 @@ test('OpenSearchMetricsNginxCognito Test', () => {
         "Name": "metrics.login.opensearch.org.",
         "Type": "A"
     });
+
+    openSearchDomainStackTemplate.resourceCountIs('AWS::AutoScaling::LaunchConfiguration', 1);
     openSearchDomainStackTemplate.resourceCountIs('AWS::EC2::SecurityGroup', 2);
     openSearchDomainStackTemplate.hasResourceProperties('AWS::EC2::SecurityGroup', {
         "SecurityGroupEgress": [

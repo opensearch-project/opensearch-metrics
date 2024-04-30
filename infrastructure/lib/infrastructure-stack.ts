@@ -1,12 +1,12 @@
 import {App, Fn, Stack, StackProps} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { VpcStack } from "./stacks/vpc";
-import {jenkinsAccess, OpenSearchDomainStack} from "./stacks/opensearch";
+import {OpenSearchDomainStack} from "./stacks/opensearch";
 import Project from './enums/project';
 import {OpenSearchHealthRoute53} from "./stacks/route53";
 import {OpenSearchMetricsWorkflowStack} from "./stacks/metricsWorkflow";
 import {OpenSearchMetricsNginxReadonly} from "./stacks/opensearchNginxProxyReadonly";
-import {ArnPrincipal, IPrincipal} from "aws-cdk-lib/aws-iam";
+import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
 import {OpenSearchWAF} from "./stacks/waf";
 import {OpenSearchMetricsNginxCognito} from "./constructs/opensearchNginxProxyCognito";
 

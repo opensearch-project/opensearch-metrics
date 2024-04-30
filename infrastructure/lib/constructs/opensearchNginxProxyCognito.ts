@@ -14,15 +14,14 @@ import {
     SecurityGroup,
     SubnetType,
     Vpc,
-    AmazonLinuxGeneration,
-    AmazonLinuxImage, MachineImage
+    MachineImage
 } from 'aws-cdk-lib/aws-ec2';
 import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {Aspects, CfnOutput, Duration, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
     ApplicationLoadBalancer, ApplicationProtocol,
-    ListenerCertificate, Protocol,
+    ListenerCertificate, Protocol, SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import Project from "../enums/project";
 import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
@@ -107,6 +106,7 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             const listener = openSearchCognitoApplicationLoadBalancer.addListener(`OpenSearchMetricsCognito-NginxProxyAlbListener`, {
                 port: 443,
                 protocol: ApplicationProtocol.HTTPS,
+                sslPolicy: SslPolicy.RECOMMENDED_TLS,
                 certificates: [listenerCertificate]
             });
 
@@ -142,12 +142,6 @@ export class OpenSearchMetricsNginxCognito extends Construct {
             description: 'VPC CIDR',
         });
 
-        this.asg.connections.allowFrom(
-            Peer.prefixList(Project.RESTRICTED_PREFIX),
-            Port.tcp(443),
-            "Allow All"
-        );
-
         const instanceName = `OpenSearchMetricsCognito-NginxProxyHost`;
         Aspects.of(this.asg).add(new Tag('name', instanceName, {
             applyToLaunchedInstances: true,
@@ -179,13 +173,17 @@ export class OpenSearchMetricsNginxCognito extends Construct {
                 rewrite ^/$ https://$host/_dashboards redirect;
                 ssl_certificate /etc/nginx/cert.crt;
                 ssl_certificate_key /etc/nginx/cert.key;
-            
                 ssl on;
                 ssl_session_cache builtin:1000 shared:SSL:10m;
-                ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+                ssl_protocols TLSv1.2 TLSv1.3;
                 ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
                 ssl_prefer_server_ciphers on;
-            
+                
+                add_header Strict-Transport-Security "max-age=47304000; includeSubDomains";
+                add_header X-Content-Type-Options "nosniff";
+                add_header X-Frame-Options "DENY";  
+                add_header Cache-Control "no-store, no-cache";
+                
                 set $os_endpoint ${opensearchDashboardUrlProps.opensearchDashboardVpcUrl};
                 set $cognito_endpoint ${cognitoUrl};
             
