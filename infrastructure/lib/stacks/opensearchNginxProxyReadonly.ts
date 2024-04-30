@@ -187,8 +187,8 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
     private getUserData(nginxProps: NginxProps): string[] {
         return [
             'sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm',
-            'sudo wget https://nginx.org/packages/amzn/2023/x86_64/RPMS/nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm',
-            'sudo yum install nginx-1.24.0-1.amzn2023.ngx.x86_64.rpm -y',
+            'sudo dnf update -y',
+            'sudo dnf install nginx -y',
             'sudo openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/nginx/cert.key -out /etc/nginx/cert.crt -days 365 -subj \'/CN=SH\'',
             'sudo echo ' + this.buildOpenSearchDashboardConf(nginxProps) + ' > /etc/nginx/conf.d/opensearchdashboard.conf',
             'sudo systemctl start nginx',
