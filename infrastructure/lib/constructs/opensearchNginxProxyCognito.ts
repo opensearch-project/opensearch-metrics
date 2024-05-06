@@ -178,6 +178,7 @@ export class OpenSearchMetricsNginxCognito extends Construct {
                 ssl_protocols TLSv1.2 TLSv1.3;
                 ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
                 ssl_prefer_server_ciphers on;
+                server_tokens off;
                 
                 add_header Strict-Transport-Security "max-age=47304000; includeSubDomains";
                 add_header X-Content-Type-Options "nosniff";
