@@ -60,7 +60,7 @@ test('OpenSearchMetricsNginxReadonly Stack Test', () => {
         "SecurityGroupIngress": [
             {
                 "CidrIp": "0.0.0.0/0",
-                "Description": "Allow from anyone on port 443",
+                "Description": "Allow HTTPS 443 Access",
                 "FromPort": 443,
                 "IpProtocol": "tcp",
                 "ToPort": 443

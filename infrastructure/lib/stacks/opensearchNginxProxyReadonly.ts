@@ -89,7 +89,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 vpc,
                 allowAllOutbound: true,
             });
-            albSecurityGroup.addIngressRule(Peer.prefixList(Project.RESTRICTED_PREFIX), Port.tcp(443));
+            albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS 443 Access");
 
             const openSearchApplicationLoadBalancer = new ApplicationLoadBalancer(this, 'OpenSearchMetricsReadonly-NginxProxyAlb', {
                 loadBalancerName: "OpenSearchMetricsReadonly",
