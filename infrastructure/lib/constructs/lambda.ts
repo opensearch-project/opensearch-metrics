@@ -6,7 +6,7 @@ import {ISecurityGroup, IVpc, SubnetType} from "aws-cdk-lib/aws-ec2";
 import { IRole } from "aws-cdk-lib/aws-iam";
 
 export class OpenSearchLambdaProps {
-    readonly lambdaNameBase: string; // Component name cannot be longer then 22, so base should be shorter than 20
+    readonly lambdaNameBase: string;
     readonly lambdaZipPath: string;
     readonly handler: string;
     readonly vpc?: IVpc;
@@ -34,7 +34,7 @@ export class OpenSearchLambda extends Construct {
             handler: props.handler,
             timeout: Duration.minutes(15),
             runtime: Runtime.JAVA_17,
-            tracing: Tracing.ACTIVE, // enable X-RAY
+            tracing: Tracing.ACTIVE,
             memorySize: 1024,
             description: `Generated on: ${resourceGenerationTime}`,
             functionName: `${props.lambdaNameBase}Lambda`,

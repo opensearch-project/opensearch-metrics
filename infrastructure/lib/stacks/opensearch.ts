@@ -128,7 +128,6 @@ export class OpenSearchDomainStack extends Stack {
         this.domain = new opensearch.Domain(this, 'OpenSearchHealthDomain', {
             version: opensearch.EngineVersion.OPENSEARCH_2_11,
             vpc: props.vpcStack.vpc,
-            // vpcSubnets: [props.vpcStack.subnets],
             vpcSubnets: [this.props.vpcStack.subnets],
             securityGroups: props.vpcStack.securityGroup ? [props.vpcStack.securityGroup] : undefined,
             domainName: this.opensearchDomainConfig.domainName,

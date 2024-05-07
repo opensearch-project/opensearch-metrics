@@ -19,4 +19,4 @@ jobs:
           ./gradlew clean build
           cd infrastructure
           npm install
-          npm test
+          npm test -- --coverage

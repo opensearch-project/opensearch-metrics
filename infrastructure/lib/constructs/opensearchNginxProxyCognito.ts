@@ -16,7 +16,7 @@ import {
     Vpc,
     MachineImage
 } from 'aws-cdk-lib/aws-ec2';
-import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {Aspects, CfnOutput, Duration, Tag, Tags} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
@@ -27,7 +27,6 @@ import Project from "../enums/project";
 import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
 import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
 import {OpenSearchHealthRoute53} from "../stacks/route53";
-import {StringParameter} from "aws-cdk-lib/aws-ssm";
 
 
 export interface NginxProps {
