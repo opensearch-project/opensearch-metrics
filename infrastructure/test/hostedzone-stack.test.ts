@@ -29,9 +29,9 @@ test('HostedZoneCognito Stack Test', () => {
     const hostedZoneCognitoStackTemplate = Template.fromStack(hostedZoneCognitoStack);
     hostedZoneCognitoStackTemplate.resourceCountIs('AWS::Route53::HostedZone', 1);
     hostedZoneCognitoStackTemplate.hasResourceProperties('AWS::Route53::HostedZone', {
-        "Name": "metrics.login.opensearch.org."
+        "Name": `${Project.METRICS_COGNITO_HOSTED_ZONE}.`
     });
     hostedZoneCognitoStackTemplate.hasResourceProperties('AWS::CertificateManager::Certificate', {
-        "DomainName": "metrics.login.opensearch.org"
+        "DomainName": `${Project.METRICS_COGNITO_HOSTED_ZONE}`
     });
 });

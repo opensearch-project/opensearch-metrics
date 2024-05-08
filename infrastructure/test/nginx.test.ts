@@ -87,7 +87,7 @@ test('OpenSearchMetricsNginxCognito Test', () => {
     const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);
     openSearchDomainStackTemplate.resourceCountIs('AWS::Route53::RecordSet', 1);
     openSearchDomainStackTemplate.hasResourceProperties('AWS::Route53::RecordSet', {
-        "Name": "metrics.login.opensearch.org.",
+        "Name": `${Project.METRICS_COGNITO_HOSTED_ZONE}.`,
         "Type": "A"
     });
 

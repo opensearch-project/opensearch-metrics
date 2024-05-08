@@ -94,7 +94,4 @@ test('OpenSearchDomain Stack Test', () => {
             }
         }
     });
-
-
-
 });
