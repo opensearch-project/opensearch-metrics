@@ -24,3 +24,15 @@ jobs:
       - name: Run build and test
         run: |
           ./gradlew clean build
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: opensearch-metrics-coverage-reports
+          path: |
+            ./build/reports/
