@@ -1,28 +1,18 @@
 ![OpenSearch logo](./OpenSearch.svg)
 
-## OpenSearch Project Metrics
+## OpenSearch Metrics
 
-- Generate the project jar by running `./gradlew clean build `, this will also generate a zip with all dependency jars.
-- Now `cd infrastructure/`, update the enum `lib/enums/account.ts` file with the desired AWS account and run `deploy` to create all the required backend resources.
-  - `cdk deploy OpenSearchHealth-VPC`: To deploy the VPC resources.
-  - `cdk deploy OpenSearchHealth-OpenSearch`: To deploy the OpenSearch cluster.
-  - `cdk deploy OpenSearchMetrics-Workflow`: To deploy the lambda and step function.
-  - `cdk deploy OpenSearchMetrics-HostedZone`: T0 deploy the route53 and DNS setup.
-  - `cdk deploy OpenSearchMetricsNginxReadonly`: To deploy the dashboard read only setup.
-  - `cdk deploy OpenSearchWAF`: To deploy the AWS WAF for the project ALB's.
+The OpenSearch Metrics project showcases and keeps track of several important OpenSearch health metrics, with the goal of presenting a comprehensive overview of the OpenSearch project's health and status to the community through visualizations. The OpenSearch Metrics dashboard is accessible at [URL](https://metrics.opensearch.org/_dashboards/app/dashboards#/list?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-4y,to:now))).
 
-
-## OpenSearch Project Supported Metrics
-
-### General Metrics
+### [OpenSearch Project Insights](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/a987a4b0-d801-11ee-8a84-e3710560950c)
 
 | metric_name                         | metric_description                                                                                                         |
 |-------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | Closed Issues                       | The metric that counts the total number of issues that have been closed.                                                   |
 | Created Issues                      | The metric that counts the issues created.                                                                                 |
 | Issue Comments                      | The metric that counts the total number of comments made on issues.                                                        |
-| Negative Reactions                  | The metric that counts the reactions such as 👎 or similar GitHub negative indicators.                                      |
-| Positive Reactions                  | The metric that counts the reactions such as 👍 or similar GitHub positive indicators.                                                       |
+| Negative Reactions                  | The metric that counts the reactions such as 👎 or similar GitHub negative indicators.                                     |
+| Positive Reactions                  | The metric that counts the reactions such as 👍 or similar GitHub positive indicators.                                     |
 | Merged Pull Requests                | The metric that counts the total number of pull requests that have been successfully merged.                               |
 | Open Issues                         | The metric that counts the total number of issues that are currently open and unresolved.                                  |
 | Open Pull Requests                  | The metric that counts the total number of pull requests that are currently open and awaiting review and merge.            |
@@ -30,19 +20,13 @@
 | Uncommented Pull Requests           | The metric that counts the total number of open pull requests that haven't received any comments.                          |
 | Unlabelled Issues                   | The metric that counts the total number of issues that do not have any labels assigned to them.                            |
 | Unlabelled Pull Requests            | The metric that counts the total number of pull requests that do not have any labels assigned to them.                     |
-| Untriaged Issues                    | The metric that counts the total number of issues that have triaged or acknowledged.                                       |
+| Untriaged Issues                    | The metric that counts the total number of issues that have not triaged or acknowledged.                                   |
 | Avgerage: Pull Requests Open/Closed | The metric that determines the duration from the PR creation date to the PR close date.                                    |
 | Avgerage: Issues Open/Closed        | The metric that determines the duration from the issue creation date to the issue close date.                              |
+| Issues Grouped by Label             | The metric that counts the issues associated with a specific label.                                                        |
+| Pull Requests Grouped by Label      | The metric that counts the pull requests associated with a specific label.                                                 |
 
-
-### GitHub Label Metrics
-
-| metric_name                                 | metric_description                                                                                |
-|---------------------------------------------|---------------------------------------------------------------------------------------------------|
-| Issues Grouped by Label                     | The metric that counts the issues associated with a specific label.                               |
-| Pull Requests Grouped by Label              | The metric that counts the pull requests associated with a specific label.                        |
-
-### Release Metrics
+### [OpenSearch Release Metrics](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/12d47dd0-e0cc-11ee-86f3-3358a59f8c46)
 
 | metric_name               | metric_description                                                                           |
 |---------------------------|----------------------------------------------------------------------------------------------|
@@ -54,16 +38,36 @@
 | Issues with Release Label | The metric that counts the issues (open and closed state) that has the release label.        |                                                                         |
 | Pull Requests with Release Label | The metric that counts the pull requests (open and merged state) that has the release label. |                                                                           |
 
-### OpenSearch Core Metrics
+### [OpenSearch Ops Metrics](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/f1ad21c0-e323-11ee-9a74-07cd3b4ff414)
 
-| metric_name        | metric_description                 |
-|--------------------|------------------------------------|
-| Contributions      | The GitHub Contributions by Userid |
-| Contribution Goals | Goals for number of contributions  |
-| Flaky tests        | Open Issues with label `Flaky`       |
+| metric_name                         | metric_description                                                                                                  |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Contributions                       | The GitHub Contributions by Userid.                                                                                 |
+| Untriaged Issues older than 2 weeks | The metric that counts the total number of issues that have not triaged or acknowledged and are older than 2 weeks. |
+| Pulls Merged Weekly                 | The number of Pull Requests merged per week.                                                                        |
+| Open Pull Requests                  | The number of Open Pull Requests, Open Pull Requests created within the last two weeks, and number of Draft PRs.    |    
+| Issues Created                      | Issues created on a particular date.                                                                                |   
+| Open Pull Requests by age           | A data table of Pull Requests and their data.                                                                       | 
+| Flaky tests data                    | Flaky tests breakdown by repo.                                                                                      | 
+| Flaky tests count                   | Cumulative count of Flaky tests.                                                                                    |
+| Total Comments Weekly               | The total number of comments each week.                                                                             |
+| Issue Stats                         | Stats about issues including contributors, Avg days to close, Positive and Negative Reactions data.                 |
+| Reactions                           | Positive vs Negative reactions.                                                                                     |
+Open Issues with label `Flaky`
+
+### [OpenSearch Gradle Check Metrics](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/e5e64d40-ed31-11ee-be99-69d1dbc75083)
+
+| metric_name                         | metric_description                                     |
+|-------------------------------------|--------------------------------------------------------|
+| Test failure report                 | Report for Gradle Check failed tests.                  |
+| Top test failures                   | Gradle Check top failed tests..                        |
+| Class level test failures           | Gradle Check class level test failures.                |
+| Gradle failure count at PR level    | Gradle Check test failures data at pull request level. |
 
 
-### OpenSearch Gradle Check Metrics
+## Contributing
+
+See [developer guide](DEVELOPER_GUIDE.md) and [how to contribute to this project](CONTRIBUTING.md).
 
 ## Security
 
