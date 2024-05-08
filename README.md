@@ -1,3 +1,5 @@
+[![](https://img.shields.io/codecov/c/gh/opensearch-project/opensearch-metrics)](https://app.codecov.io/gh/opensearch-project/opensearch-metrics)
+
 ![OpenSearch logo](./OpenSearch.svg)
 
 ## OpenSearch Metrics

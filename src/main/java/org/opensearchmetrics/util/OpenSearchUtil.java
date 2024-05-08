@@ -31,7 +31,6 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class OpenSearchUtil {
     private static final int NUM_REPLICAS = 2;
-    private static final int FIELD_MAPPING_LIMIT = 8000;
     private static final int NUM_THREADS = 8;
     private static final int OS_BULK_SIZE = 200;
     private static final int INDEX_THREAD_TIMEOUT_MINUTES = 10;
@@ -49,10 +48,6 @@ public class OpenSearchUtil {
                 CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
                 createIndexRequest.settings(Settings.builder()
                         .put("index.number_of_replicas", NUM_REPLICAS)
-                        .put("index.mapping.total_fields.limit", FIELD_MAPPING_LIMIT)
-                        .put("index.mapping.depth.limit", 300)
-                        .put("index.mapping.nested_fields.limit", 800)
-                        .put("index.mapping.nested_objects.limit", FIELD_MAPPING_LIMIT)
                         .build());
                 System.out.println("Creating index " + index);
                 CreateIndexResponse createIndexResponse =
