@@ -40,6 +40,7 @@ infrastructure/**/*.js
 infrastructure/!jest.config.js
 infrastructure/**/*.d.ts
 infrastructure/node_modules
+!infrastructure/canary/nodejs/node_modules/index.js
 
 # CDK asset staging directory
 infrastructure/.cdk.staging
