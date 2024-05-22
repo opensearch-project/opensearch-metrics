@@ -30,6 +30,7 @@ public class CommonModule {
     private static final String OPENSEARCH_DOMAIN_REGION = "OPENSEARCH_DOMAIN_REGION";
     private static final String OPENSEARCH_DOMAIN_ROLE = "OPENSEARCH_DOMAIN_ROLE";
     private static final String ROLE_SESSION_NAME = "OpenSearchHealth";
+    private static final String SECRETS_MANAGER_REGION = "SECRETS_MANAGER_REGION";
 
     @Singleton
     @Provides
@@ -91,5 +92,15 @@ public class CommonModule {
                 issueComments, pullComments,
                 issuePositiveReactions, issueNegativeReactions,
                 labelMetrics, releaseMetrics);
+    }
+
+    @Provides
+    @Singleton
+    public SecretsManagerUtil getSecretsManagerUtil(ObjectMapper mapper) {
+        final String region = System.getenv(SECRETS_MANAGER_REGION);
+        final AWSSecretsManager secretsManager = AWSSecretsManagerClientBuilder.standard()
+                .withRegion(region)
+                .build();
+        return new SecretsManagerUtil(secretsManager, mapper);
     }
 }

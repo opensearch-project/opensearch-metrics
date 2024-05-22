@@ -13,7 +13,12 @@ export interface OpenSearchMetricsStackProps extends StackProps {
     readonly vpcStack: VpcStack;
     readonly lambdaPackage: string
 }
+
+export interface WorkflowComponent {
+    opensearchMetricsWorkflowStateMachineName: string
+}
 export class OpenSearchMetricsWorkflowStack extends Stack {
+    public readonly workflowComponent: WorkflowComponent;
     constructor(scope: Construct, id: string, props: OpenSearchMetricsStackProps) {
         super(scope, id, props);
 
@@ -39,6 +44,10 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
             schedule: Schedule.expression('cron(0 7 * * ? *)'),
             targets: [new SfnStateMachine(opensearchMetricsWorkflow)],
         });
+
+        this.workflowComponent = {
+            opensearchMetricsWorkflowStateMachineName: opensearchMetricsWorkflow.stateMachineName
+        }
     }
 
     private createMetricsTask(scope: Construct, opensearchDomainStack: OpenSearchDomainStack,
