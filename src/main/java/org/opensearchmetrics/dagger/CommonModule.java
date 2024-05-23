@@ -1,5 +1,6 @@
 package org.opensearchmetrics.dagger;
 
+import org.opensearchmetrics.util.SecretsManagerUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -16,6 +17,8 @@ import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.util.OpenSearchUtil;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -30,6 +33,7 @@ public class CommonModule {
     private static final String OPENSEARCH_DOMAIN_REGION = "OPENSEARCH_DOMAIN_REGION";
     private static final String OPENSEARCH_DOMAIN_ROLE = "OPENSEARCH_DOMAIN_ROLE";
     private static final String ROLE_SESSION_NAME = "OpenSearchHealth";
+    private static final String SECRETS_MANAGER_REGION = "SECRETS_MANAGER_REGION";
 
     @Singleton
     @Provides
@@ -91,5 +95,15 @@ public class CommonModule {
                 issueComments, pullComments,
                 issuePositiveReactions, issueNegativeReactions,
                 labelMetrics, releaseMetrics);
+    }
+
+    @Provides
+    @Singleton
+    public SecretsManagerUtil getSecretsManagerUtil(ObjectMapper mapper) {
+        final String region = System.getenv(SECRETS_MANAGER_REGION);
+        final AWSSecretsManager secretsManager = AWSSecretsManagerClientBuilder.standard()
+                .withRegion(region)
+                .build();
+        return new SecretsManagerUtil(secretsManager, mapper);
     }
 }
