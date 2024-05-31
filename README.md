@@ -59,12 +59,16 @@ Open Issues with label `Flaky`
 
 ### [OpenSearch Gradle Check Metrics](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/e5e64d40-ed31-11ee-be99-69d1dbc75083)
 
-| metric_name                         | metric_description                                     |
-|-------------------------------------|--------------------------------------------------------|
-| Test failure report                 | Report for Gradle Check failed tests.                  |
-| Top test failures                   | Gradle Check top failed tests..                        |
-| Class level test failures           | Gradle Check class level test failures.                |
-| Gradle failure count at PR level    | Gradle Check test failures data at pull request level. |
+| metric_name                                            | metric_description                                                                                             |
+|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| Gradle Check - Test class failures top 50 hitters      | Pie chart representing the test class failures count showing the top 50 hitters .                              |
+| Test failure report                                    | Report for Gradle Check failed tests with the linked Jenkins build number                                      |
+| Top test failures                                      | Data table for Gradle Check top failed tests.                                                                  |
+| Class level test failures                              | Line chart representing Gradle Check class level test failures.                                                |
+| Gradle Check count at PR level                         | Data table that has the Pull Request detail including author and commit that triggered the Gradle Check.       |
+| Gradle failure - Top test class failures               | Data table with top test class results that has the failed tests.                                              |
+| Gradle Check - (TSVB) Top test class failures          | Time Series Visual Builder showing the top test class failure results.                                         | 
+| Gradle Check -Top test class failures with Post Merge  | Data table with top test class results that has the failed tests during the Post Merge Gradle Check execution. | 
 
 
 ## Contributing
