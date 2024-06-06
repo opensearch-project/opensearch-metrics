@@ -6,6 +6,7 @@ import org.opensearchmetrics.metrics.MetricsCalculation;
 import org.opensearchmetrics.metrics.general.Metrics;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.util.OpenSearchUtil;
+import org.opensearchmetrics.util.SecretsManagerUtil;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +20,8 @@ public interface ServiceComponent {
     OpenSearchUtil getOpenSearchUtil();
 
     MetricsCalculation getMetricsCalculation();
+
+    SecretsManagerUtil getSecretsManagerUtil();
 
     @Named(MetricsModule.UNTRIAGED_ISSUES)
     Metrics getUntriagedIssues();
