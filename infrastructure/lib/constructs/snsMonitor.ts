@@ -2,8 +2,9 @@ import { Construct } from 'constructs';
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as actions from "aws-cdk-lib/aws-cloudwatch-actions";
-import { Canary } from 'aws-cdk-lib/aws-synthetics';
 import {OpenSearchLambda} from "./lambda";
+import Project from '../enums/project';
+
 
 export interface SnsMonitorsProps {
     readonly region: string;
@@ -33,7 +34,7 @@ export class SnsMonitors extends Construct {
 
         // The email list for receiving alerts
         this.emailList = [
-            'insert@mail.here'
+            Project.SNS_ALERT_EMAIL
         ];
 
         // Create alarms

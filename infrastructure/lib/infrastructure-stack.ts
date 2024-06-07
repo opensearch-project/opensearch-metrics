@@ -43,7 +43,9 @@ export class InfrastructureStack extends Stack {
 
     // Create Secrets Manager
 
-    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets");
+    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets", {
+      secretName: 'metrics-creds'
+    });
 
     // Create Monitoring Dashboard
 
@@ -52,7 +54,7 @@ export class InfrastructureStack extends Stack {
       account: Project.AWS_ACCOUNT,
       workflowComponent: openSearchMetricsWorkflowStack.workflowComponent,
       lambdaPackage: Project.LAMBDA_PACKAGE,
-      secrets: openSearchMetricsSecretsStack.secretsObject,
+      secrets: openSearchMetricsSecretsStack.secret,
       vpcStack: vpcStack
     });
 

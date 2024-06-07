@@ -1,17 +1,14 @@
 package org.opensearchmetrics.lambda;
 
+import org.opensearchmetrics.model.alarm.AlarmData;
 import org.opensearchmetrics.util.SecretsManagerUtil;
 import org.opensearchmetrics.datasource.DataSourceType;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.Data;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SNSEvent;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpResponse;
@@ -40,22 +37,6 @@ public class SlackLambda implements RequestHandler<SNSEvent, Void> {
         this.mapper = COMPONENT.getObjectMapper();
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    private static class AlarmObject {
-        @JsonProperty("AlarmName")
-        private String alarmName;
-        @JsonProperty("AlarmDescription")
-        private String alarmDescription;
-        @JsonProperty("StateChangeTime")
-        private String stateChangeTime;
-        @JsonProperty("Region")
-        private String region;
-        @JsonProperty("AlarmArn")
-        private String alarmArn;
-    }
-
     @Override
     public Void handleRequest(SNSEvent event, Context context) {
         String slackWebhookURL;
@@ -80,8 +61,8 @@ public class SlackLambda implements RequestHandler<SNSEvent, Void> {
     }
 
     private void sendMessageToSlack(String message, String slackWebhookURL, String slackChannel, String slackUsername) throws IOException {
-        AlarmObject alarmObject =
-                mapper.readValue(message, AlarmObject.class);
+        AlarmData alarmObject =
+                mapper.readValue(message, AlarmData.class);
         String alarmMessage = ":alert: OpenSearch Metrics Dashboard Monitoring alarm activated. Please investigate the issue. \n" +
                 "- Name: " + alarmObject.getAlarmName() + "\n" +
                 "- Description: " + alarmObject.getAlarmDescription() + "\n" +

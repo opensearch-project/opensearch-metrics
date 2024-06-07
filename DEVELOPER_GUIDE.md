@@ -21,6 +21,7 @@ So you want to contribute code to this project? Excellent! We're glad you're her
     - `cdk deploy OpenSearchMetrics-HostedZone`: To deploy the route53 and DNS setup.
     - `cdk deploy OpenSearchMetricsNginxReadonly`: To deploy the dashboard read only setup.
     - `cdk deploy OpenSearchWAF`: To deploy the AWS WAF for the project ALB's.
+    - `cdk deploy OpenSearchMetrics-Monitoring`: To deploy the alerting stack which will monitor the step functions and URL of the project coming from [METRICS_HOSTED_ZONE](https://github.com/opensearch-project/opensearch-metrics/blob/main/infrastructure/lib/enums/project.ts)
 
 ### Forking and Cloning
 

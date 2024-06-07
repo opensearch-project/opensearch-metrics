@@ -27,13 +27,15 @@ test('Monitoring Stack Test', () => {
         vpcStack: vpcStack,
         lambdaPackage: Project.LAMBDA_PACKAGE
     });
-    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets");
+    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets", {
+        secretName: 'metrics-creds'
+    });
     const openSearchMetricsMonitoringStack = new OpenSearchMetricsMonitoringStack(app, "OpenSearchMetrics-Monitoring", {
         region: Project.REGION,
         account: Project.AWS_ACCOUNT,
         workflowComponent: openSearchMetricsWorkflowStack.workflowComponent,
         lambdaPackage: Project.LAMBDA_PACKAGE,
-        secrets: openSearchMetricsSecretsStack.secretsObject,
+        secrets: openSearchMetricsSecretsStack.secret,
         vpcStack: vpcStack
     });
     const template = Template.fromStack(openSearchMetricsMonitoringStack);
@@ -63,10 +65,7 @@ test('Monitoring Stack Test', () => {
             "Statement": [
                 {
                     "Action": "secretsmanager:GetSecretValue",
-                    "Effect": "Allow",
-                    "Resource": {
-                        "Fn::ImportValue": "OpenSearchMetrics-Secrets:ExportsOutputRefMetricsCreds2260E61E4655F9C2"
-                    }
+                    "Effect": "Allow"
                 },
                 {
                     "Action": [
