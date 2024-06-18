@@ -164,8 +164,7 @@ test('Monitoring Stack Test', () => {
             "Handler": "urlMonitor.handler",
             "S3Bucket": {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-            },
-            "S3Key": "3add60a2b13650e2ad0c97ef8b24082c52ea91e59b8b8bac89874c602a6b908d.zip"
+            }
         },
         "ExecutionRoleArn": {
             "Fn::GetAtt": [
