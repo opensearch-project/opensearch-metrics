@@ -25,7 +25,7 @@ export class canarySns extends SnsMonitors {
     private canaryFailed(alertName: string, canary: Canary): [Alarm, string] {
         const alarmObject = new cloudwatch.Alarm(this, `error_alarm_${alertName}`, {
             metric: canary.metricSuccessPercent(),
-            threshold: 100,
+            threshold: 50,
             evaluationPeriods: 1,
             comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
             datapointsToAlarm: 1,
