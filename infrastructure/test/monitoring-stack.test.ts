@@ -226,7 +226,7 @@ test('Monitoring Stack Test', () => {
         "Namespace": "CloudWatchSynthetics",
         "Period": 300,
         "Statistic": "Average",
-        "Threshold": 100,
+        "Threshold": 50,
         "TreatMissingData": "notBreaching"
     });
 });
