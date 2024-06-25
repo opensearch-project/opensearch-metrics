@@ -65,8 +65,8 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
 
         const instanceRole = this.createNginxReadonlyInstanceRole(props);
             this.asg = new AutoScalingGroup(this, 'OpenSearchMetricsReadonly-MetricsProxyAsg', {
-            instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
-            blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(10) }], // GB
+            instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.XLARGE),
+            blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(50) }], // GB
             healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
             machineImage: props && props.ami ?
                 MachineImage.fromSsmParameter(props.ami) :
@@ -181,6 +181,14 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                     proxy_set_header X-Real-IP $remote_addr;  # Set the X-Real-IP header
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # Set the X-Forwarded-For header
                     proxy_set_header X-Forwarded-Proto $scheme;  # Set the X-Forwarded-Proto header
+                    proxy_connect_timeout 60s;
+                    proxy_send_timeout 60s;
+                    proxy_read_timeout 60s;
+                    send_timeout 60s;
+                    proxy_buffer_size 128k;
+                    proxy_buffers 4 256k;
+                    proxy_busy_buffers_size 256k;
+                    proxy_temp_file_write_size 256k;
                 }
             }'`;
     }
@@ -197,7 +205,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             'sudo yum install docker -y',
             'sudo systemctl enable docker',
             'sudo systemctl start docker',
-            `docker run --rm -tid -v ~/.aws:/root/.aws -p 8081:8080 public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 -v --name es --region ${nginxProps.region}`
+            `docker run --rm -tid -v ~/.aws:/root/.aws -p 8081:8080 --log-opt max-size=50m --log-opt max-file=5 public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 -v --name es --region ${nginxProps.region}`
         ];
     }
 

@@ -68,6 +68,17 @@ test('OpenSearchMetricsNginxReadonly Stack Test', () => {
         ]
     });
     template.resourceCountIs('AWS::AutoScaling::LaunchConfiguration', 1);
+    template.hasResourceProperties('AWS::AutoScaling::LaunchConfiguration', {
+        "InstanceType": "m5.xlarge",
+        "BlockDeviceMappings": [
+            {
+                "DeviceName": "/dev/xvda",
+                "Ebs": {
+                    "VolumeSize": 50
+                }
+            }
+        ],
+    });
 });
 
 test('OpenSearchMetricsNginxCognito Test', () => {
