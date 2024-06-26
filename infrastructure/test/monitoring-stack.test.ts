@@ -211,7 +211,7 @@ test('Monitoring Stack Test', () => {
         ],
         "AlarmDescription": "Detect Canary failure",
         "AlarmName": "Canary_failed_MetricsWorkflow",
-        "ComparisonOperator": "LessThanThreshold",
+        "ComparisonOperator": "LessThanOrEqualToThreshold",
         "DatapointsToAlarm": 1,
         "Dimensions": [
             {
@@ -224,9 +224,9 @@ test('Monitoring Stack Test', () => {
         "EvaluationPeriods": 1,
         "MetricName": "SuccessPercent",
         "Namespace": "CloudWatchSynthetics",
-        "Period": 300,
+        "Period": 900,
         "Statistic": "Average",
-        "Threshold": 50,
+        "Threshold": 0,
         "TreatMissingData": "notBreaching"
     });
 });
