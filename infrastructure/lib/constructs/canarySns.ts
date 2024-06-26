@@ -4,6 +4,7 @@ import {Construct} from "constructs";
 import {Alarm} from "aws-cdk-lib/aws-cloudwatch";
 import { Canary } from 'aws-cdk-lib/aws-synthetics';
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+import {Duration} from "aws-cdk-lib";
 
 interface canarySnsProps extends SnsMonitorsProps {
     readonly canaryAlarms: Array<{ alertName: string, canary: Canary }>;
@@ -24,11 +25,13 @@ export class canarySns extends SnsMonitors {
 
     private canaryFailed(alertName: string, canary: Canary): [Alarm, string] {
         const alarmObject = new cloudwatch.Alarm(this, `error_alarm_${alertName}`, {
-            metric: canary.metricSuccessPercent(),
-            threshold: 50,
-            evaluationPeriods: 1,
+            metric: canary.metricSuccessPercent({
+                period: Duration.minutes(5)
+            }),
+            threshold: 100,
+            evaluationPeriods: 3,
             comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
-            datapointsToAlarm: 1,
+            datapointsToAlarm: 3,
             treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
             alarmDescription: "Detect Canary failure",
             alarmName: alertName,
