@@ -6,7 +6,7 @@ import {OpenSearchDomainStack} from "../lib/stacks/opensearch";
 import {VpcStack} from "../lib/stacks/vpc";
 import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
 import {OpenSearchMetricsMonitoringStack} from "../lib/stacks/monitoringDashboard";
-import {OpenSearchMetricsSecrets} from "../lib/stacks/secrets";
+import {OpenSearchMetricsSecretsStack} from "../lib/stacks/secrets";
 
 test('Monitoring Stack Test', () => {
     const app = new App();
@@ -27,7 +27,7 @@ test('Monitoring Stack Test', () => {
         vpcStack: vpcStack,
         lambdaPackage: Project.LAMBDA_PACKAGE
     });
-    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets", {
+    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
         secretName: 'metrics-creds'
     });
     const openSearchMetricsMonitoringStack = new OpenSearchMetricsMonitoringStack(app, "OpenSearchMetrics-Monitoring", {
@@ -211,7 +211,7 @@ test('Monitoring Stack Test', () => {
         ],
         "AlarmDescription": "Detect Canary failure",
         "AlarmName": "Canary_failed_MetricsWorkflow",
-        "ComparisonOperator": "LessThanThreshold",
+        "ComparisonOperator": "LessThanOrEqualToThreshold",
         "DatapointsToAlarm": 1,
         "Dimensions": [
             {
@@ -224,9 +224,9 @@ test('Monitoring Stack Test', () => {
         "EvaluationPeriods": 1,
         "MetricName": "SuccessPercent",
         "Namespace": "CloudWatchSynthetics",
-        "Period": 300,
+        "Period": 900,
         "Statistic": "Average",
-        "Threshold": 50,
+        "Threshold": 0,
         "TreatMissingData": "notBreaching"
     });
 });

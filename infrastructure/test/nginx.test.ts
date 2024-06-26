@@ -79,148 +79,51 @@ test('OpenSearchMetricsNginxReadonly Stack Test', () => {
             }
         ],
     });
-});
-
-test('OpenSearchMetricsNginxCognito Test', () => {
-    const app = new App();
-    const openSearchDomainStack = new OpenSearchDomainStack(app, 'Test-OpenSearchHealth-OpenSearch', {
-        region: "us-east-1",
-        account: "test-account",
-        vpcStack: new VpcStack(app, 'OpenSearchHealth-VPC', {}),
-        enableNginxCognito: true,
-        jenkinsAccess: {
-            jenkinsAccountRoles:  [
-                new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
-                new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
-            ]
-        }
-    });
-    const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);
-    openSearchDomainStackTemplate.resourceCountIs('AWS::Route53::RecordSet', 1);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::Route53::RecordSet', {
-        "Name": `${Project.METRICS_COGNITO_HOSTED_ZONE}.`,
-        "Type": "A"
-    });
-
-    openSearchDomainStackTemplate.resourceCountIs('AWS::AutoScaling::LaunchConfiguration', 1);
-    openSearchDomainStackTemplate.resourceCountIs('AWS::EC2::SecurityGroup', 2);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::EC2::SecurityGroup', {
-        "SecurityGroupEgress": [
-            {
-                "CidrIp": "0.0.0.0/0",
-                "Description": "Allow all outbound traffic by default",
-                "IpProtocol": "-1"
-            }
-        ]
-    });
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::EC2::SecurityGroup', {
-        "SecurityGroupIngress": [
-            {
-                "CidrIp": "0.0.0.0/0",
-                "Description": "Allow from anyone on port 443",
-                "FromPort": 443,
-                "IpProtocol": "tcp",
-                "ToPort": 443
-            }
-        ]
-    });
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::IAM::Role', {
-            "AssumeRolePolicyDocument": {
-                "Statement": [
-                    {
-                        "Action": "sts:AssumeRole",
-                        "Effect": "Allow",
-                        "Principal": {
-                            "Service": "ec2.amazonaws.com"
-                        }
-                    }
-                ],
-                "Version": "2012-10-17"
-            },
-            "ManagedPolicyArns": [
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+        "PolicyDocument": {
+            "Statement": [
                 {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "arn:",
-                            {
-                                "Ref": "AWS::Partition"
-                            },
-                            ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+                    "Action": [
+                        "es:Describe*",
+                        "es:List*",
+                        "es:Get*",
+                        "es:ESHttpGet",
+                        "es:ESHttpPost",
+                    ],
+                    "Effect": "Allow",
+                    "Resource": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:es:::domain/",
+                                {
+                                    "Fn::ImportValue": "OpenSearchHealth-OpenSearch:ExportsOutputRefOpenSearchHealthDomainD942887BFEBF5289"
+                                },
+                                "/*"
+                            ]
                         ]
-                    ]
-                }
-            ],
-            "RoleName": "OpenSearchCognitoUserAccess"
-    })
-    openSearchDomainStackTemplate.resourceCountIs('AWS::ElasticLoadBalancingV2::LoadBalancer', 1);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::ElasticLoadBalancingV2::LoadBalancer', {
-        "LoadBalancerAttributes": [
-            {
-                "Key": "deletion_protection.enabled",
-                "Value": "false"
-            }
-        ],
-        "Scheme": "internet-facing",
-        "Type": "application"
-    });
-    openSearchDomainStackTemplate.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 1);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::ElasticLoadBalancingV2::Listener', {
-        "Port": 443,
-        "Protocol": "HTTPS"
-    });
-    openSearchDomainStackTemplate.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 1);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::ElasticLoadBalancingV2::TargetGroup', {
-        "HealthCheckPath": "/",
-        "HealthCheckPort": "80",
-        "Port": 443,
-        "Protocol": "HTTPS",
-        "TargetGroupAttributes": [
-            {
-                "Key": "stickiness.enabled",
-                "Value": "false"
-            }
-        ],
-        "TargetType": "instance",
-        "VpcId": {
-            "Fn::ImportValue": "OpenSearchHealth-VPC:ExportsOutputRefOpenSearchHealthVpcB885AABED860B3EB"
-        }
-    });
-    openSearchDomainStackTemplate.resourceCountIs('AWS::AutoScaling::AutoScalingGroup', 1);
-    openSearchDomainStackTemplate.hasResourceProperties('AWS::AutoScaling::AutoScalingGroup', {
-            "DesiredCapacity": "1",
-            "HealthCheckGracePeriod": 90,
-            "HealthCheckType": "EC2",
-            "LaunchConfigurationName": {
-                "Ref": "OpenSearchMetricsNginxOpenSearchMetricsCognitoMetricsProxyAsgLaunchConfig8D060946"
-            },
-            "MaxSize": "1",
-            "MinSize": "1",
-            "Tags": [
-                {
-                    "Key": "name",
-                    "PropagateAtLaunch": true,
-                    "Value": "OpenSearchMetricsCognito-NginxProxyHost"
+                    }
                 },
                 {
-                    "Key": "Name",
-                    "PropagateAtLaunch": true,
-                    "Value": "OpenSearchMetricsCognito"
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents",
+                        "logs:DescribeLogStreams"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:logs:::log-group:OpenSearchMetrics/aws-sigv4-proxy.log:*"
                 }
             ],
-            "TargetGroupARNs": [
-                {
-                    "Ref": "OpenSearchMetricsNginxOpenSearchMetricsCognitoNginxProxyAlbOpenSearchMetricsCognitoNginxProxyAlbListenerOpenSearchMetricsCognitoNginxProxyAlbTargetGroup8E449B4A"
-                }
-            ],
-            "VPCZoneIdentifier": [
-                {
-                    "Fn::ImportValue": "OpenSearchHealth-VPC:ExportsOutputRefOpenSearchHealthVpcPrivateSubnet1Subnet529349B600974078"
-                },
-                {
-                    "Fn::ImportValue": "OpenSearchHealth-VPC:ExportsOutputRefOpenSearchHealthVpcPrivateSubnet2SubnetBA599EDB2BEEEA30"
-                }
-            ]
+            "Version": "2012-10-17"
+        },
+        "PolicyName": "OpenSearchMetricsReadonlyNginxProxyRoleDefaultPolicy8EDC749D",
+        "Roles": [
+            {
+                "Ref": "OpenSearchMetricsReadonlyNginxProxyRoleE26CC937"
+            }
+        ]
     });
-
 });
+
