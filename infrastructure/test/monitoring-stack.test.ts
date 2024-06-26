@@ -181,7 +181,7 @@ test('Monitoring Stack Test', () => {
         "RuntimeVersion": "syn-nodejs-puppeteer-7.0",
         "Schedule": {
             "DurationInSeconds": "0",
-            "Expression": "rate(1 minute)"
+            "Expression": "rate(5 minutes)"
         },
         "StartCanaryAfterCreation": true,
         "VPCConfig": {
