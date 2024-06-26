@@ -126,7 +126,7 @@ export class OpenSearchDomainStack extends Stack {
         }
 
         this.domain = new opensearch.Domain(this, 'OpenSearchHealthDomain', {
-            version: opensearch.EngineVersion.OPENSEARCH_2_11,
+            version: opensearch.EngineVersion.OPENSEARCH_2_13,
             vpc: props.vpcStack.vpc,
             vpcSubnets: [this.props.vpcStack.subnets],
             securityGroups: props.vpcStack.securityGroup ? [props.vpcStack.securityGroup] : undefined,
@@ -137,7 +137,7 @@ export class OpenSearchDomainStack extends Stack {
                 masterNodes: 3,
                 dataNodes: 6,
                 dataNodeInstanceType: "r6g.2xlarge.search",
-                masterNodeInstanceType: "m6g.large.search",
+                masterNodeInstanceType: "m6g.xlarge.search",
             },
             ebs: {
                 enabled: true,

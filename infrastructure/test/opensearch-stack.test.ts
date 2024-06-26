@@ -92,6 +92,18 @@ test('OpenSearchDomain Stack Test', () => {
             "UserPoolId": {
                 "Ref": "UserPool"
             }
-        }
+        },
+        "ClusterConfig": {
+            "DedicatedMasterCount": 3,
+            "DedicatedMasterEnabled": true,
+            "DedicatedMasterType": "m6g.xlarge.search",
+            "InstanceCount": 6,
+            "InstanceType": "r6g.2xlarge.search",
+            "ZoneAwarenessConfig": {
+                "AvailabilityZoneCount": 2
+            },
+            "ZoneAwarenessEnabled": true
+        },
+        "EngineVersion": "OpenSearch_2.13",
     });
 });

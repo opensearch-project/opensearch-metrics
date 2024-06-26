@@ -189,6 +189,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                     proxy_buffers 4 256k;
                     proxy_busy_buffers_size 256k;
                     proxy_temp_file_write_size 256k;
+                    proxy_max_temp_file_size 4096m;
                 }
             }'`;
     }

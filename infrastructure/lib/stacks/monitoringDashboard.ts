@@ -80,7 +80,7 @@ export class OpenSearchMetricsMonitoringStack extends Stack {
     private snsMonitorCanaryFailed(canaryName: string, canaryUrl: string, vpcStack: VpcStack): void {
         const canary = new Canary(this, 'CanaryHeartbeatMonitor', {
             canaryName: canaryName,
-            schedule: Schedule.rate(Duration.minutes(1)),
+            schedule: Schedule.rate(Duration.minutes(5)),
             test: Test.custom({
                 code: Code.fromAsset(path.join(__dirname, '../../canary')),
                 handler: 'urlMonitor.handler',
