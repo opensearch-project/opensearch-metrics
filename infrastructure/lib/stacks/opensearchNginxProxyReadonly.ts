@@ -59,15 +59,15 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
     readonly asg: AutoScalingGroup;
 
     constructor(scope: Construct, id: string, props: NginxProps) {
-        const { vpc, securityGroup } = props;
+        const {vpc, securityGroup} = props;
 
         super(scope, id);
 
         const instanceRole = this.createNginxReadonlyInstanceRole(props);
-            this.asg = new AutoScalingGroup(this, 'OpenSearchMetricsReadonly-MetricsProxyAsg', {
+        this.asg = new AutoScalingGroup(this, 'OpenSearchMetricsReadonly-MetricsProxyAsg', {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.XLARGE),
-            blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(50) }], // GB
-            healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
+            blockDevices: [{deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(50)}], // GB
+            healthCheck: HealthCheck.ec2({grace: Duration.seconds(90)}),
             machineImage: props && props.ami ?
                 MachineImage.fromSsmParameter(props.ami) :
                 MachineImage.latestAmazonLinux2(),
@@ -148,7 +148,6 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
     }
 
 
-
     private buildOpenSearchDashboardConf(nginxProps: NginxProps): string {
         return `'# See for reference template for opensearchdashboard:
             resolver 10.0.0.2 ipv6=off;
@@ -205,7 +204,17 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             'sudo yum install docker -y',
             'sudo systemctl enable docker',
             'sudo systemctl start docker',
-            `docker run --rm -tid -v ~/.aws:/root/.aws -p 8081:8080 --log-opt max-size=50m --log-opt max-file=5 public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 -v --name es --region ${nginxProps.region}`
+            `docker run --rm -tid -v ~/.aws:/root/.aws \
+-p 8081:8080 \
+--log-driver=awslogs \
+--log-opt awslogs-group=OpenSearchMetrics/aws-sigv4-proxy.log \
+--log-opt awslogs-create-group=true \
+--log-opt awslogs-region=${nginxProps.region} \
+--log-opt awslogs-multiline-pattern='(INFO|DEBU|ERRO)' \
+--log-opt tag='{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}' \
+public.ecr.aws/aws-observability/aws-sigv4-proxy:1.8 \
+-v --name es --region ${nginxProps.region}
+`
         ];
     }
 
@@ -229,6 +238,20 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
             ],
             resources: [domainArn]
         }));
+
+        role.addToPolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams"
+            ],
+            resources: [
+                `arn:aws:logs:${Project.REGION}:${Project.AWS_ACCOUNT}:log-group:OpenSearchMetrics/aws-sigv4-proxy.log:*`
+            ]
+        }));
+
         return role;
     }
 }
