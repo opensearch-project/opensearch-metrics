@@ -10,7 +10,7 @@ import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
 import {OpenSearchWAF} from "./stacks/waf";
 import {OpenSearchMetricsNginxCognito} from "./constructs/opensearchNginxProxyCognito";
 import {OpenSearchMetricsMonitoringStack} from "./stacks/monitoringDashboard";
-import {OpenSearchMetricsSecrets} from "./stacks/secrets";
+import {OpenSearchMetricsSecretsStack} from "./stacks/secrets";
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
@@ -43,7 +43,7 @@ export class InfrastructureStack extends Stack {
 
     // Create Secrets Manager
 
-    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecrets(app, "OpenSearchMetrics-Secrets", {
+    const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
       secretName: 'metrics-creds'
     });
 
