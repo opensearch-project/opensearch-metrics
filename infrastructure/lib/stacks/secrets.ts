@@ -6,7 +6,7 @@ export interface SecretProps {
     readonly secretName: string
 }
 
-export class OpenSearchMetricsSecrets extends Stack {
+export class OpenSearchMetricsSecretsStack extends Stack {
     readonly secret: Secret;
 
     constructor(scope: Construct, id: string, props: SecretProps ) {
