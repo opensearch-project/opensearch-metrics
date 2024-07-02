@@ -18,7 +18,6 @@ public class ReleaseInputsTest {
         assertEquals("1.3.15", ReleaseInputs.VERSION_1_3_15.getVersion());
         assertEquals("1.3.16", ReleaseInputs.VERSION_1_3_16.getVersion());
         assertEquals("1.3.17", ReleaseInputs.VERSION_1_3_17.getVersion());
-        assertEquals("1.3.18", ReleaseInputs.VERSION_1_3_18.getVersion());
     }
 
     @Test
@@ -32,7 +31,6 @@ public class ReleaseInputsTest {
         assertEquals("closed", ReleaseInputs.VERSION_1_3_15.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_16.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_17.getState());
-        assertEquals("open", ReleaseInputs.VERSION_1_3_18.getState());
     }
 
     @Test
@@ -46,13 +44,12 @@ public class ReleaseInputsTest {
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_15.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_16.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_17.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_18.getBranch());
     }
 
     @Test
     public void testGetAllReleaseInputs() {
         ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
-        assertEquals(10, releaseInputs.length);
+        assertEquals(9, releaseInputs.length);
         assertEquals(ReleaseInputs.VERSION_3_0_0, releaseInputs[0]);
         assertEquals(ReleaseInputs.VERSION_2_12_0, releaseInputs[1]);
         assertEquals(ReleaseInputs.VERSION_2_13_0, releaseInputs[2]);
@@ -62,6 +59,5 @@ public class ReleaseInputsTest {
         assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[6]);
         assertEquals(ReleaseInputs.VERSION_1_3_16, releaseInputs[7]);
         assertEquals(ReleaseInputs.VERSION_1_3_17, releaseInputs[8]);
-        assertEquals(ReleaseInputs.VERSION_1_3_18, releaseInputs[9]);
     }
 }
