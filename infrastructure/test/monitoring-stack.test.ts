@@ -1,12 +1,20 @@
-import {App} from "aws-cdk-lib";
-import {Template} from "aws-cdk-lib/assertions";
-import {OpenSearchMetricsWorkflowStack} from "../lib/stacks/metricsWorkflow";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { App } from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
+import { OpenSearchMetricsWorkflowStack } from "../lib/stacks/metricsWorkflow";
 import Project from "../lib/enums/project";
-import {OpenSearchDomainStack} from "../lib/stacks/opensearch";
-import {VpcStack} from "../lib/stacks/vpc";
-import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
-import {OpenSearchMetricsMonitoringStack} from "../lib/stacks/monitoringDashboard";
-import {OpenSearchMetricsSecretsStack} from "../lib/stacks/secrets";
+import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { VpcStack } from "../lib/stacks/vpc";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import { OpenSearchMetricsMonitoringStack } from "../lib/stacks/monitoringDashboard";
+import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
 
 test('Monitoring Stack Test', () => {
     const app = new App();

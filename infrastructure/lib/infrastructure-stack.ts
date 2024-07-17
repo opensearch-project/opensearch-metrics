@@ -1,16 +1,24 @@
-import {App, Fn, Stack, StackProps} from 'aws-cdk-lib';
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { App, Fn, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { VpcStack } from "./stacks/vpc";
-import {OpenSearchDomainStack} from "./stacks/opensearch";
+import { OpenSearchDomainStack } from "./stacks/opensearch";
 import Project from './enums/project';
-import {OpenSearchHealthRoute53} from "./stacks/route53";
-import {OpenSearchMetricsWorkflowStack} from "./stacks/metricsWorkflow";
-import {OpenSearchMetricsNginxReadonly} from "./stacks/opensearchNginxProxyReadonly";
-import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
-import {OpenSearchWAF} from "./stacks/waf";
-import {OpenSearchMetricsNginxCognito} from "./constructs/opensearchNginxProxyCognito";
-import {OpenSearchMetricsMonitoringStack} from "./stacks/monitoringDashboard";
-import {OpenSearchMetricsSecretsStack} from "./stacks/secrets";
+import { OpenSearchHealthRoute53 } from "./stacks/route53";
+import { OpenSearchMetricsWorkflowStack } from "./stacks/metricsWorkflow";
+import { OpenSearchMetricsNginxReadonly } from "./stacks/opensearchNginxProxyReadonly";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import { OpenSearchWAF } from "./stacks/waf";
+import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxyCognito";
+import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
+import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
@@ -29,7 +37,7 @@ export class InfrastructureStack extends Stack {
       vpcStack: vpcStack,
       enableNginxCognito: true,
       jenkinsAccess: {
-        jenkinsAccountRoles:  [
+        jenkinsAccountRoles: [
           new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
           new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
         ]
@@ -38,7 +46,8 @@ export class InfrastructureStack extends Stack {
 
     // Create OpenSearch Metrics Lambda setup
     const openSearchMetricsWorkflowStack = new OpenSearchMetricsWorkflowStack(app, 'OpenSearchMetrics-Workflow', {
-      opensearchDomainStack: openSearchDomainStack, vpcStack: vpcStack, lambdaPackage: Project.LAMBDA_PACKAGE})
+      opensearchDomainStack: openSearchDomainStack, vpcStack: vpcStack, lambdaPackage: Project.LAMBDA_PACKAGE
+    })
     openSearchMetricsWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
 
     // Create Secrets Manager
