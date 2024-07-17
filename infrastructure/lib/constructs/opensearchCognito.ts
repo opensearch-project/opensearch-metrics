@@ -1,16 +1,24 @@
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Effect, FederatedPrincipal, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import * as cognito from "aws-cdk-lib/aws-cognito";
+import { CfnIdentityPool, CfnIdentityPoolRoleAttachment, CfnUserPool, CfnUserPoolClient, CfnUserPoolDomain, CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 
 export interface OpenSearchMetricsCognitoProps {
     readonly openSearchDomainArn: string;
 }
 
 export class OpenSearchMetricsCognito extends Construct {
-    public readonly identityPool: cognito.CfnIdentityPool;
-    public readonly userPool: cognito.CfnUserPool;
-    public readonly userPoolDomain: cognito.CfnUserPoolDomain;
+    public readonly identityPool: CfnIdentityPool;
+    public readonly userPool: CfnUserPool;
+    public readonly userPoolDomain: CfnUserPoolDomain;
     public readonly metricsCognitoAccessRole: Role;
     public readonly identityPoolAuthRole: Role;
     public readonly identityPoolAdminRole: Role;
@@ -20,7 +28,7 @@ export class OpenSearchMetricsCognito extends Construct {
         super(scope, id);
 
         const userPoolDomainName = "opensearch-health-user-pool"
-        this.userPool = new cognito.CfnUserPool(this, "OpenSearchHealthUserPool", {
+        this.userPool = new CfnUserPool(this, "OpenSearchHealthUserPool", {
             userPoolName: userPoolDomainName,
             adminCreateUserConfig: {
                 allowAdminCreateUserOnly: true
@@ -29,26 +37,26 @@ export class OpenSearchMetricsCognito extends Construct {
         this.userPool.overrideLogicalId("UserPool");
         this.userPool.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
-        const adminGroup = new cognito.CfnUserPoolGroup(this, 'OpensearchAdminGroup', {
+        const adminGroup = new CfnUserPoolGroup(this, 'OpensearchAdminGroup', {
             groupName: 'opensearch-admin-group',
             userPoolId: this.userPool.ref,
         });
 
 
-        const cognitoAppClient = new cognito.CfnUserPoolClient(this, "OpenSearchHealthUserPoolClient", {
+        const cognitoAppClient = new CfnUserPoolClient(this, "OpenSearchHealthUserPoolClient", {
             userPoolId: this.userPool.ref,
             clientName: 'Web',
             generateSecret: false,
         });
 
 
-        this.userPoolDomain = new cognito.CfnUserPoolDomain(this, "OpenSearchHealthUserPoolDomain", {
+        this.userPoolDomain = new CfnUserPoolDomain(this, "OpenSearchHealthUserPoolDomain", {
             userPoolId: this.userPool.ref,
             domain: `${userPoolDomainName}`
         });
 
         const identityPoolName = "opensearch-health-identity-pool";
-        this.identityPool = new cognito.CfnIdentityPool(this, "OpenSearchHealthIdentityPool", {
+        this.identityPool = new CfnIdentityPool(this, "OpenSearchHealthIdentityPool", {
             identityPoolName: identityPoolName,
             allowUnauthenticatedIdentities: false,
             allowClassicFlow: false,
@@ -107,12 +115,12 @@ export class OpenSearchMetricsCognito extends Construct {
         this.identityPoolAdminRole.addToPolicy(
             new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ["es:ESHttp*", ],
+                actions: ["es:ESHttp*",],
                 resources: [`${props.openSearchDomainArn}`],
             }),
         );
 
-        new cognito.CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
+        new CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
             identityPoolId: this.identityPool.ref,
             roles: {
                 authenticated: this.identityPoolAuthRole.roleArn,

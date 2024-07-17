@@ -1,7 +1,14 @@
-import {Stack, StackProps} from "aws-cdk-lib";
-import {Construct} from "constructs";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Stack, StackProps } from "aws-cdk-lib";
 import { CfnWebACL, CfnWebACLAssociation, CfnWebACLAssociationProps } from 'aws-cdk-lib/aws-wafv2';
-import {ApplicationLoadBalancer, NetworkLoadBalancer} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { Construct } from "constructs";
 
 interface WafRule {
     name: string;
@@ -104,7 +111,7 @@ export class WebACLAssociation extends CfnWebACLAssociation {
     }
 }
 
-export interface WafProps extends StackProps{
+export interface WafProps extends StackProps {
     readOnlyLoadBalancerArn: string,
     cognitoLoadBalancerArn: string
     appName: string

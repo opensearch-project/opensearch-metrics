@@ -1,32 +1,40 @@
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Aspects, CfnOutput, Duration, Tag, Tags } from 'aws-cdk-lib';
 import {
-    BlockDeviceVolume,
-    HealthCheck,
-    UpdatePolicy,
     AutoScalingGroup,
-    CfnLaunchConfiguration
+    BlockDeviceVolume,
+    CfnLaunchConfiguration,
+    HealthCheck,
+    UpdatePolicy
 } from 'aws-cdk-lib/aws-autoscaling';
 import {
     InstanceClass,
     InstanceSize,
     InstanceType,
+    MachineImage,
     Peer,
     Port,
     SecurityGroup,
     SubnetType,
-    Vpc,
-    MachineImage
+    Vpc
 } from 'aws-cdk-lib/aws-ec2';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import {Aspects, CfnOutput, Duration, Tag, Tags} from 'aws-cdk-lib';
-import { Construct } from 'constructs';
 import {
     ApplicationLoadBalancer, ApplicationProtocol,
     ListenerCertificate, Protocol, SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { ARecord, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
+import { Construct } from 'constructs';
 import Project from "../enums/project";
-import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
-import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
-import {OpenSearchHealthRoute53} from "../stacks/route53";
+import { OpenSearchHealthRoute53 } from "../stacks/route53";
 
 
 export interface NginxProps {

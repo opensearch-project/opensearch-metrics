@@ -1,9 +1,17 @@
-import {Code, Function, Runtime, Tracing} from 'aws-cdk-lib/aws-lambda';
-import * as path from 'path';
-import {Duration, Stack} from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import {ISecurityGroup, IVpc, SubnetType} from "aws-cdk-lib/aws-ec2";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Duration } from 'aws-cdk-lib';
+import { ISecurityGroup, IVpc, SubnetType } from "aws-cdk-lib/aws-ec2";
 import { IRole } from "aws-cdk-lib/aws-iam";
+import { Code, Function, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
+import * as path from 'path';
 
 export class OpenSearchLambdaProps {
     readonly lambdaNameBase: string;
@@ -27,7 +35,8 @@ export class OpenSearchLambda extends Construct {
         this.lambda = new Function(scope, `${props.lambdaNameBase}Lambda`, {
             vpc: props.vpc,
             vpcSubnets: props.vpc?.selectSubnets({
-                subnetType: SubnetType.PRIVATE_WITH_EGRESS}),
+                subnetType: SubnetType.PRIVATE_WITH_EGRESS
+            }),
             securityGroups: props.securityGroup ? [props.securityGroup] : undefined,
             role: props.role ? props.role : undefined,
             code: Code.fromAsset(path.join(__dirname, props.lambdaZipPath)),

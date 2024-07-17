@@ -1,14 +1,20 @@
-import {RemovalPolicy, Stack} from "aws-cdk-lib";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { RemovalPolicy, Stack } from "aws-cdk-lib";
+import { ArnPrincipal, CfnServiceLinkedRole, CompositePrincipal, Effect, IPrincipal, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Domain, EngineVersion } from "aws-cdk-lib/aws-opensearchservice";
 import { Construct } from "constructs";
-import * as opensearch from "aws-cdk-lib/aws-opensearchservice";
-import { Domain } from "aws-cdk-lib/aws-opensearchservice";
-import * as iam from "aws-cdk-lib/aws-iam";
-import { ArnPrincipal, CompositePrincipal, Effect, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { VpcStack } from "./vpc";
-import {OpenSearchMetricsCognito} from "../constructs/opensearchCognito";
-import {OpenSearchMetricsNginxCognito} from "../constructs/opensearchNginxProxyCognito";
-import {OpenSearchHealthRoute53} from "./route53";
+import { OpenSearchMetricsCognito } from "../constructs/opensearchCognito";
+import { OpenSearchMetricsNginxCognito } from "../constructs/opensearchNginxProxyCognito";
 import Project from "../enums/project";
+import { OpenSearchHealthRoute53 } from "./route53";
+import { VpcStack } from "./vpc";
 
 
 export interface OpenSearchStackProps {
@@ -21,7 +27,7 @@ export interface OpenSearchStackProps {
 
 
 export interface jenkinsAccess {
-    jenkinsAccountRoles: iam.IPrincipal[]
+    jenkinsAccountRoles: IPrincipal[]
 }
 
 
@@ -53,11 +59,11 @@ export class OpenSearchDomainStack extends Stack {
                 "opensearchAssumeRolePolicy": new PolicyDocument({
                     statements: [
                         new PolicyStatement({
-                            effect: iam.Effect.ALLOW,
+                            effect: Effect.ALLOW,
                             actions: ["sts:AssumeRole"],
                             resources: [`arn:aws:iam::${props.account}:role/OpenSearchFullAccessRole`],
                             conditions: {
-                                StringEquals: { 'aws:PrincipalAccount': props.account, 'aws:RequestedRegion': props.region,},
+                                StringEquals: { 'aws:PrincipalAccount': props.account, 'aws:RequestedRegion': props.region, },
                             }
                         })
                     ]
@@ -80,7 +86,7 @@ export class OpenSearchDomainStack extends Stack {
 
         const secureRolesList = [this.openSearchLambdaRole]
         this.fullAccessRole = new Role(this, 'OpenSearchFullAccessRole', {
-            assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new iam.ArnPrincipal(role.roleArn))),
+            assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new ArnPrincipal(role.roleArn))),
             description: "Master role for OpenSearch full access",
             // The Name used in openSearchLambdaRole
             roleName: "OpenSearchFullAccessRole",
@@ -88,7 +94,7 @@ export class OpenSearchDomainStack extends Stack {
                 "opensearchFullAccess": new PolicyDocument({
                     statements: [
                         new PolicyStatement({
-                            effect: iam.Effect.ALLOW,
+                            effect: Effect.ALLOW,
                             actions: ["es:*"],
                             resources: [domainArn]
                         })
@@ -116,17 +122,17 @@ export class OpenSearchDomainStack extends Stack {
             resources: [domainArn]
         })
 
-        if(props.jenkinsAccess) {
+        if (props.jenkinsAccess) {
             const jenkinsAccessRole = new Role(this, 'OpenSearchJenkinsAccessRole', {
-                assumedBy: new iam.CompositePrincipal(...props.jenkinsAccess.jenkinsAccountRoles),
+                assumedBy: new CompositePrincipal(...props.jenkinsAccess.jenkinsAccountRoles),
                 description: "Role to Allow OpenSearch build Jenkins accessing the Cluster",
                 roleName: "OpenSearchJenkinsAccessRole",
             });
             clusterAccessPolicy.addPrincipals(new ArnPrincipal(jenkinsAccessRole.roleArn))
         }
 
-        this.domain = new opensearch.Domain(this, 'OpenSearchHealthDomain', {
-            version: opensearch.EngineVersion.OPENSEARCH_2_13,
+        this.domain = new Domain(this, 'OpenSearchHealthDomain', {
+            version: EngineVersion.OPENSEARCH_2_13,
             vpc: props.vpcStack.vpc,
             vpcSubnets: [this.props.vpcStack.subnets],
             securityGroups: props.vpcStack.securityGroup ? [props.vpcStack.securityGroup] : undefined,
@@ -169,13 +175,13 @@ export class OpenSearchDomainStack extends Stack {
         });
 
 
-        const serviceLinkedRole = new iam.CfnServiceLinkedRole(this, 'OpensearchServiceLinkedRole', {
+        const serviceLinkedRole = new CfnServiceLinkedRole(this, 'OpensearchServiceLinkedRole', {
             awsServiceName: 'es.amazonaws.com',
             description: 'Service Role for OpenSearch to access resources in VPC'
         });
 
         this.domain.node.addDependency(serviceLinkedRole);
-        if(props.enableNginxCognito) {
+        if (props.enableNginxCognito) {
             const metricsHostedZone = new OpenSearchHealthRoute53(this, "OpenSearchMetricsCognito-HostedZone", {
                 hostedZone: Project.METRICS_COGNITO_HOSTED_ZONE,
                 appName: "OpenSearchMetricsCognito"

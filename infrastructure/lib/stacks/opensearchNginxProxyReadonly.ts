@@ -1,3 +1,12 @@
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Aspects, CfnOutput, Duration, Stack, Tag, Tags } from 'aws-cdk-lib';
 import {
     AutoScalingGroup,
     BlockDeviceVolume,
@@ -16,9 +25,6 @@ import {
     SubnetType,
     Vpc
 } from 'aws-cdk-lib/aws-ec2';
-import {Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
-import {Aspects, CfnOutput, Duration, Stack, Tag, Tags} from 'aws-cdk-lib';
-import {Construct} from 'constructs';
 import {
     ApplicationLoadBalancer,
     ApplicationProtocol,
@@ -26,10 +32,12 @@ import {
     Protocol,
     SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { ARecord, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
+import { Construct } from 'constructs';
 import Project from "../enums/project";
-import {OpenSearchHealthRoute53} from "./route53";
-import {ARecord, RecordTarget} from "aws-cdk-lib/aws-route53";
-import {LoadBalancerTarget} from "aws-cdk-lib/aws-route53-targets";
+import { OpenSearchHealthRoute53 } from "./route53";
 
 
 export interface NginxProps {
@@ -59,15 +67,15 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
     readonly asg: AutoScalingGroup;
 
     constructor(scope: Construct, id: string, props: NginxProps) {
-        const {vpc, securityGroup} = props;
+        const { vpc, securityGroup } = props;
 
         super(scope, id);
 
         const instanceRole = this.createNginxReadonlyInstanceRole(props);
         this.asg = new AutoScalingGroup(this, 'OpenSearchMetricsReadonly-MetricsProxyAsg', {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.XLARGE),
-            blockDevices: [{deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(50)}], // GB
-            healthCheck: HealthCheck.ec2({grace: Duration.seconds(90)}),
+            blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(50) }], // GB
+            healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
             machineImage: props && props.ami ?
                 MachineImage.fromSsmParameter(props.ami) :
                 MachineImage.latestAmazonLinux2(),
