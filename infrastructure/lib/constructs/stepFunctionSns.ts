@@ -1,8 +1,14 @@
-import {SnsMonitors} from "./snsMonitor";
-import {SnsMonitorsProps} from "./snsMonitor";
-import {Construct} from "constructs";
-import {Alarm} from "aws-cdk-lib/aws-cloudwatch";
-import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Alarm, ComparisonOperator, Metric, TreatMissingData } from "aws-cdk-lib/aws-cloudwatch";
+import { Construct } from "constructs";
+import { SnsMonitors, SnsMonitorsProps } from "./snsMonitor";
 
 interface stepFunctionSnsProps extends SnsMonitorsProps {
     readonly stepFunctionSnsAlarms: Array<{ alertName: string, stateMachineName: string }>;
@@ -13,8 +19,7 @@ export class StepFunctionSns extends SnsMonitors {
     constructor(scope: Construct, id: string, props: stepFunctionSnsProps) {
         super(scope, id, props);
         this.stepFunctionSnsAlarms = props.stepFunctionSnsAlarms;
-        this.stepFunctionSnsAlarms.forEach(({ alertName, stateMachineName }) =>
-        {
+        this.stepFunctionSnsAlarms.forEach(({ alertName, stateMachineName }) => {
             const alarm = this.stepFunctionExecutionsFailed(alertName, stateMachineName);
             this.map[alarm[1]] = alarm[0];
         });
@@ -22,9 +27,9 @@ export class StepFunctionSns extends SnsMonitors {
     }
 
     private stepFunctionExecutionsFailed(alertName: string, stateMachineName: string): [Alarm, string] {
-        const alarmObject = new cloudwatch.Alarm(this, `error_alarm_${alertName}`, {
-            metric: new cloudwatch.Metric({
-                namespace:  this.alarmNameSpace,
+        const alarmObject = new Alarm(this, `error_alarm_${alertName}`, {
+            metric: new Metric({
+                namespace: this.alarmNameSpace,
                 metricName: "ExecutionsFailed",
                 statistic: "Sum",
                 dimensionsMap: {
@@ -33,9 +38,9 @@ export class StepFunctionSns extends SnsMonitors {
             }),
             threshold: 1,
             evaluationPeriods: 1,
-            comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             datapointsToAlarm: 1,
-            treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+            treatMissingData: TreatMissingData.NOT_BREACHING,
             alarmDescription: "Detect SF execution failure",
             alarmName: alertName,
         });

@@ -1,11 +1,19 @@
-import {App} from "aws-cdk-lib";
-import {VpcStack} from "../lib/stacks/vpc";
-import {Template} from "aws-cdk-lib/assertions";
-import {OpenSearchMetricsNginxReadonly} from "../lib/stacks/opensearchNginxProxyReadonly";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { App } from "aws-cdk-lib";
+import { VpcStack } from "../lib/stacks/vpc";
+import { Template } from "aws-cdk-lib/assertions";
+import { OpenSearchMetricsNginxReadonly } from "../lib/stacks/opensearchNginxProxyReadonly";
 import Project from "../lib/enums/project";
-import {OpenSearchDomainStack} from "../lib/stacks/opensearch";
-import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
-import {OpenSearchHealthRoute53} from "../lib/stacks/route53";
+import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import { OpenSearchHealthRoute53 } from "../lib/stacks/route53";
 
 test('OpenSearchMetricsNginxReadonly Stack Test', () => {
     const app = new App();
@@ -16,7 +24,7 @@ test('OpenSearchMetricsNginxReadonly Stack Test', () => {
         vpcStack: vpcStack,
         enableNginxCognito: true,
         jenkinsAccess: {
-            jenkinsAccountRoles:  [
+            jenkinsAccountRoles: [
                 new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
                 new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
             ]

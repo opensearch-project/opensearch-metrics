@@ -1,8 +1,15 @@
-import {App} from "aws-cdk-lib";
-import {VpcStack} from "../lib/stacks/vpc";
-import {Template} from "aws-cdk-lib/assertions";
-import {OpenSearchHealthRoute53} from "../lib/stacks/route53";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { App } from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
 import Project from "../lib/enums/project";
+import { OpenSearchHealthRoute53 } from "../lib/stacks/route53";
 
 test('HostedZone Stack Test', () => {
     const app = new App();

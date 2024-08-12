@@ -1,15 +1,23 @@
-import {Duration, Stack, StackProps} from "aws-cdk-lib";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Canary, Code, Runtime, Schedule, Test } from "aws-cdk-lib/aws-synthetics";
 import { Construct } from 'constructs';
-import { WorkflowComponent } from "./metricsWorkflow";
-import {OpenSearchLambda} from "../constructs/lambda";
-import {Secret} from "aws-cdk-lib/aws-secretsmanager";
-import { VpcStack } from "./vpc";
-import { Runtime, Canary, Test, Code, Schedule } from "aws-cdk-lib/aws-synthetics";
 import * as path from "path";
+import { canarySns } from "../constructs/canarySns";
+import { OpenSearchLambda } from "../constructs/lambda";
+import { StepFunctionSns } from "../constructs/stepFunctionSns";
 import Project from "../enums/project";
-import {Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
-import {StepFunctionSns} from "../constructs/stepFunctionSns";
-import {canarySns} from "../constructs/canarySns";
+import { WorkflowComponent } from "./metricsWorkflow";
+import { VpcStack } from "./vpc";
 
 
 interface OpenSearchMetricsMonitoringStackProps extends StackProps {

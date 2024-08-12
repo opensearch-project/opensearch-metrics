@@ -1,10 +1,18 @@
-import {App} from "aws-cdk-lib";
-import {Template} from "aws-cdk-lib/assertions";
-import {OpenSearchMetricsWorkflowStack} from "../lib/stacks/metricsWorkflow";
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+import { App } from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
+import { OpenSearchMetricsWorkflowStack } from "../lib/stacks/metricsWorkflow";
 import Project from "../lib/enums/project";
-import {OpenSearchDomainStack} from "../lib/stacks/opensearch";
-import {VpcStack} from "../lib/stacks/vpc";
-import {ArnPrincipal} from "aws-cdk-lib/aws-iam";
+import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { VpcStack } from "../lib/stacks/vpc";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
 
 test('Workflow Stack Test', () => {
     const app = new App();
@@ -16,7 +24,7 @@ test('Workflow Stack Test', () => {
             vpcStack: vpcStack,
             enableNginxCognito: true,
             jenkinsAccess: {
-                jenkinsAccountRoles:  [
+                jenkinsAccountRoles: [
                     new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
                     new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
                 ]

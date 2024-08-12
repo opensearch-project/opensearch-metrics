@@ -1,12 +1,16 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as Infrastructure from '../lib/infrastructure-stack';
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
 
 // example test. To run these tests, uncomment this file along with the
 // example resource in lib/infrastructure-stack.ts
-import {App} from "aws-cdk-lib";
-import {Template} from "aws-cdk-lib/assertions";
-import {VpcStack} from "../lib/stacks/vpc";
+import { App } from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
+import { VpcStack } from "../lib/stacks/vpc";
 
 test('VPC Stack Test', () => {
     const app = new App();
