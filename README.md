@@ -55,7 +55,8 @@ The OpenSearch Metrics project showcases and keeps track of several important Op
 | Total Comments Weekly               | The total number of comments each week.                                                                             |
 | Issue Stats                         | Stats about issues including contributors, Avg days to close, Positive and Negative Reactions data.                 |
 | Reactions                           | Positive vs Negative reactions.                                                                                     |
-Open Issues with label `Flaky`
+ | Open Issues with label `Flaky`      | GitHub Issues that are open with  `Flaky` label.                                                                    | 
+| Untriaged Issues Link                    | Data table which displays the HTML links of the Untriaged Issues.                                                   | 
 
 ### [OpenSearch Gradle Check Metrics](https://metrics.opensearch.org/_dashboards/app/dashboards#/view/e5e64d40-ed31-11ee-be99-69d1dbc75083)
 
@@ -69,6 +70,22 @@ Open Issues with label `Flaky`
 | Gradle failure - Top test class failures               | Data table with top test class results that has the failed tests.                                              |
 | Gradle Check - (TSVB) Top test class failures          | Time Series Visual Builder showing the top test class failure results.                                         | 
 | Gradle Check -Top test class failures with Post Merge  | Data table with top test class results that has the failed tests during the Post Merge Gradle Check execution. | 
+
+### [OpenSearch Distribution Build and Integration Test Analytics](https://metrics.opensearch.org/_dashboards/app/dashboards?security_tenant=global#/view/21aad140-49f6-11ef-bbdd-39a9b324a5aa?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now))&_a=(description:'OpenSearch%20Release%20Build%20and%20Integration%20Test%20Results',filters:!(),fullScreenMode:!f,options:(hidePanelTitles:!f,useMargins:!t),query:(language:kuery,query:''),timeRestore:!t,title:'OpenSearch%20Release%20Build%20and%20Integration%20Test%20Results',viewMode:view))
+
+The Metrics Dashboard now tracks Integration Test Status and Distribution Build Failures per component of OpenSearch and OpenSearch Dashboards for easy traceability.
+
+| metric_name                                                 | metric_description                                                                                   |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| OpenSearch and OpenSearch Dashboards Components Build Data  | Metric for the distribution build status of core and plugins.                                        |
+| Integration test results with-security and without-security | Metric for the Integration test results with detailed download links.                                |
+| Components With Flaky Integration Tests                     | Metric to track the components with flaky Integration test failures.                                 |
+| Components with Flaky Integ Tests by RC                     | Metric to track the components with flaky Integration test failures at RC (release candidate) level. |
+| Linux Tar x64 and arm64: Components Integration Test Data   | Data table which tracks the Integration test failures for linux tar distribution.                    |
+| Linux Deb x64 and arm64: Components Integration Test Data   | Data table which tracks the Integration test failures for linux deb distribution.                     |
+| Linux Rpm x64 and arm64: Components Integration Test Data   | Data table which tracks the Integration test failures for linux rpm distribution.                     |
+| Windows zip x64: Components Integration Test Data           | Data table which tracks the Integration test failures for windows distribution.                       |
+
 
 
 ## Contributing
