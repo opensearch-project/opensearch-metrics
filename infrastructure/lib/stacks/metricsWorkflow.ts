@@ -42,14 +42,8 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
             stateMachineName: 'OpenSearchMetricsWorkflow'
         })
 
-        new Rule(this, 'MetricsWorkflow-11AM-PDT', {
-            schedule: Schedule.expression('cron(0 18 * * ? *)'),
-            targets: [new SfnStateMachine(opensearchMetricsWorkflow)],
-        });
-
-        // This rule is to ensure OpenSearch Dashboards does not show 0 values in visualizations when used now/d to now+1d/d
-        new Rule(this, 'MetricsWorkflow-12AM-PDT', {
-            schedule: Schedule.expression('cron(0 7 * * ? *)'),
+        new Rule(this, 'MetricsWorkflow-Every-3hrs', {
+            schedule: Schedule.rate(Duration.hours(3)),
             targets: [new SfnStateMachine(opensearchMetricsWorkflow)],
         });
 
