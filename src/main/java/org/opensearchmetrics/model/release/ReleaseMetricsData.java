@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -22,6 +23,9 @@ public class ReleaseMetricsData {
 
     @JsonProperty("release_version")
     private String releaseVersion;
+
+    @JsonProperty("version")
+    private String version;
 
     @JsonProperty("release_state")
     private String releaseState;
@@ -49,12 +53,25 @@ public class ReleaseMetricsData {
     @JsonProperty("release_branch")
     private boolean releaseBranch;
 
+    @JsonProperty("release_owners")
+    private String[] releaseOwners;
+
+    @JsonProperty("release_owner_exists")
+    private boolean releaseOwnerExists;
+
+    @JsonProperty("release_issue")
+    private String releaseIssue;
+
+    @JsonProperty("release_issue_exists")
+    private boolean releaseIssueExists;
+
     public String toJson(ObjectMapper mapper) throws JsonProcessingException {
         Map<String, Object> data = new HashMap<>();
         data.put("id", id);
         data.put("current_date", currentDate);
         data.put("repository", repository);
         data.put("release_version", releaseVersion);
+        data.put("version", version);
         data.put("release_state", releaseState);
         data.put("issues_open", issuesOpen);
         data.put("autocut_issues_open", autocutIssuesOpen);
@@ -64,6 +81,10 @@ public class ReleaseMetricsData {
         data.put("version_increment", versionIncrement);
         data.put("release_notes", releaseNotes);
         data.put("release_branch", releaseBranch);
+        data.put("release_owners", releaseOwners);
+        data.put("release_owner_exists", releaseOwnerExists);
+        data.put("release_issue", releaseIssue);
+        data.put("release_issue_exists", releaseIssueExists);
 
         return mapper.writeValueAsString(data);
     }

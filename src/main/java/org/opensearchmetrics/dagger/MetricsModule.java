@@ -6,6 +6,7 @@ import dagger.Provides;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseBranchChecker;
+import org.opensearchmetrics.metrics.release.ReleaseIssueChecker;
 import org.opensearchmetrics.metrics.release.ReleaseLabelIssuesFetcher;
 import org.opensearchmetrics.metrics.release.ReleaseLabelPullsFetcher;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
@@ -143,7 +144,7 @@ public class MetricsModule {
     public ReleaseMetrics getReleaseMetrics(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper,
                                             ReleaseRepoFetcher releaseRepoFetcher, ReleaseLabelIssuesFetcher releaseLabelIssuesFetcher,
                                             ReleaseLabelPullsFetcher releaseLabelPullsFetcher, ReleaseVersionIncrementChecker releaseVersionIncrementChecker,
-                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker) {
-        return new ReleaseMetrics(openSearchUtil, objectMapper, releaseRepoFetcher, releaseLabelIssuesFetcher, releaseLabelPullsFetcher, releaseVersionIncrementChecker, releaseBranchChecker, releaseNotesChecker);
+                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker) {
+        return new ReleaseMetrics(openSearchUtil, objectMapper, releaseRepoFetcher, releaseLabelIssuesFetcher, releaseLabelPullsFetcher, releaseVersionIncrementChecker, releaseBranchChecker, releaseNotesChecker, releaseIssueChecker);
     }
 }
