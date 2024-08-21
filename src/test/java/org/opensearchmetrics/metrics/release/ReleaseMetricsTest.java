@@ -41,6 +41,9 @@ public class ReleaseMetricsTest {
     private ReleaseNotesChecker releaseNotesChecker;
 
 
+    @Mock
+    private ReleaseIssueChecker releaseIssueChecker;
+
     @Test
     public void testGetReleaseRepos() {
         MockitoAnnotations.openMocks(this);
@@ -102,5 +105,25 @@ public class ReleaseMetricsTest {
                 .thenReturn(expectedBranch);
         boolean result = releaseBranchChecker.releaseBranch("1.0.0", "testRepo");
         assertEquals(expectedBranch, result);
+    }
+
+    @Test
+    public void testGetReleaseOwner() {
+        MockitoAnnotations.openMocks(this);
+        String[] releaseOwners = new String[]{"sample_user_1"};
+        when(releaseIssueChecker.releaseOwners(anyString(), anyString(), any()))
+                .thenReturn(releaseOwners);
+        String[] result = releaseIssueChecker.releaseOwners("1.0.0", "testRepo", openSearchUtil);
+        assertEquals(releaseOwners, result);
+    }
+
+    @Test
+    public void testGetReleaseIssue() {
+        MockitoAnnotations.openMocks(this);
+        String releaseIssue = "https://sample-release-issue/100";
+        when(releaseIssueChecker.releaseIssue(anyString(), anyString(), any()))
+                .thenReturn(releaseIssue);
+        String result = releaseIssueChecker.releaseIssue("1.0.0", "testRepo", openSearchUtil);
+        assertEquals(releaseIssue, result);
     }
 }

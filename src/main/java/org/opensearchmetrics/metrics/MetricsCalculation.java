@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -153,6 +154,7 @@ public class MetricsCalculation {
 
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
+                        .filter(ReleaseInputs::getTrack)
                         .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).stream()
                         .flatMap(repo -> {
                             ReleaseMetricsData releaseMetricsData = new ReleaseMetricsData();
@@ -166,6 +168,7 @@ public class MetricsCalculation {
                                 throw new RuntimeException(e);
                             }
                             releaseMetricsData.setReleaseVersion(releaseInput.getVersion());
+                            releaseMetricsData.setVersion(releaseInput.getVersion());
                             releaseMetricsData.setReleaseState(releaseInput.getState());
                             releaseMetricsData.setIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repo, "open", false));
                             releaseMetricsData.setAutocutIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repo, "open", true));
@@ -175,6 +178,16 @@ public class MetricsCalculation {
                             releaseMetricsData.setVersionIncrement(releaseMetrics.getReleaseVersionIncrement(releaseInput.getVersion(), repo, releaseInput.getBranch()));
                             releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repo, releaseInput.getBranch()));
                             releaseMetricsData.setReleaseBranch(releaseMetrics.getReleaseBranch(releaseInput.getVersion(), repo));
+                            String[] releaseOwners = releaseMetrics.getReleaseOwners(releaseInput.getVersion(), repo);
+                            releaseMetricsData.setReleaseOwners(releaseOwners);
+                            releaseMetricsData.setReleaseOwnerExists(Optional.ofNullable(releaseOwners)
+                                    .map(owners -> owners.length > 0)
+                                    .orElse(false));
+                            String releaseIssue = releaseMetrics.getReleaseIssue(releaseInput.getVersion(), repo);
+                            releaseMetricsData.setReleaseIssue(releaseIssue);
+                            releaseMetricsData.setReleaseIssueExists(Optional.ofNullable(releaseIssue)
+                                    .map(str -> !str.isEmpty())
+                                    .orElse(false));
                             return Stream.of(releaseMetricsData);
                         }))
                 .collect(Collectors.toMap(ReleaseMetricsData::getId,

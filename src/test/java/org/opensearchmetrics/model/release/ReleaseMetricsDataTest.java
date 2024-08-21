@@ -21,6 +21,8 @@ public class ReleaseMetricsDataTest {
 
     private ReleaseMetricsData releaseMetricsData;
 
+    private static String[] SAMPLE_USERS = new String[]{"sample_user"};
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -49,6 +51,12 @@ public class ReleaseMetricsDataTest {
     public void testReleaseVersion() {
         releaseMetricsData.setReleaseVersion("1.0");
         assertEquals("1.0", releaseMetricsData.getReleaseVersion());
+    }
+
+    @Test
+    public void testVersion() {
+        releaseMetricsData.setVersion("1.0");
+        assertEquals("1.0", releaseMetricsData.getVersion());
     }
 
     @Test
@@ -104,6 +112,31 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setReleaseBranch(true);
         assertEquals(true, releaseMetricsData.isReleaseBranch());
     }
+
+    @Test
+    public void testReleaseOwners() {
+        releaseMetricsData.setReleaseOwners(SAMPLE_USERS);
+        assertEquals(SAMPLE_USERS, releaseMetricsData.getReleaseOwners());
+    }
+
+    @Test
+    public void testReleaseOwnerExists() {
+        releaseMetricsData.setReleaseOwnerExists(false);
+        assertEquals(false, releaseMetricsData.isReleaseOwnerExists());
+    }
+
+    @Test
+    public void testReleaseIssue() {
+        releaseMetricsData.setReleaseIssue("https://sample-release-issue/100");
+        assertEquals("https://sample-release-issue/100", releaseMetricsData.getReleaseIssue());
+    }
+
+    @Test
+    public void testReleaseIssueExists() {
+        releaseMetricsData.setReleaseIssueExists(false);
+        assertEquals(false, releaseMetricsData.isReleaseIssueExists());
+    }
+
     @Test
     void toJson() throws JsonProcessingException {
         // Arrange
@@ -112,7 +145,12 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
         releaseMetricsData.setReleaseVersion("1.0.0");
+        releaseMetricsData.setVersion("1.0.0");
+        releaseMetricsData.setReleaseIssue("https://sample-release-issue/100");
+        releaseMetricsData.setReleaseIssueExists(true);
         releaseMetricsData.setReleaseState("stable");
+        releaseMetricsData.setReleaseOwners(SAMPLE_USERS);
+        releaseMetricsData.setReleaseOwnerExists(true);
         releaseMetricsData.setIssuesOpen(5L);
         releaseMetricsData.setAutocutIssuesOpen(2L);
         releaseMetricsData.setIssuesClosed(3L);
@@ -127,6 +165,7 @@ public class ReleaseMetricsDataTest {
         expectedData.put("current_date", "2024-03-15");
         expectedData.put("repository", "test-repo");
         expectedData.put("release_version", "1.0.0");
+        expectedData.put("version", "1.0.0");
         expectedData.put("release_state", "stable");
         expectedData.put("issues_open", 5L);
         expectedData.put("autocut_issues_open", 2L);
@@ -136,6 +175,10 @@ public class ReleaseMetricsDataTest {
         expectedData.put("version_increment", true);
         expectedData.put("release_notes", true);
         expectedData.put("release_branch", false);
+        expectedData.put("release_owners", SAMPLE_USERS);
+        expectedData.put("release_owner_exists", true);
+        expectedData.put("release_issue","https://sample-release-issue/100");
+        expectedData.put("release_issue_exists", true);
 
         when(objectMapper.writeValueAsString(expectedData)).thenReturn("expectedJson");
 
@@ -154,6 +197,7 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
         releaseMetricsData.setReleaseVersion("1.0.0");
+        releaseMetricsData.setVersion("1.0.0");
         releaseMetricsData.setReleaseState("stable");
         releaseMetricsData.setIssuesOpen(5L);
         releaseMetricsData.setAutocutIssuesOpen(2L);
@@ -163,6 +207,10 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setVersionIncrement(true);
         releaseMetricsData.setReleaseNotes(true);
         releaseMetricsData.setReleaseBranch(false);
+        releaseMetricsData.setReleaseOwners(SAMPLE_USERS);
+        releaseMetricsData.setReleaseOwnerExists(true);
+        releaseMetricsData.setReleaseIssue("https://sample-release-issue/100");
+        releaseMetricsData.setReleaseIssueExists(true);
 
         when(objectMapper.writeValueAsString(anyMap())).thenReturn("expectedJson");
 
@@ -181,6 +229,7 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
         releaseMetricsData.setReleaseVersion("1.0.0");
+        releaseMetricsData.setVersion("1.0.0");
         releaseMetricsData.setReleaseState("stable");
         releaseMetricsData.setIssuesOpen(5L);
         releaseMetricsData.setAutocutIssuesOpen(2L);
@@ -190,6 +239,10 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setVersionIncrement(true);
         releaseMetricsData.setReleaseNotes(true);
         releaseMetricsData.setReleaseBranch(false);
+        releaseMetricsData.setReleaseOwners(SAMPLE_USERS);
+        releaseMetricsData.setReleaseOwnerExists(true);
+        releaseMetricsData.setReleaseIssue("https://sample-release-issue/100");
+        releaseMetricsData.setReleaseIssueExists(true);
 
         when(objectMapper.writeValueAsString(anyMap())).thenThrow(JsonProcessingException.class);
 

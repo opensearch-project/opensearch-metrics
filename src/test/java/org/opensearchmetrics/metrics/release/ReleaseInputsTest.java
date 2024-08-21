@@ -56,6 +56,22 @@ public class ReleaseInputsTest {
     }
 
     @Test
+    public void testGetTrack() {
+        assertEquals(true, ReleaseInputs.VERSION_3_0_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_2_12_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_2_13_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_2_14_0.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_2_15_0.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_2_16_0.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_2_17_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_1_3_15.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_1_3_16.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_1_3_17.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_1_3_18.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_1_3_19.getTrack());
+    }
+
+    @Test
     public void testGetAllReleaseInputs() {
         ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
         assertEquals(12, releaseInputs.length);
