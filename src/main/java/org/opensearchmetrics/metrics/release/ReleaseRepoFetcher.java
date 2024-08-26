@@ -8,10 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ReleaseRepoFetcher {
 
@@ -20,32 +19,28 @@ public class ReleaseRepoFetcher {
     public ReleaseRepoFetcher() {
     }
 
-    public List<String> getReleaseRepos(String releaseVersion) {
-        List<String> repoNames = new ArrayList<>();
-        repoNames.add("opensearch-build");
-        repoNames.add("performance-analyzer-rca");
-        repoNames.add("project-website");
+    public Map<String, String> getReleaseRepos(String releaseVersion) {
+        Map<String, String> repoMap = new HashMap<>();
         String[] urls = {
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-%s.yml", releaseVersion, releaseVersion),
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-dashboards-%s.yml", releaseVersion, releaseVersion)
         };
         for (String url : urls) {
             String responseBody = readUrl(url);
-            parseYaml(responseBody, repoNames);
+            parseYaml(responseBody, repoMap);
         }
-        repoNames.addAll(releaseRepoExceptionList());
-        return repoNames.stream()
-                .distinct()
-                .collect(Collectors.toList());
+        repoMap.putAll(releaseRepoExceptionMap());
+        return repoMap;
     }
 
-    public List<String> releaseRepoExceptionList() {
-        List<String> repoExceptionList = new ArrayList<>();
-        repoExceptionList.add("opensearch-build");
-        repoExceptionList.add("performance-analyzer-rca");
-        repoExceptionList.add("project-website");
-        repoExceptionList.add("documentation-website");
-        return repoExceptionList;
+
+    public Map<String, String> releaseRepoExceptionMap() {
+        Map<String, String> repoExceptionMap = new HashMap<>();
+        repoExceptionMap.put("opensearch-build", "opensearch-build");
+        repoExceptionMap.put("performance-analyzer-rca", "performance-analyzer-rca");
+        repoExceptionMap.put("project-website", "project-website");
+        repoExceptionMap.put("documentation-website", "documentation-website");
+        return repoExceptionMap;
     };
 
     public String readUrl(String url) {
@@ -70,7 +65,7 @@ public class ReleaseRepoFetcher {
     }
 
 
-    public void parseYaml(String responseBody, List<String> repoNames) {
+    public void parseYaml(String responseBody, Map<String, String> repoMap) {
         new Yaml().loadAll(responseBody).forEach(document -> {
             if (document instanceof Map) {
                 Map<?, ?> map = (Map<?, ?>) document;
@@ -79,21 +74,16 @@ public class ReleaseRepoFetcher {
                         .flatMap(value -> ((List<?>) value).stream())
                         .filter(component -> component instanceof Map)
                         .map(component -> (Map<?, ?>) component)
-                        .filter(componentMap -> {
-                            Object repository = componentMap.get("repository");
-                            return repository != null && repository.toString().contains("github.com");
-                        })
-                        .map(componentMap -> {
+                        .forEach(componentMap -> {
                             String repoUrl = componentMap.get("repository").toString();
+                            String componentName = componentMap.get("name").toString();
+
                             int startIndex = repoUrl.lastIndexOf('/') + 1;
                             int endIndex = repoUrl.lastIndexOf(".git");
-                            if (repoUrl != null && endIndex != -1) {
-                                return repoUrl.substring(startIndex, endIndex);
-                            } else {
-                                return repoUrl.substring(startIndex);
-                            }
-                        })
-                        .forEach(repoNames::add);
+                            String repoName = (endIndex != -1) ? repoUrl.substring(startIndex, endIndex) : repoUrl.substring(startIndex);
+
+                            repoMap.put(repoName, componentName);
+                        });
             }
         });
     }

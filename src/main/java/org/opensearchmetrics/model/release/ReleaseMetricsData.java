@@ -21,6 +21,9 @@ public class ReleaseMetricsData {
     @JsonProperty("repository")
     private String repository;
 
+    @JsonProperty("component")
+    private String component;
+
     @JsonProperty("release_version")
     private String releaseVersion;
 
@@ -70,6 +73,7 @@ public class ReleaseMetricsData {
         data.put("id", id);
         data.put("current_date", currentDate);
         data.put("repository", repository);
+        data.put("component", component);
         data.put("release_version", releaseVersion);
         data.put("version", version);
         data.put("release_state", releaseState);

@@ -8,6 +8,7 @@ import org.opensearchmetrics.util.OpenSearchUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -47,10 +48,10 @@ public class ReleaseMetricsTest {
     @Test
     public void testGetReleaseRepos() {
         MockitoAnnotations.openMocks(this);
-        List<String> repos = Collections.singletonList("testRepo");
+        Map<String, String> repos = Collections.singletonMap("testRepo", "testComponent");
         when(releaseRepoFetcher.getReleaseRepos(anyString())).thenReturn(repos);
-        List<String> result = releaseRepoFetcher.getReleaseRepos("1.0.0");
-        assertSame(repos, result);
+        Map<String, String> result = releaseRepoFetcher.getReleaseRepos("1.0.0");
+        assertEquals(repos, result);
     }
 
     @Test
