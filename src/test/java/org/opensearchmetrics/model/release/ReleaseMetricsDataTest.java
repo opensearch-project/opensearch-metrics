@@ -48,6 +48,12 @@ public class ReleaseMetricsDataTest {
     }
 
     @Test
+    public void testCOmponent() {
+        releaseMetricsData.setComponent("exampleComponent");
+        assertEquals("exampleComponent", releaseMetricsData.getComponent());
+    }
+
+    @Test
     public void testReleaseVersion() {
         releaseMetricsData.setReleaseVersion("1.0");
         assertEquals("1.0", releaseMetricsData.getReleaseVersion());
@@ -144,6 +150,7 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setId("1");
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
+        releaseMetricsData.setComponent("test-component");
         releaseMetricsData.setReleaseVersion("1.0.0");
         releaseMetricsData.setVersion("1.0.0");
         releaseMetricsData.setReleaseIssue("https://sample-release-issue/100");
@@ -164,6 +171,7 @@ public class ReleaseMetricsDataTest {
         expectedData.put("id", "1");
         expectedData.put("current_date", "2024-03-15");
         expectedData.put("repository", "test-repo");
+        expectedData.put("component", "test-component");
         expectedData.put("release_version", "1.0.0");
         expectedData.put("version", "1.0.0");
         expectedData.put("release_state", "stable");
@@ -196,6 +204,7 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setId("1");
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
+        releaseMetricsData.setComponent("test-component");
         releaseMetricsData.setReleaseVersion("1.0.0");
         releaseMetricsData.setVersion("1.0.0");
         releaseMetricsData.setReleaseState("stable");
@@ -228,6 +237,7 @@ public class ReleaseMetricsDataTest {
         releaseMetricsData.setId("1");
         releaseMetricsData.setCurrentDate("2024-03-15");
         releaseMetricsData.setRepository("test-repo");
+        releaseMetricsData.setComponent("test-component");
         releaseMetricsData.setReleaseVersion("1.0.0");
         releaseMetricsData.setVersion("1.0.0");
         releaseMetricsData.setReleaseState("stable");

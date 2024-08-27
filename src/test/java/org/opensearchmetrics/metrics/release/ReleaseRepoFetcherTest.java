@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,15 +38,15 @@ public class ReleaseRepoFetcherTest {
         ReleaseRepoFetcher fetcher = new ReleaseRepoFetcher();
 
         // Call the method under test
-        List<String> result = fetcher.releaseRepoExceptionList();
-        List<String> expectedList = new ArrayList<>();
-        expectedList.add("opensearch-build");
-        expectedList.add("performance-analyzer-rca");
-        expectedList.add("project-website");
-        expectedList.add("documentation-website");
+        Map<String, String> result = fetcher.releaseRepoExceptionMap();
+        Map<String, String> expectedMap = new HashMap<>();
+        expectedMap.put("opensearch-build", "opensearch-build");
+        expectedMap.put("performance-analyzer-rca", "performance-analyzer-rca");
+        expectedMap.put("project-website", "project-website");
+        expectedMap.put("documentation-website", "documentation-website");
 
         // Assert that the result matches the expected list
-        assertEquals(expectedList, result);
+        assertEquals(expectedMap, result);
     }
     @Test
     public void testCreateURL() {
@@ -72,7 +74,7 @@ public class ReleaseRepoFetcherTest {
                 "    checks:\n" +
                 "      - gradle:publish\n" +
                 "      - gradle:properties:version\n" +
-                "  - name: common-utils\n" +
+                "  - name: commonUtils\n" +
                 "    repository: https://github.com/opensearch-project/common-utils.git\n" +
                 "    ref: tags/1.3.15.0\n" +
                 "    checks:\n" +
@@ -81,18 +83,22 @@ public class ReleaseRepoFetcherTest {
                 "    platforms:\n" +
                 "      - linux\n" +
                 "      - windows\n";
-        List<String> repoNames = new ArrayList<>();
+        Map<String, String> repoNames = new HashMap<>();
         ReleaseRepoFetcher fetcher = new ReleaseRepoFetcher();
         fetcher.parseYaml(responseBody, repoNames);
         assertEquals(2, repoNames.size());
-        assertEquals(new ArrayList<>(Arrays.asList("OpenSearch", "common-utils")), repoNames);
+        Map<String, String> expectedRepoNames = new HashMap<>();
+        expectedRepoNames.put("OpenSearch", "OpenSearch");
+        expectedRepoNames.put("common-utils", "commonUtils");
+        assertEquals(expectedRepoNames, repoNames);
+        // assertEquals(new ArrayList<>(Arrays.asList("OpenSearch", "common-utils")), repoNames);
     }
 
     @Test
     public void testGetReleaseRepos() {
         ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
         Mockito.doReturn("Test content").when(fetcher).readUrl(Mockito.anyString());
-        List<String> repos = fetcher.getReleaseRepos("1.0.0");
+        Map<String, String> repos = fetcher.getReleaseRepos("1.0.0");
         // Default will always have 4 repos part of exception list
         assertEquals(4, repos.size());
     }
@@ -101,18 +107,20 @@ public class ReleaseRepoFetcherTest {
     public void testGetReleaseRepos_withData() {
         ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
         Mockito.doReturn("Test content").when(fetcher).readUrl(Mockito.anyString());
-        List<String> repoNames = new ArrayList<>();
-        repoNames.add("repo1");
+        Map<String, String> repoNames = new HashMap<>();
+        repoNames.put("repoName", "componentName");
         Mockito.doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
-            List<String> list = (List<String>) args[1];
-            list.addAll(repoNames);
+            String responseBody = (String) args[0];
+            Map<String, String> map = (Map<String, String>) args[1];
+            // Add all entries from repoNames to the provided map
+            map.putAll(repoNames);
             return null;
-        }).when(fetcher).parseYaml(Mockito.anyString(), Mockito.anyList());
-        List<String> repos = fetcher.getReleaseRepos("1.0.0");
+        }).when(fetcher).parseYaml(Mockito.anyString(), Mockito.anyMap());
+        Map<String, String> repos = fetcher.getReleaseRepos("1.0.0");
         // Default will always have 4 repos part of exception list
         assertEquals(5, repos.size());
-        assertTrue(repos.contains("repo1"));
+        assertTrue(repos.containsKey("repoName"));
     }
 
 }

@@ -126,19 +126,19 @@ public class MetricsCalculation {
                                 throw new RuntimeException(e);
                             }
                             return labelInfo.entrySet().stream().flatMap(entry -> {
-                                String labelname = entry.getKey();
+                                String labelName = entry.getKey();
                                 List<Long> values = entry.getValue();
                                 LabelData labelData = new LabelData();
                                 try {
                                     labelData.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
-                                            .digest(("label-metrics-" + labelname + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                            .digest(("label-metrics-" + labelName + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
                                                     .getBytes()))));
                                 } catch (NoSuchAlgorithmException e) {
                                     throw new RuntimeException(e);
                                 }
                                 labelData.setRepository(repo);
                                 labelData.setCurrentDate(currentDate.toString());
-                                labelData.setLabelName(labelname);
+                                labelData.setLabelName(labelName);
                                 labelData.setLabelPullCount(values.get(1));
                                 labelData.setLabelIssueCount(values.get(0));
                                 return Stream.of(labelData);
@@ -155,14 +155,17 @@ public class MetricsCalculation {
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
                         .filter(ReleaseInputs::getTrack)
-                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).stream()
-                        .flatMap(repo -> {
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                        .flatMap(entry -> {
+                            String repoName = entry.getKey();
+                            String componentName = entry.getValue();
                             ReleaseMetricsData releaseMetricsData = new ReleaseMetricsData();
-                            releaseMetricsData.setRepository(repo);
+                            releaseMetricsData.setRepository(repoName);
+                            releaseMetricsData.setComponent(componentName);
                             releaseMetricsData.setCurrentDate(currentDate.toString());
                             try {
                                 releaseMetricsData.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
-                                        .digest(("release-metrics-" + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                        .digest(("release-metrics-" + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repoName)
                                                 .getBytes()))));
                             } catch (NoSuchAlgorithmException e) {
                                 throw new RuntimeException(e);
@@ -170,20 +173,20 @@ public class MetricsCalculation {
                             releaseMetricsData.setReleaseVersion(releaseInput.getVersion());
                             releaseMetricsData.setVersion(releaseInput.getVersion());
                             releaseMetricsData.setReleaseState(releaseInput.getState());
-                            releaseMetricsData.setIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repo, "open", false));
-                            releaseMetricsData.setAutocutIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repo, "open", true));
-                            releaseMetricsData.setIssuesClosed(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repo, "closed", false));
-                            releaseMetricsData.setPullsOpen(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repo, "open"));
-                            releaseMetricsData.setPullsClosed(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repo, "closed"));
-                            releaseMetricsData.setVersionIncrement(releaseMetrics.getReleaseVersionIncrement(releaseInput.getVersion(), repo, releaseInput.getBranch()));
-                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repo, releaseInput.getBranch()));
-                            releaseMetricsData.setReleaseBranch(releaseMetrics.getReleaseBranch(releaseInput.getVersion(), repo));
-                            String[] releaseOwners = releaseMetrics.getReleaseOwners(releaseInput.getVersion(), repo);
+                            releaseMetricsData.setIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repoName, "open", false));
+                            releaseMetricsData.setAutocutIssuesOpen(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repoName, "open", true));
+                            releaseMetricsData.setIssuesClosed(releaseMetrics.getReleaseLabelIssues(releaseInput.getVersion(), repoName, "closed", false));
+                            releaseMetricsData.setPullsOpen(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repoName, "open"));
+                            releaseMetricsData.setPullsClosed(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repoName, "closed"));
+                            releaseMetricsData.setVersionIncrement(releaseMetrics.getReleaseVersionIncrement(releaseInput.getVersion(), repoName, releaseInput.getBranch()));
+                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repoName, releaseInput.getBranch()));
+                            releaseMetricsData.setReleaseBranch(releaseMetrics.getReleaseBranch(releaseInput.getVersion(), repoName));
+                            String[] releaseOwners = releaseMetrics.getReleaseOwners(releaseInput.getVersion(), repoName);
                             releaseMetricsData.setReleaseOwners(releaseOwners);
                             releaseMetricsData.setReleaseOwnerExists(Optional.ofNullable(releaseOwners)
                                     .map(owners -> owners.length > 0)
                                     .orElse(false));
-                            String releaseIssue = releaseMetrics.getReleaseIssue(releaseInput.getVersion(), repo);
+                            String releaseIssue = releaseMetrics.getReleaseIssue(releaseInput.getVersion(), repoName);
                             releaseMetricsData.setReleaseIssue(releaseIssue);
                             releaseMetricsData.setReleaseIssueExists(Optional.ofNullable(releaseIssue)
                                     .map(str -> !str.isEmpty())

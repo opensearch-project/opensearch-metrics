@@ -5,6 +5,7 @@ import org.opensearchmetrics.util.OpenSearchUtil;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 
 public class ReleaseMetrics {
 
@@ -39,9 +40,10 @@ public class ReleaseMetrics {
         this.releaseIssueChecker = releaseIssueChecker;
     }
 
-    public List<String> getReleaseRepos(String releaseVersion) {
+    public Map<String, String> getReleaseRepos(String releaseVersion) {
         return releaseRepoFetcher.getReleaseRepos(releaseVersion);
     }
+
 
     public Long getReleaseLabelIssues(String releaseVersion, String repo, String issueState, boolean autoCut) {
         return releaseLabelIssuesFetcher.releaseLabelIssues(releaseVersion, repo, issueState, autoCut, openSearchUtil);
