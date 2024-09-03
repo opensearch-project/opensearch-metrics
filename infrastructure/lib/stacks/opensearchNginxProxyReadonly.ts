@@ -176,6 +176,7 @@ export class OpenSearchMetricsNginxReadonly extends Stack {
                 add_header Strict-Transport-Security "max-age=47304000; includeSubDomains";
                 add_header X-Content-Type-Options "nosniff";
                 add_header X-Frame-Options "DENY";  
+                add_header Content-Security-Policy "frame-ancestors https://opensearch.org";
                 add_header Cache-Control "no-store, no-cache";
                 
                 set $os_endpoint ${nginxProps.opensearchDashboardUrlProps.opensearchDashboardVpcUrl};
