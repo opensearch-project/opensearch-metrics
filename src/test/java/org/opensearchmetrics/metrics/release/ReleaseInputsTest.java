@@ -31,7 +31,7 @@ public class ReleaseInputsTest {
         assertEquals("closed", ReleaseInputs.VERSION_2_14_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_15_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_16_0.getState());
-        assertEquals("open", ReleaseInputs.VERSION_2_17_0.getState());
+        assertEquals("closed", ReleaseInputs.VERSION_2_17_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_15.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_16.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_17.getState());
@@ -47,7 +47,7 @@ public class ReleaseInputsTest {
         assertEquals("2.14", ReleaseInputs.VERSION_2_14_0.getBranch());
         assertEquals("2.15", ReleaseInputs.VERSION_2_15_0.getBranch());
         assertEquals("2.16", ReleaseInputs.VERSION_2_16_0.getBranch());
-        assertEquals("2.x", ReleaseInputs.VERSION_2_17_0.getBranch());
+        assertEquals("2.17", ReleaseInputs.VERSION_2_17_0.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_15.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_16.getBranch());
         assertEquals("1.3", ReleaseInputs.VERSION_1_3_17.getBranch());
