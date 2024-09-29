@@ -19,8 +19,8 @@ import { OpenSearchWAF } from "./stacks/waf";
 import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxyCognito";
 import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
 import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
+import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
 
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -29,6 +29,19 @@ export class InfrastructureStack extends Stack {
     // Create VPC for the entire setup
     const vpcStack = new VpcStack(app, "OpenSearchHealth-VPC", {});
 
+    // Create secret related to GitHub Automation App
+    const openSearchMetricsGitHubAutomationAppSecretStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-GitHubAutomationApp-Secret", {
+      secretName: 'opensearch-project-github-automation-app-creds'
+    });
+
+    // Create resources to launch the GitHub Automation App
+    const gitHubAutomationApp = new GitHubAutomationApp(app, "OpenSearchMetrics-GitHubAutomationApp", {
+      vpc: vpcStack.vpc,
+      region: Project.REGION,
+      account: Project.AWS_ACCOUNT,
+      ami: Project.EC2_AMI_SSM.toString(),
+      secret: openSearchMetricsGitHubAutomationAppSecretStack.secret
+    })
 
     // Create OpenSearch Domain, roles, permissions, cognito setup, cross account OpenSearch access for jenkins
     const openSearchDomainStack = new OpenSearchDomainStack(app, "OpenSearchHealth-OpenSearch", {
@@ -50,8 +63,7 @@ export class InfrastructureStack extends Stack {
     })
     openSearchMetricsWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
 
-    // Create Secrets Manager
-
+    // Create Secret Manager for the metrics project
     const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
       secretName: 'metrics-creds'
     });
