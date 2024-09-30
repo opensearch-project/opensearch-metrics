@@ -1,6 +1,7 @@
 package org.opensearchmetrics.dagger;
 
-import org.opensearchmetrics.util.SecretsManagerUtil;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -15,10 +16,10 @@ import org.opensearch.client.RestHighLevelClient;
 import org.opensearchmetrics.metrics.MetricsCalculation;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.util.OpenSearchUtil;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import org.opensearchmetrics.util.SecretsManagerUtil;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -86,7 +87,7 @@ public class CommonModule {
                                                     CreatedIssues createdIssues, IssueComments issueComments,
                                                     PullComments pullComments, IssuePositiveReactions issuePositiveReactions,
                                                     IssueNegativeReactions issueNegativeReactions, LabelMetrics labelMetrics,
-                                                    ReleaseMetrics releaseMetrics) {
+                                                    ReleaseMetrics releaseMetrics, MaintainerMetrics maintainerMetrics) {
         return new MetricsCalculation(openSearchUtil, objectMapper,
                 untriagedIssues, uncommentedPullRequests,
                 unlabelledPullRequests, unlabelledIssues,
@@ -94,7 +95,7 @@ public class CommonModule {
                 openIssues, closedIssues, createdIssues,
                 issueComments, pullComments,
                 issuePositiveReactions, issueNegativeReactions,
-                labelMetrics, releaseMetrics);
+                labelMetrics, releaseMetrics, maintainerMetrics);
     }
 
     @Provides

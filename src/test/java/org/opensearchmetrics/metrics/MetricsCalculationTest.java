@@ -13,6 +13,7 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.model.label.LabelData;
@@ -68,6 +69,9 @@ public class MetricsCalculationTest {
     private LabelMetrics labelMetrics;
     @Mock
     private ReleaseMetrics releaseMetrics;
+    @Mock
+    private MaintainerMetrics maintainerMetrics;
+
 
     @InjectMocks
     private MetricsCalculation metricsCalculation;
@@ -80,7 +84,7 @@ public class MetricsCalculationTest {
                 untriagedIssues, uncommentedPullRequests, unlabelledPullRequests, unlabelledIssues,
                 mergedPullRequests, openPullRequests, openIssues, closedIssues, createdIssues,
                 issueComments, pullComments, issuePositiveReactions, issueNegativeReactions,
-                labelMetrics, releaseMetrics);
+                labelMetrics, releaseMetrics, maintainerMetrics);
     }
 
     @Test

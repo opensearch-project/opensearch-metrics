@@ -6,10 +6,13 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
-import org.opensearchmetrics.model.label.LabelData;
 import org.opensearchmetrics.model.general.MetricsData;
+import org.opensearchmetrics.model.label.LabelData;
+import org.opensearchmetrics.model.maintainer.EventData;
+import org.opensearchmetrics.model.maintainer.MaintainerData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
@@ -19,11 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +47,7 @@ public class MetricsCalculation {
     private final IssueNegativeReactions issueNegativeReactions;
     private final LabelMetrics labelMetrics;
     private final ReleaseMetrics releaseMetrics;
+    private final MaintainerMetrics maintainerMetrics;
 
 
     public MetricsCalculation(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper,
@@ -58,7 +58,7 @@ public class MetricsCalculation {
                               CreatedIssues createdIssues, IssueComments issueComments,
                               PullComments pullComments, IssuePositiveReactions issuePositiveReactions,
                               IssueNegativeReactions issueNegativeReactions, LabelMetrics labelMetrics,
-                              ReleaseMetrics releaseMetrics) {
+                              ReleaseMetrics releaseMetrics, MaintainerMetrics maintainerMetrics) {
         this.unlabelledPullRequests = unlabelledPullRequests;
         this.unlabelledIssues = unlabelledIssues;
         this.mergedPullRequests = mergedPullRequests;
@@ -77,6 +77,7 @@ public class MetricsCalculation {
         this.uncommentedPullRequests = uncommentedPullRequests;
         this.labelMetrics = labelMetrics;
         this.releaseMetrics = releaseMetrics;
+        this.maintainerMetrics = maintainerMetrics;
     }
 
 
@@ -197,6 +198,89 @@ public class MetricsCalculation {
                         releaseMetricsData -> releaseMetricsData.getJson(releaseMetricsData, objectMapper)));
         openSearchUtil.createIndexIfNotExists("opensearch_release_metrics");
         openSearchUtil.bulkIndex("opensearch_release_metrics", metricFinalData);
+    }
+
+    public void generateMaintainerMetrics(List<String> repositories) {
+        long[] mostAndLeastRepoEventCounts = maintainerMetrics.mostAndLeastRepoEventCounts(openSearchUtil);
+        final double mostRepoEventCount = (double) mostAndLeastRepoEventCounts[0];
+        final double leastRepoEventCount = (double) mostAndLeastRepoEventCounts[1];
+        final double higherBoundDays = 365; // 1 year
+        final double lowerBoundDays = 90; // 3 months
+
+        // Slope and intercept for linear equation:
+        // x = number of events
+        // y = time maintainer is inactive until they are flagged as inactive
+        final double[] slopeAndIntercept = maintainerMetrics.getSlopeAndIntercept(leastRepoEventCount, higherBoundDays, mostRepoEventCount, lowerBoundDays);
+
+        List<String> eventTypes = maintainerMetrics.getEventTypes(openSearchUtil);
+
+        Map<String, String> metricFinalData = repositories.stream()
+                .flatMap(repo -> {
+                    long currentRepoEventCount = maintainerMetrics.repoEventCount(repo, openSearchUtil);
+                    return maintainerMetrics.repoMaintainers(repo).stream()
+                            .flatMap(maintainerData -> {
+                                EventData latestEvent = null;
+                                List<MaintainerData> individualEvents = new ArrayList<>();
+                                for (String eventType : eventTypes) {
+                                    MaintainerData maintainerEvent = new MaintainerData();
+                                    try {
+                                        maintainerEvent.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
+                                                .digest(("maintainer-engagement-" + eventType + "-" + maintainerData.getGithubLogin() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                                        .getBytes()))));
+                                    } catch (NoSuchAlgorithmException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    maintainerEvent.setCurrentDate(currentDate.toString());
+                                    maintainerEvent.setEventType(eventType);
+                                    maintainerEvent.setRepository(repo);
+                                    maintainerEvent.setName(maintainerData.getName());
+                                    maintainerEvent.setGithubLogin((maintainerData.getGithubLogin()));
+                                    maintainerEvent.setAffiliation(maintainerData.getAffiliation());
+                                    Optional<EventData> eventDataOpt = maintainerMetrics.queryLatestEvent(repo, maintainerData.getGithubLogin(), eventType, openSearchUtil);
+                                    if (eventDataOpt.isPresent()) {
+                                        EventData eventData = eventDataOpt.get();
+                                        eventData.setInactive(maintainerMetrics.calculateInactivity(currentRepoEventCount, slopeAndIntercept, lowerBoundDays, eventData));
+                                        if (latestEvent != null) {
+                                            if (eventData.getTimeLastEngaged().isAfter(latestEvent.getTimeLastEngaged())) {
+                                                latestEvent = eventData;
+                                            }
+                                        } else {
+                                            latestEvent = eventData;
+                                        }
+                                        maintainerEvent.setEventAction(eventData.getEventAction());
+                                        maintainerEvent.setTimeLastEngaged(eventData.getTimeLastEngaged().toString());
+                                        maintainerEvent.setInactive(eventData.isInactive());
+                                    } else {
+                                        // If the Optional<EventData> has no value, then leave event action, time last engaged, and inactive empty
+                                        maintainerEvent.setInactive(true);
+                                    }
+                                    individualEvents.add(maintainerEvent);
+                                }
+                                // Create doc that is the combination of all event types
+                                // This is for easily seeing if a maintainer has been inactive in a repo across all event types
+                                maintainerData.setEventType("Any");
+                                try {
+                                    maintainerData.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
+                                            .digest(("maintainer-engagement-" + maintainerData.getEventType() + "-" + maintainerData.getGithubLogin() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                                    .getBytes()))));
+                                } catch (NoSuchAlgorithmException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                maintainerData.setCurrentDate(currentDate.toString());
+                                if (latestEvent != null) {
+                                    maintainerData.setEventAction(latestEvent.getEventAction());
+                                    maintainerData.setTimeLastEngaged(latestEvent.getTimeLastEngaged().toString());
+                                    maintainerData.setInactive(latestEvent.isInactive());
+                                } else {
+                                    maintainerData.setInactive(true);
+                                }
+                                Stream<MaintainerData> compositeEvent = Stream.of(maintainerData);
+                                return Stream.concat(individualEvents.stream(), compositeEvent);
+                            });
+                })
+                .collect(Collectors.toMap(MaintainerData::getId, maintainerData -> maintainerData.getJson(maintainerData, objectMapper)));
+        openSearchUtil.createIndexIfNotExists("maintainer_engagement");
+        openSearchUtil.bulkIndex("maintainer_engagement", metricFinalData);
     }
 
 }
