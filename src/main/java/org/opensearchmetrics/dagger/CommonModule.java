@@ -25,6 +25,7 @@ import org.opensearch.client.RestHighLevelClient;
 import org.opensearchmetrics.metrics.MetricsCalculation;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.util.OpenSearchUtil;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
@@ -116,7 +117,7 @@ public class CommonModule {
                                                     CreatedIssues createdIssues, IssueComments issueComments,
                                                     PullComments pullComments, IssuePositiveReactions issuePositiveReactions,
                                                     IssueNegativeReactions issueNegativeReactions, LabelMetrics labelMetrics,
-                                                    ReleaseMetrics releaseMetrics) {
+                                                    ReleaseMetrics releaseMetrics, MaintainerMetrics maintainerMetrics) {
         return new MetricsCalculation(openSearchUtil, objectMapper,
                 untriagedIssues, uncommentedPullRequests,
                 unlabelledPullRequests, unlabelledIssues,
@@ -124,7 +125,7 @@ public class CommonModule {
                 openIssues, closedIssues, createdIssues,
                 issueComments, pullComments,
                 issuePositiveReactions, issueNegativeReactions,
-                labelMetrics, releaseMetrics);
+                labelMetrics, releaseMetrics, maintainerMetrics);
     }
 
     @Provides

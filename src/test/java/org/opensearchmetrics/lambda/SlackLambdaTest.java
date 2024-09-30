@@ -147,7 +147,7 @@ public class SlackLambdaTest {
     private SNSEvent getSNSEventFromMessage(String message) throws IOException {
         SNSEvent event = new SNSEvent();
         SNSEvent.SNSRecord record = new SNSEvent.SNSRecord();
-        record.setSns(new SNSEvent.SNS().withMessage(message));
+        record.setSns(new SNS().withMessage(message));
         event.setRecords(List.of(record));
         return event;
     }

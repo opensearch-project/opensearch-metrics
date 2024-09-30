@@ -14,10 +14,11 @@ import Project from "../lib/enums/project";
 import { OpenSearchMetricsWorkflowStack } from "../lib/stacks/metricsWorkflow";
 import { OpenSearchMetricsMonitoringStack } from "../lib/stacks/monitoringDashboard";
 import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { VpcStack } from "../lib/stacks/vpc";
+import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
 import { OpenSearchS3 } from "../lib/stacks/s3";
 import { OpenSearchS3EventIndexWorkflowStack } from "../lib/stacks/s3EventIndexWorkflow";
-import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
-import { VpcStack } from "../lib/stacks/vpc";
+import { OpenSearchMaintainerInactivityWorkflowStack } from "../lib/stacks/maintainerInactivityWorkflow";
 
 test('Monitoring Stack Test', () => {
     const app = new App();
@@ -41,6 +42,11 @@ test('Monitoring Stack Test', () => {
         vpcStack: vpcStack,
         lambdaPackage: Project.LAMBDA_PACKAGE,
     });
+    const openSearchMaintainerInactivityWorkflowStack = new OpenSearchMaintainerInactivityWorkflowStack(app, 'Test-OpenSearchMaintainerInactivity-Workflow', {
+        opensearchDomainStack: opensearchDomainStack,
+        vpcStack: vpcStack,
+        lambdaPackage: Project.LAMBDA_PACKAGE,
+    });
     const openSearchS3EventIndexWorkflowStack = new OpenSearchS3EventIndexWorkflowStack(app, 'Test-OpenSearchS3EventIndex-Workflow', {
         region: Project.REGION,
         opensearchDomainStack: opensearchDomainStack,
@@ -56,6 +62,7 @@ test('Monitoring Stack Test', () => {
         account: Project.AWS_ACCOUNT,
         workflowComponent: {
             opensearchMetricsWorkflowStateMachineName: openSearchMetricsWorkflowStack.workflowComponent.opensearchMetricsWorkflowStateMachineName,
+            opensearchMaintainerInactivityWorkflowStateMachineName: openSearchMaintainerInactivityWorkflowStack.workflowComponent.opensearchMaintainerInactivityWorkflowStateMachineName,
             opensearchS3EventIndexWorkflowStateMachineName: openSearchS3EventIndexWorkflowStack.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName
         },
         lambdaPackage: Project.LAMBDA_PACKAGE,
@@ -65,7 +72,7 @@ test('Monitoring Stack Test', () => {
     const template = Template.fromStack(openSearchMetricsMonitoringStack);
     template.resourceCountIs('AWS::IAM::Role', 2);
     template.resourceCountIs('AWS::IAM::Policy', 1);
-    template.resourceCountIs('AWS::CloudWatch::Alarm', 3);
+    template.resourceCountIs('AWS::CloudWatch::Alarm', 4);
     template.resourceCountIs('AWS::SNS::Topic', 2);
     template.resourceCountIs('AWS::Synthetics::Canary', 1);
     template.hasResourceProperties('AWS::IAM::Role', {
@@ -172,6 +179,42 @@ test('Monitoring Stack Test', () => {
         "Threshold": 1,
         "TreatMissingData": "notBreaching"
     });
+
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+        "AlarmActions": [
+            {
+                "Ref": "SnsMonitorsStepFunctionExecutionsFailedOpenSearchMetricsAlarmStepFunctionExecutionsFailed0B259DBC"
+            }
+        ],
+        "AlarmDescription": "Detect SF execution failure",
+        "AlarmName": "StepFunction_execution_errors_MaintainerInactivityWorkflow",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+            {
+                "Name": "StateMachineArn",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:states:::stateMachine:",
+                            {
+                                "Fn::ImportValue": "Test-OpenSearchMaintainerInactivity-Workflow:ExportsOutputFnGetAttOpenSearchMaintainerInactivityWorkflowE07E380BName0C54300B"
+                            }
+                        ]
+                    ]
+                }
+            }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ExecutionsFailed",
+        "Namespace": "AWS/States",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching"
+    });
+
     template.hasResourceProperties('AWS::CloudWatch::Alarm', {
         "AlarmActions": [
             {
