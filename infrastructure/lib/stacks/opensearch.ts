@@ -23,6 +23,7 @@ export interface OpenSearchStackProps {
     readonly vpcStack: VpcStack;
     readonly enableNginxCognito: boolean;
     readonly jenkinsAccess?: jenkinsAccess;
+    readonly githubAutomationAppAccess?: string;
 }
 
 
@@ -129,6 +130,9 @@ export class OpenSearchDomainStack extends Stack {
                 roleName: "OpenSearchJenkinsAccessRole",
             });
             clusterAccessPolicy.addPrincipals(new ArnPrincipal(jenkinsAccessRole.roleArn))
+        }
+        if (props.githubAutomationAppAccess) {
+            clusterAccessPolicy.addPrincipals(new ArnPrincipal(props.githubAutomationAppAccess))
         }
 
         this.domain = new Domain(this, 'OpenSearchHealthDomain', {

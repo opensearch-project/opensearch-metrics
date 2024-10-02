@@ -54,7 +54,8 @@ export class InfrastructureStack extends Stack {
           new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
           new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
         ]
-      }
+      },
+      githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn
     });
 
     // Create OpenSearch Metrics Lambda setup

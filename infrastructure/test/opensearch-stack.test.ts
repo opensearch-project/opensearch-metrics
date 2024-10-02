@@ -25,7 +25,8 @@ test('OpenSearchDomain Stack Test', () => {
                 new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
                 new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
             ]
-        }
+        },
+        githubAutomationAppAccess: "sample-role-arn"
     });
     const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);
     openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Role', 8);
