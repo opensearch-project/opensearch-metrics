@@ -154,7 +154,8 @@ export class GitHubAutomationApp extends Stack {
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
-            'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d'
+            'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d',
+            'PORT=8082 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-activity-events-monitor.yml docker-compose -p github-activity-events-monitor up -d',
         ];
     }
 }
