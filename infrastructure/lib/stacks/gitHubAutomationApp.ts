@@ -41,6 +41,7 @@ export interface GitHubAppProps {
     readonly account: string;
     readonly ami?: string
     readonly secret: Secret;
+    readonly workflowAlarmsArn: string[];
 }
 
 
@@ -52,7 +53,7 @@ export class GitHubAutomationApp extends Stack {
     constructor(scope: Construct, id: string, props: GitHubAppProps) {
         super(scope, id);
 
-        const instanceRole = this.createInstanceRole(props.secret.secretArn, props.account);
+        const instanceRole = this.createInstanceRole(props.secret.secretArn, props.account, props.workflowAlarmsArn);
         this.githubAppRole = instanceRole;
 
         this.asg = new AutoScalingGroup(this, 'OpenSearchMetrics-GitHubAutomationApp-Asg', {
@@ -91,7 +92,7 @@ export class GitHubAutomationApp extends Stack {
         this.asg.addUserData(...this.getUserData(props.secret.secretName));
     }
 
-    private createInstanceRole(secretArn: string, account: string): Role {
+    private createInstanceRole(secretArn: string, account: string, alarmsArn: string[]): Role {
         const role = new Role(this, "OpenSearchMetrics-GitHubAutomationApp-Role", {
             assumedBy: new CompositePrincipal(
                 new ServicePrincipal('ec2.amazonaws.com'),
@@ -114,6 +115,28 @@ export class GitHubAutomationApp extends Stack {
                 resources: [role.roleArn],
             }),
         );
+        role.addToPolicy(
+            new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: [
+                    "cloudwatch:PutMetricAlarm",
+                    "cloudwatch:DescribeAlarms",
+                    "cloudwatch:SetAlarmState",
+                    "cloudwatch:PutMetricData"
+                ],
+                resources: alarmsArn,
+            }),
+        );
+        role.addToPolicy(
+            new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: [
+                    "cloudwatch:PutMetricData",
+                ],
+                resources: ["*"],
+
+            }),
+        );
         return role;
     }
 
@@ -127,7 +150,7 @@ export class GitHubAutomationApp extends Stack {
             'sudo systemctl start docker',
             'sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/sbin/docker-compose',
             'sudo chmod a+x /usr/local/sbin/docker-compose',
-            'git clone https://github.com/opensearch-project/automation-app.git',
+            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.1.7',
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
