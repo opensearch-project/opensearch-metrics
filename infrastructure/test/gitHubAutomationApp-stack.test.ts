@@ -12,6 +12,7 @@ import Project from "../lib/enums/project";
 import { VpcStack } from "../lib/stacks/vpc";
 import { GitHubAutomationApp } from "../lib/stacks/gitHubAutomationApp";
 import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
+import {GitHubWorkflowMonitorAlarms} from "../lib/stacks/gitHubWorkflowMonitorAlarms";
 
 
 test('OpenSearch GitHub App Stack test ', () => {
@@ -20,12 +21,22 @@ test('OpenSearch GitHub App Stack test ', () => {
     const openSearchMetricsGitHubAppSecretStack = new OpenSearchMetricsSecretsStack(app, "Test-OpenSearchMetrics-GitHubAutomationApp-Secret", {
         secretName: 'test-github-app-creds'
     });
+
+    const gitHubWorkflowMonitorAlarms = new GitHubWorkflowMonitorAlarms(app, "Test-OpenSearchMetrics-GitHubWorkflowMonitor-Alarms", {
+        namespace: 'GitHubActions',
+        metricName: 'WorkflowRunFailures',
+        workflows: [
+            'Publish snapshots to maven',
+            'Run performance benchmark on pull request',
+        ],
+    });
     const gitHubApp = new GitHubAutomationApp(app, "Test-OpenSearchMetrics-GitHubAutomationApp", {
         vpc: vpcStack.vpc,
         region: Project.REGION,
         account: Project.AWS_ACCOUNT,
         ami: Project.EC2_AMI_SSM.toString(),
-        secret: openSearchMetricsGitHubAppSecretStack.secret
+        secret: openSearchMetricsGitHubAppSecretStack.secret,
+        workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn
     });
 
     const template = Template.fromStack(gitHubApp);
@@ -65,4 +76,18 @@ test('OpenSearch GitHub App Stack test ', () => {
         MaxSize: "1",
         MinSize: "1",
     })
+
+    // IAM Policy Test
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+            Statement: Match.arrayWith([
+                Match.objectLike({
+                    Action: "cloudwatch:PutMetricData",
+                    Effect: "Allow",
+                    Resource: "*"
+                })
+            ])
+        }
+    });
 });

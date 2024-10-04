@@ -22,6 +22,8 @@ So you want to contribute code to this project? Excellent! We're glad you're her
     - `cdk deploy OpenSearchMetricsNginxReadonly`: To deploy the dashboard read only setup.
     - `cdk deploy OpenSearchWAF`: To deploy the AWS WAF for the project ALB's.
     - `cdk deploy OpenSearchMetrics-Monitoring`: To deploy the alerting stack which will monitor the step functions and URL of the project coming from [METRICS_HOSTED_ZONE](https://github.com/opensearch-project/opensearch-metrics/blob/main/infrastructure/lib/enums/project.ts)
+    - `cdk deploy OpenSearchMetrics-GitHubAutomationApp-Secret`: Creates the GitHub app secret which will be used during the GitHub app runtime.
+    - `cdk deploy OpenSearchMetrics-GitHubWorkflowMonitor-Alarms`: Creates the Alarms to Monitor the Critical GitHub CI workflows by the GitHub Automation App.
     - `cdk deploy OpenSearchMetrics-GitHubAutomationApp`: Create the resources which launches the [GitHub Automation App](https://github.com/opensearch-project/automation-app). Listens to GitHub events and index the data to Metrics cluster.
 
 ### Forking and Cloning

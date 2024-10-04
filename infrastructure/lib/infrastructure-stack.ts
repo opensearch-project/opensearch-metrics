@@ -20,6 +20,7 @@ import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxy
 import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
 import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
 import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
+import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -29,9 +30,21 @@ export class InfrastructureStack extends Stack {
     // Create VPC for the entire setup
     const vpcStack = new VpcStack(app, "OpenSearchHealth-VPC", {});
 
+
     // Create secret related to GitHub Automation App
     const openSearchMetricsGitHubAutomationAppSecretStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-GitHubAutomationApp-Secret", {
       secretName: 'opensearch-project-github-automation-app-creds'
+    });
+
+
+   // Alarms to Monitor the Critical GitHub CI workflows by the GitHub Automation App
+    const gitHubWorkflowMonitorAlarms = new GitHubWorkflowMonitorAlarms(app, "OpenSearchMetrics-GitHubWorkflowMonitor-Alarms", {
+      namespace: 'GitHubActions',
+      metricName: 'WorkflowRunFailures',
+      workflows: [
+        'Publish snapshots to maven',
+        'Run performance benchmark on pull request',
+      ],
     });
 
     // Create resources to launch the GitHub Automation App
@@ -40,8 +53,10 @@ export class InfrastructureStack extends Stack {
       region: Project.REGION,
       account: Project.AWS_ACCOUNT,
       ami: Project.EC2_AMI_SSM.toString(),
-      secret: openSearchMetricsGitHubAutomationAppSecretStack.secret
+      secret: openSearchMetricsGitHubAutomationAppSecretStack.secret,
+      workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn
     })
+
 
     // Create OpenSearch Domain, roles, permissions, cognito setup, cross account OpenSearch access for jenkins
     const openSearchDomainStack = new OpenSearchDomainStack(app, "OpenSearchHealth-OpenSearch", {
