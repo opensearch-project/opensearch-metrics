@@ -20,6 +20,7 @@ import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxy
 import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
 import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
 import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
+import { OpenSearchS3 } from "./stacks/s3";
 import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
 
 export class InfrastructureStack extends Stack {
@@ -47,6 +48,9 @@ export class InfrastructureStack extends Stack {
       ],
     });
 
+    // Create S3 bucket for the GitHub Events
+    const openSearchEventsS3Bucket = new OpenSearchS3(app, "OpenSearchMetrics-GitHubAutomationAppEvents-S3");
+
     // Create resources to launch the GitHub Automation App
     const gitHubAutomationApp = new GitHubAutomationApp(app, "OpenSearchMetrics-GitHubAutomationApp", {
       vpc: vpcStack.vpc,
@@ -54,8 +58,9 @@ export class InfrastructureStack extends Stack {
       account: Project.AWS_ACCOUNT,
       ami: Project.EC2_AMI_SSM.toString(),
       secret: openSearchMetricsGitHubAutomationAppSecretStack.secret,
-      workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn
-    })
+      workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn,
+      githubEventsBucketArn: openSearchEventsS3Bucket.bucket.bucketArn
+    });
 
 
     // Create OpenSearch Domain, roles, permissions, cognito setup, cross account OpenSearch access for jenkins

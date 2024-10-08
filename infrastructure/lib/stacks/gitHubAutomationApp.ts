@@ -42,6 +42,7 @@ export interface GitHubAppProps {
     readonly ami?: string
     readonly secret: Secret;
     readonly workflowAlarmsArn: string[];
+    readonly githubEventsBucketArn: string;
 }
 
 
@@ -53,11 +54,11 @@ export class GitHubAutomationApp extends Stack {
     constructor(scope: Construct, id: string, props: GitHubAppProps) {
         super(scope, id);
 
-        const instanceRole = this.createInstanceRole(props.secret.secretArn, props.account, props.workflowAlarmsArn);
+        const instanceRole = this.createInstanceRole(props.secret.secretArn, props.account, props.workflowAlarmsArn, props.githubEventsBucketArn);
         this.githubAppRole = instanceRole;
 
         this.asg = new AutoScalingGroup(this, 'OpenSearchMetrics-GitHubAutomationApp-Asg', {
-            instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.LARGE),
+            instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.XLARGE),
             blockDevices: [{deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(20)}],
             healthCheck: HealthCheck.ec2({grace: Duration.seconds(90)}),
             machineImage: props && props.ami ?
@@ -92,7 +93,7 @@ export class GitHubAutomationApp extends Stack {
         this.asg.addUserData(...this.getUserData(props.secret.secretName));
     }
 
-    private createInstanceRole(secretArn: string, account: string, alarmsArn: string[]): Role {
+    private createInstanceRole(secretArn: string, account: string, alarmsArn: string[], githubEventsBucketArn: string): Role {
         const role = new Role(this, "OpenSearchMetrics-GitHubAutomationApp-Role", {
             assumedBy: new CompositePrincipal(
                 new ServicePrincipal('ec2.amazonaws.com'),
@@ -137,6 +138,15 @@ export class GitHubAutomationApp extends Stack {
 
             }),
         );
+        role.addToPolicy(
+            new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: [
+                    "s3:PutObject",
+                ],
+                resources: [`${githubEventsBucketArn}/*`],
+            }),
+        );
         return role;
     }
 
@@ -154,7 +164,8 @@ export class GitHubAutomationApp extends Stack {
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
-            'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d'
+            'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d',
+            'PORT=8082 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-events-to-s3.yml docker-compose -p github-events-to-s3 up -d',
         ];
     }
 }

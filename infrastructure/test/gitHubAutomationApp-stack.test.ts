@@ -13,6 +13,7 @@ import { VpcStack } from "../lib/stacks/vpc";
 import { GitHubAutomationApp } from "../lib/stacks/gitHubAutomationApp";
 import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
 import {GitHubWorkflowMonitorAlarms} from "../lib/stacks/gitHubWorkflowMonitorAlarms";
+import {OpenSearchS3} from "../lib/stacks/s3";
 
 
 test('OpenSearch GitHub App Stack test ', () => {
@@ -21,6 +22,7 @@ test('OpenSearch GitHub App Stack test ', () => {
     const openSearchMetricsGitHubAppSecretStack = new OpenSearchMetricsSecretsStack(app, "Test-OpenSearchMetrics-GitHubAutomationApp-Secret", {
         secretName: 'test-github-app-creds'
     });
+    const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
 
     const gitHubWorkflowMonitorAlarms = new GitHubWorkflowMonitorAlarms(app, "Test-OpenSearchMetrics-GitHubWorkflowMonitor-Alarms", {
         namespace: 'GitHubActions',
@@ -36,7 +38,8 @@ test('OpenSearch GitHub App Stack test ', () => {
         account: Project.AWS_ACCOUNT,
         ami: Project.EC2_AMI_SSM.toString(),
         secret: openSearchMetricsGitHubAppSecretStack.secret,
-        workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn
+        workflowAlarmsArn: gitHubWorkflowMonitorAlarms.workflowAlarmsArn,
+        githubEventsBucketArn: s3Stack.bucket.bucketArn
     });
 
     const template = Template.fromStack(gitHubApp);
@@ -86,6 +89,28 @@ test('OpenSearch GitHub App Stack test ', () => {
                     Action: "cloudwatch:PutMetricData",
                     Effect: "Allow",
                     Resource: "*"
+                })
+            ])
+        }
+    });
+
+    template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+            Statement: Match.arrayWith([
+                Match.objectLike({
+                    Action: "s3:PutObject",
+                    Effect: "Allow",
+                    Resource: {
+                        "Fn::Join": [
+                            "",
+                            [
+                                {
+                                    "Fn::ImportValue": Match.stringLikeRegexp('Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3:ExportsOutputFnGetAttOpenSearchS3Bucket.*')
+                                },
+                                "/*"
+                            ]
+                        ]
+                    }
                 })
             ])
         }
