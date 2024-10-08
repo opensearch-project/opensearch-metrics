@@ -71,6 +71,7 @@ The OpenSearch Metrics project showcases and keeps track of several important Op
 | Gradle Check - (TSVB) Top test class failures          | Time Series Visual Builder showing the top test class failure results.                                         | 
 | Gradle Check -Top test class failures with Post Merge  | Data table with top test class results that has the failed tests during the Post Merge Gradle Check execution. | 
 
+
 ### [OpenSearch Distribution Build and Integration Test Analytics](https://metrics.opensearch.org/_dashboards/app/dashboards?security_tenant=global#/view/21aad140-49f6-11ef-bbdd-39a9b324a5aa?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now))&_a=(description:'OpenSearch%20Release%20Build%20and%20Integration%20Test%20Results',filters:!(),fullScreenMode:!f,options:(hidePanelTitles:!f,useMargins:!t),query:(language:kuery,query:''),timeRestore:!t,title:'OpenSearch%20Release%20Build%20and%20Integration%20Test%20Results',viewMode:view))
 
 The Metrics Dashboard now tracks Integration Test Status and Distribution Build Failures per component of OpenSearch and OpenSearch Dashboards for easy traceability.
@@ -86,7 +87,33 @@ The Metrics Dashboard now tracks Integration Test Status and Distribution Build 
 | Linux Rpm x64 and arm64: Components Integration Test Data   | Data table which tracks the Integration test failures for linux rpm distribution.                     |
 | Windows zip x64: Components Integration Test Data           | Data table which tracks the Integration test failures for windows distribution.                       |
 
+### Monitoring the OpenSearch GitHub Critical Workflows
 
+This project automates the monitoring and alerting of critical workflows within the OpenSearch GitHub project. The monitoring process is handled through a GitHub automation app that captures workflow-specific events and integrates with AWS CloudWatch and OpenSearch metrics environment.
+
+#### Key Components:
+
+##### GitHub Automation App
+The [OpenSearch automation app](https://github.com/opensearch-project/automation-app/) is deployed to collect workflow events from GitHub. It monitors key workflows defined in the configuration file [github-workflow-runs-monitor.yml](https://github.com/opensearch-project/automation-app/blob/main/configs/operations/github-workflow-runs-monitor.yml).
+
+##### CloudWatch Alarms
+The infrastructure code for the metrics repository includes alarms created for each critical workflow. If a workflow fails, an alarm is triggered, which is used for further investigation. The alarm setup is crucial for catching failures early and ensuring quick resolution.
+
+##### Workflow Failure Detection
+The logic for detecting workflow failures is found in the [github-workflow-runs-monitor.ts](https://github.com/opensearch-project/automation-app/blob/main/src/call/github-workflow-runs-monitor.ts). When a failure is identified, the app updates the CloudWatch alarm status. Simultaneously, it indexes detailed workflow run data into the metrics cluster. This data helps in debugging failed workflows, analyzing trends, and gathering insights on previous runs. This monitoring and alerting system ensures that any issues in critical workflows are detected and reported, minimizing downtime.
+
+```mermaid
+graph LR
+    A[GitHub Workflow Events] --> B[GitHub Automation App]
+    B --> C[Failure Detection]
+    C --> D[Workflow Failure Identified]
+    D --> E[CloudWatch Alarms Update]
+    D --> F[Failures Indexed]
+    E --> I{Alarm Triggered?}
+    I -- Yes --> G[Alerts Sent to Teams]
+    I -- No --> J[No Action]
+    F --> H[Data for Debugging and Trend Analysis]
+```
 
 ## Contributing
 
