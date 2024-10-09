@@ -25,6 +25,7 @@ So you want to contribute code to this project? Excellent! We're glad you're her
     - `cdk deploy OpenSearchMetrics-GitHubAutomationApp-Secret`: Creates the GitHub app secret which will be used during the GitHub app runtime.
     - `cdk deploy OpenSearchMetrics-GitHubWorkflowMonitor-Alarms`: Creates the Alarms to Monitor the Critical GitHub CI workflows by the GitHub Automation App.
     - `cdk deploy OpenSearchMetrics-GitHubAutomationApp`: Create the resources which launches the [GitHub Automation App](https://github.com/opensearch-project/automation-app). Listens to GitHub events and index the data to Metrics cluster.
+    - `cdk deploy OpenSearchMetrics-GitHubAutomationAppEvents-S3`: Creates the S3 Bucket for the [GitHub Automation App](https://github.com/opensearch-project/automation-app) to store OpenSearch Project GitHub Events.
 
 ### Forking and Cloning
 

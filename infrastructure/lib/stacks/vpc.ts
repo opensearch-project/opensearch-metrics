@@ -11,7 +11,6 @@ import { Stack, StackProps } from "aws-cdk-lib";
 import { Peer, Port, SecurityGroup, SelectedSubnets, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from "constructs";
 
-
 export class VpcStack extends Stack {
     public readonly vpc: Vpc;
     public readonly securityGroup: SecurityGroup
