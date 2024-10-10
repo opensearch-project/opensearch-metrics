@@ -1,5 +1,6 @@
 package org.opensearchmetrics.dagger;
 
+import org.opensearchmetrics.util.S3Util;
 import org.opensearchmetrics.util.SecretsManagerUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -21,8 +22,10 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import javax.inject.Singleton;
 
@@ -34,6 +37,9 @@ public class CommonModule {
     private static final String OPENSEARCH_DOMAIN_ROLE = "OPENSEARCH_DOMAIN_ROLE";
     private static final String ROLE_SESSION_NAME = "OpenSearchHealth";
     private static final String SECRETS_MANAGER_REGION = "SECRETS_MANAGER_REGION";
+    private static final String S3_BUCKET_REGION = "S3_BUCKET_REGION";
+    private static final String EVENT_BUCKET_NAME = "EVENT_BUCKET_NAME";
+
 
     @Singleton
     @Provides
@@ -54,6 +60,21 @@ public class CommonModule {
                 .build();
 
         return credentialsProvider;
+    }
+
+    @Singleton
+    @Provides
+    public S3Client getS3Client() {
+        final String region = System.getenv(S3_BUCKET_REGION);
+        return S3Client.builder()
+                .region(Region.of(region))
+                .build();
+    }
+
+    @Singleton
+    @Provides
+    public S3Util getS3Util(S3Client s3Client) {
+        return new S3Util(s3Client, System.getenv(EVENT_BUCKET_NAME));
     }
 
     @Singleton

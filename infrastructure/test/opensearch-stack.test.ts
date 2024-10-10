@@ -12,9 +12,11 @@ import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
 import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
 import Project from "../lib/enums/project";
 import { VpcStack } from "../lib/stacks/vpc";
+import {OpenSearchS3} from "../lib/stacks/s3";
 
 test('OpenSearchDomain Stack Test', () => {
     const app = new App();
+    const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
     const openSearchDomainStack = new OpenSearchDomainStack(app, 'OpenSearchHealth-OpenSearch', {
         region: "us-east-1",
         account: "test-account",
@@ -26,10 +28,11 @@ test('OpenSearchDomain Stack Test', () => {
                 new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
             ]
         },
-        githubAutomationAppAccess: "sample-role-arn"
+        githubAutomationAppAccess: "sample-role-arn",
+        githubEventsBucket: s3Stack.bucket,
     });
     const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);
-    openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Role', 8);
+    openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Role', 9);
     openSearchDomainStackTemplate.resourceCountIs('AWS::Cognito::UserPool', 1);
     openSearchDomainStackTemplate.resourceCountIs('AWS::Cognito::UserPoolGroup', 1);
     openSearchDomainStackTemplate.resourceCountIs('AWS::IAM::Policy', 4);
@@ -56,6 +59,100 @@ test('OpenSearchDomain Stack Test', () => {
             ],
             "Version": "2012-10-17"
         }
+    });
+    openSearchDomainStackTemplate.hasResourceProperties('AWS::IAM::Role', {
+        "AssumeRolePolicyDocument": {
+            "Statement": [
+                {
+                    "Action": "sts:AssumeRole",
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    }
+                }
+            ],
+            "Version": "2012-10-17"
+        },
+        "Description": "OpenSearch Metrics S3 Event Index Lambda Execution Role",
+        "ManagedPolicyArns": [
+            {
+                "Fn::Join": [
+                    "",
+                    [
+                        "arn:",
+                        {
+                            "Ref": "AWS::Partition"
+                        },
+                        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                    ]
+                ]
+            },
+            {
+                "Fn::Join": [
+                    "",
+                    [
+                        "arn:",
+                        {
+                            "Ref": "AWS::Partition"
+                        },
+                        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                    ]
+                ]
+            }
+        ],
+        "Policies": [
+            {
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:PrincipalAccount": "test-account",
+                                    "aws:RequestedRegion": "us-east-1"
+                                }
+                            },
+                            "Effect": "Allow",
+                            "Resource": "arn:aws:iam::test-account:role/OpenSearchFullAccessRole"
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "PolicyName": "opensearchAssumeRolePolicy"
+            },
+            {
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "s3:GetObject",
+                                "s3:ListBucket"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::ImportValue": "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3:ExportsOutputFnGetAttOpenSearchS3Bucket2ED683CCArnC283B682"
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            {
+                                                "Fn::ImportValue": "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3:ExportsOutputFnGetAttOpenSearchS3Bucket2ED683CCArnC283B682"
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "PolicyName": "opensearchReadS3EventsPolicy"
+            }
+        ],
+        "RoleName": "OpenSearchS3EventIndexLambdaRole"
     });
     openSearchDomainStackTemplate.resourceCountIs('AWS::Cognito::UserPoolGroup', 1);
     openSearchDomainStackTemplate.hasResourceProperties('AWS::Cognito::UserPoolGroup', {

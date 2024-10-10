@@ -15,6 +15,7 @@ import { OpenSearchMetricsNginxCognito } from "../constructs/opensearchNginxProx
 import Project from "../enums/project";
 import { OpenSearchHealthRoute53 } from "./route53";
 import { VpcStack } from "./vpc";
+import {Bucket} from "aws-cdk-lib/aws-s3";
 
 
 export interface OpenSearchStackProps {
@@ -24,6 +25,7 @@ export interface OpenSearchStackProps {
     readonly enableNginxCognito: boolean;
     readonly jenkinsAccess?: jenkinsAccess;
     readonly githubAutomationAppAccess?: string;
+    readonly githubEventsBucket: Bucket;
 }
 
 
@@ -43,7 +45,8 @@ export class OpenSearchDomainStack extends Stack {
     public readonly domain: Domain;
     public readonly props: OpenSearchStackProps;
     public readonly fullAccessRole: IRole;
-    public readonly openSearchLambdaRole: IRole;
+    public readonly openSearchMetricsLambdaRole: IRole;
+    public readonly openSearchS3EventsIndexLambdaRole: IRole;
     public readonly opensearchDomainConfig: OpenSearchDomainConfig;
 
     constructor(scope: Construct, id: string, props: OpenSearchStackProps) {
@@ -51,7 +54,7 @@ export class OpenSearchDomainStack extends Stack {
         this.props = props;
 
 
-        this.openSearchLambdaRole = new Role(this, 'OpenSearchDomainLambdaRole', {
+        this.openSearchMetricsLambdaRole = new Role(this, 'OpenSearchDomainLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             description: "OpenSearch Metrics Lambda Execution Role",
             roleName: "OpenSearchLambdaRole",
@@ -76,6 +79,41 @@ export class OpenSearchDomainStack extends Stack {
             ]
         });
 
+        this.openSearchS3EventsIndexLambdaRole = new Role(this, 'OpenSearchS3EventIndexLambdaRole', {
+            assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+            description: "OpenSearch Metrics S3 Event Index Lambda Execution Role",
+            roleName: "OpenSearchS3EventIndexLambdaRole",
+            inlinePolicies: {
+                "opensearchAssumeRolePolicy": new PolicyDocument({
+                    statements: [
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ["sts:AssumeRole"],
+                            resources: [`arn:aws:iam::${props.account}:role/OpenSearchFullAccessRole`],
+                            conditions: {
+                                StringEquals: { 'aws:PrincipalAccount': props.account, 'aws:RequestedRegion': props.region, },
+                            }
+                        })
+                    ]
+                }),
+                "opensearchReadS3EventsPolicy": new PolicyDocument({
+                    statements: [
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ["s3:GetObject",
+                                "s3:ListBucket"],
+                            resources: [props.githubEventsBucket.bucketArn,
+                                `${props.githubEventsBucket.bucketArn}/*`],
+                        })
+                    ]
+                })
+            },
+            managedPolicies: [
+                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaVPCAccessExecutionRole'),
+            ]
+        });
+
         this.opensearchDomainConfig = {
             domainName: 'opensearch-health',
             ebsOptions: {
@@ -85,7 +123,7 @@ export class OpenSearchDomainStack extends Stack {
 
         const domainArn = `arn:aws:es:${props.region}:${props.account}:domain/${this.opensearchDomainConfig.domainName}/*`;
 
-        const secureRolesList = [this.openSearchLambdaRole]
+        const secureRolesList = [this.openSearchMetricsLambdaRole, this.openSearchS3EventsIndexLambdaRole]
         this.fullAccessRole = new Role(this, 'OpenSearchFullAccessRole', {
             assumedBy: new CompositePrincipal(...secureRolesList.map((role) => new ArnPrincipal(role.roleArn))),
             description: "Master role for OpenSearch full access",
