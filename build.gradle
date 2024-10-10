@@ -34,6 +34,8 @@ dependencies {
 
     implementation 'com.amazonaws:aws-java-sdk-secretsmanager:1.12.671'
 
+    implementation 'software.amazon.awssdk:s3:2.28.17'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
