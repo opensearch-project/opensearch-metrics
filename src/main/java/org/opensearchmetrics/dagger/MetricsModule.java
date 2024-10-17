@@ -5,14 +5,7 @@ import dagger.Module;
 import dagger.Provides;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
-import org.opensearchmetrics.metrics.release.ReleaseBranchChecker;
-import org.opensearchmetrics.metrics.release.ReleaseIssueChecker;
-import org.opensearchmetrics.metrics.release.ReleaseLabelIssuesFetcher;
-import org.opensearchmetrics.metrics.release.ReleaseLabelPullsFetcher;
-import org.opensearchmetrics.metrics.release.ReleaseMetrics;
-import org.opensearchmetrics.metrics.release.ReleaseNotesChecker;
-import org.opensearchmetrics.metrics.release.ReleaseRepoFetcher;
-import org.opensearchmetrics.metrics.release.ReleaseVersionIncrementChecker;
+import org.opensearchmetrics.metrics.release.*;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
 import javax.inject.Named;

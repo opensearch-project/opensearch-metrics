@@ -56,6 +56,7 @@ public class MetricsLambda extends AbstractBaseLambda {
             metricsCalculation.generateGeneralMetrics(keys);
             metricsCalculation.generateLabelMetrics(keys);
             metricsCalculation.generateReleaseMetrics();
+            metricsCalculation.generateMaintainerMetrics(keys);
         } catch (Exception e) {
             throw new RuntimeException("Error running Metrics Calculation", e);
         }
