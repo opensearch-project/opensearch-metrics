@@ -75,12 +75,17 @@ export class InfrastructureStack extends Stack {
           new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
         ]
       },
-      githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn
+      githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn,
+      githubEventsBucket: openSearchEventsS3Bucket.bucket,
     });
 
     // Create OpenSearch Metrics Lambda setup
     const openSearchMetricsWorkflowStack = new OpenSearchMetricsWorkflowStack(app, 'OpenSearchMetrics-Workflow', {
-      opensearchDomainStack: openSearchDomainStack, vpcStack: vpcStack, lambdaPackage: Project.LAMBDA_PACKAGE
+      region: Project.REGION,
+      opensearchDomainStack: openSearchDomainStack,
+      vpcStack: vpcStack,
+      lambdaPackage: Project.LAMBDA_PACKAGE,
+      githubEventsBucket: openSearchEventsS3Bucket.bucket
     })
     openSearchMetricsWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
 
