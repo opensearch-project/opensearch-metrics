@@ -15,25 +15,31 @@ import { VpcStack } from "../lib/stacks/vpc";
 import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
 import { OpenSearchMetricsMonitoringStack } from "../lib/stacks/monitoringDashboard";
 import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
+import {OpenSearchS3} from "../lib/stacks/s3";
 
 test('Monitoring Stack Test', () => {
     const app = new App();
     const vpcStack = new VpcStack(app, 'OpenSearchHealth-VPC', {});
-    const openSearchMetricsWorkflowStack = new OpenSearchMetricsWorkflowStack(app, 'OpenSearchMetrics-Workflow', {
-        opensearchDomainStack: new OpenSearchDomainStack(app, 'Test-OpenSearchHealth-OpenSearch', {
-            region: "us-east-1",
-            account: "test-account",
-            vpcStack: vpcStack,
-            enableNginxCognito: true,
-            jenkinsAccess: {
-                jenkinsAccountRoles: [
-                    new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
-                    new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
-                ]
-            }
-        }),
+        const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
+    const opensearchDomainStack = new OpenSearchDomainStack(app, 'Test-OpenSearchHealth-OpenSearch', {
+        region: "us-east-1",
+        account: "test-account",
         vpcStack: vpcStack,
-        lambdaPackage: Project.LAMBDA_PACKAGE
+        enableNginxCognito: true,
+        jenkinsAccess: {
+            jenkinsAccountRoles: [
+                new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
+                new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
+            ]
+        },
+        githubEventsBucket: s3Stack.bucket
+    });
+    const openSearchMetricsWorkflowStack = new OpenSearchMetricsWorkflowStack(app, 'OpenSearchMetrics-Workflow', {
+        region: Project.REGION,
+        opensearchDomainStack: opensearchDomainStack,
+        vpcStack: vpcStack,
+        lambdaPackage: Project.LAMBDA_PACKAGE,
+        githubEventsBucket: s3Stack.bucket
     });
     const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
         secretName: 'metrics-creds'
@@ -49,7 +55,7 @@ test('Monitoring Stack Test', () => {
     const template = Template.fromStack(openSearchMetricsMonitoringStack);
     template.resourceCountIs('AWS::IAM::Role', 2);
     template.resourceCountIs('AWS::IAM::Policy', 1);
-    template.resourceCountIs('AWS::CloudWatch::Alarm', 2);
+    template.resourceCountIs('AWS::CloudWatch::Alarm', 3);
     template.resourceCountIs('AWS::SNS::Topic', 2);
     template.resourceCountIs('AWS::Synthetics::Canary', 1);
     template.hasResourceProperties('AWS::IAM::Role', {
@@ -142,6 +148,40 @@ test('Monitoring Stack Test', () => {
                             "arn:aws:states:::stateMachine:",
                             {
                                 "Fn::ImportValue": "OpenSearchMetrics-Workflow:ExportsOutputFnGetAttOpenSearchMetricsWorkflowDB4D4CB1NameE4E75A02"
+                            }
+                        ]
+                    ]
+                }
+            }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ExecutionsFailed",
+        "Namespace": "AWS/States",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching"
+    });
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+        "AlarmActions": [
+            {
+                "Ref": "SnsMonitorsStepFunctionExecutionsFailedOpenSearchMetricsAlarmStepFunctionExecutionsFailed0B259DBC"
+            }
+        ],
+        "AlarmDescription": "Detect SF execution failure",
+        "AlarmName": "StepFunction_execution_errors_S3EventIndexWorkflow",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+            {
+                "Name": "StateMachineArn",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:states:::stateMachine:",
+                            {
+                                "Fn::ImportValue": "OpenSearchMetrics-Workflow:ExportsOutputFnGetAttOpenSearchS3EventIndexWorkflow0C74BA9FName074F0965"
                             }
                         ]
                     ]

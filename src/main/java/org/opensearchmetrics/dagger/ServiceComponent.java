@@ -7,6 +7,7 @@ import org.opensearchmetrics.metrics.general.Metrics;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.util.OpenSearchUtil;
 import org.opensearchmetrics.util.SecretsManagerUtil;
+import org.opensearchmetrics.util.S3Util;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,6 +17,8 @@ import javax.inject.Singleton;
 public interface ServiceComponent {
 
     ObjectMapper getObjectMapper();
+
+    S3Util getS3Util();
 
     OpenSearchUtil getOpenSearchUtil();
 
