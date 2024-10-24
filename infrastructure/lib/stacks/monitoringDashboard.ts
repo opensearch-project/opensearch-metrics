@@ -16,14 +16,13 @@ import { canarySns } from "../constructs/canarySns";
 import { OpenSearchLambda } from "../constructs/lambda";
 import { StepFunctionSns } from "../constructs/stepFunctionSns";
 import Project from "../enums/project";
-import { WorkflowComponent } from "./metricsWorkflow";
 import { VpcStack } from "./vpc";
 
 
 interface OpenSearchMetricsMonitoringStackProps extends StackProps {
     readonly region: string;
     readonly account: string;
-    readonly workflowComponent: WorkflowComponent;
+    readonly workflowComponent: {[component: string]: string};
     readonly lambdaPackage: string;
     readonly secrets: Secret;
     readonly vpcStack: VpcStack;
@@ -70,6 +69,7 @@ export class OpenSearchMetricsMonitoringStack extends Stack {
     private snsMonitorStepFunctionExecutionsFailed(): void {
         const stepFunctionSnsAlarms = [
             { alertName: 'StepFunction_execution_errors_MetricsWorkflow', stateMachineName: this.props.workflowComponent.opensearchMetricsWorkflowStateMachineName },
+            { alertName: 'StepFunction_execution_errors_S3EventIndexWorkflow', stateMachineName: this.props.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName },
         ];
 
         new StepFunctionSns(this, "SnsMonitors-StepFunctionExecutionsFailed", {

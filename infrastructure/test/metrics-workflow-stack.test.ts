@@ -13,25 +13,30 @@ import Project from "../lib/enums/project";
 import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
 import { VpcStack } from "../lib/stacks/vpc";
 import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import {OpenSearchS3} from "../lib/stacks/s3";
 
-test('Workflow Stack Test', () => {
+test('Metrics Workflow Stack Test', () => {
     const app = new App();
-    const vpcStack = new VpcStack(app, 'Test-OpenSearchHealth-VPC', {})
+    const vpcStack = new VpcStack(app, 'Test-OpenSearchHealth-VPC', {});
+    const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
+    const openSearchDomainStack = new OpenSearchDomainStack(app, 'OpenSearchHealth-OpenSearch', {
+        region: "us-east-1",
+        account: "test-account",
+        vpcStack: new VpcStack(app, 'OpenSearchHealth-VPC', {}),
+        enableNginxCognito: true,
+        jenkinsAccess: {
+            jenkinsAccountRoles: [
+                new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
+                new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
+            ]
+        },
+        githubAutomationAppAccess: "sample-role-arn",
+        githubEventsBucket: s3Stack.bucket,
+    });
     const OpenSearchMetricsWorkflow = new OpenSearchMetricsWorkflowStack(app, 'Test-OpenSearchMetrics-Workflow', {
-        opensearchDomainStack: new OpenSearchDomainStack(app, 'Test-OpenSearchHealth-OpenSearch', {
-            region: "us-east-1",
-            account: "test-account",
-            vpcStack: vpcStack,
-            enableNginxCognito: true,
-            jenkinsAccess: {
-                jenkinsAccountRoles: [
-                    new ArnPrincipal(Project.JENKINS_MASTER_ROLE),
-                    new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
-                ]
-            }
-        }),
+        opensearchDomainStack: openSearchDomainStack,
         vpcStack: vpcStack,
-        lambdaPackage: Project.LAMBDA_PACKAGE
+        lambdaPackage: Project.LAMBDA_PACKAGE,
     });
     const template = Template.fromStack(OpenSearchMetricsWorkflow);
     template.resourceCountIs('AWS::IAM::Role', 2);

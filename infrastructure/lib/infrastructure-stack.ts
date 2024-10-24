@@ -22,6 +22,7 @@ import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
 import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
 import { OpenSearchS3 } from "./stacks/s3";
 import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
+import {OpenSearchS3EventIndexWorkflowStack} from "./stacks/s3EventIndexWorkflow";
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -75,14 +76,27 @@ export class InfrastructureStack extends Stack {
           new ArnPrincipal(Project.JENKINS_AGENT_ROLE)
         ]
       },
-      githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn
+      githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn,
+      githubEventsBucket: openSearchEventsS3Bucket.bucket,
     });
 
     // Create OpenSearch Metrics Lambda setup
     const openSearchMetricsWorkflowStack = new OpenSearchMetricsWorkflowStack(app, 'OpenSearchMetrics-Workflow', {
-      opensearchDomainStack: openSearchDomainStack, vpcStack: vpcStack, lambdaPackage: Project.LAMBDA_PACKAGE
+      opensearchDomainStack: openSearchDomainStack,
+      vpcStack: vpcStack,
+      lambdaPackage: Project.LAMBDA_PACKAGE,
     })
     openSearchMetricsWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
+
+    // Create OpenSearch S3 Event Index Lambda setup
+    const openSearchS3EventIndexWorkflowStack = new OpenSearchS3EventIndexWorkflowStack(app, 'OpenSearchS3EventIndex-Workflow', {
+      region: Project.REGION,
+      opensearchDomainStack: openSearchDomainStack,
+      vpcStack: vpcStack,
+      lambdaPackage: Project.LAMBDA_PACKAGE,
+      githubEventsBucket: openSearchEventsS3Bucket.bucket
+    })
+    openSearchS3EventIndexWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
 
     // Create Secret Manager for the metrics project
     const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
@@ -94,7 +108,10 @@ export class InfrastructureStack extends Stack {
     const openSearchMetricsMonitoringStack = new OpenSearchMetricsMonitoringStack(app, "OpenSearchMetrics-Monitoring", {
       region: Project.REGION,
       account: Project.AWS_ACCOUNT,
-      workflowComponent: openSearchMetricsWorkflowStack.workflowComponent,
+      workflowComponent: {
+        opensearchMetricsWorkflowStateMachineName: openSearchMetricsWorkflowStack.workflowComponent.opensearchMetricsWorkflowStateMachineName,
+        opensearchS3EventIndexWorkflowStateMachineName: openSearchS3EventIndexWorkflowStack.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName
+      },
       lambdaPackage: Project.LAMBDA_PACKAGE,
       secrets: openSearchMetricsSecretsStack.secret,
       vpcStack: vpcStack

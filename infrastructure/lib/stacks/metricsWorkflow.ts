@@ -53,7 +53,7 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
     }
 
     private createMetricsTask(scope: Construct, opensearchDomainStack: OpenSearchDomainStack,
-        vpcStack: VpcStack, lambdaPackage: string) {
+                              vpcStack: VpcStack, lambdaPackage: string) {
         const openSearchDomain = opensearchDomainStack.domain;
         const metricsLambda = new OpenSearchLambda(scope, "OpenSearchMetricsLambdaFunction", {
             lambdaNameBase: "OpenSearchMetricsDashboards",
@@ -61,7 +61,7 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
             lambdaZipPath: `../../../build/distributions/${lambdaPackage}`,
             vpc: vpcStack.vpc,
             securityGroup: vpcStack.securityGroup,
-            role: opensearchDomainStack.openSearchLambdaRole,
+            role: opensearchDomainStack.openSearchMetricsLambdaRole,
             environment: {
                 OPENSEARCH_DOMAIN_ENDPOINT: openSearchDomain.domainEndpoint,
                 OPENSEARCH_DOMAIN_REGION: openSearchDomain.env.region,
