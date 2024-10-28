@@ -76,4 +76,24 @@ test('S3 Event Index Workflow Stack Test', () => {
         },
         "StateMachineName": "OpenSearchS3EventIndexWorkflow"
     });
+    template.resourceCountIs('AWS::Events::Rule', 1);
+    template.hasResourceProperties('AWS::Events::Rule', {
+        "ScheduleExpression": "cron(0 0 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+            {
+                "Arn": {
+                    "Ref": "OpenSearchS3EventIndexWorkflow0C74BA9F"
+                },
+                "Id": "Target0",
+                "Input": "{}",
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "OpenSearchS3EventIndexWorkflowEventsRole9EDAA508",
+                        "Arn"
+                    ]
+                }
+            }
+        ]
+    });
 });
