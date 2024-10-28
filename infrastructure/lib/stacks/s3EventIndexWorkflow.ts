@@ -7,7 +7,7 @@
  */
 
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+import {Rule, RuleTargetInput, Schedule} from "aws-cdk-lib/aws-events";
 import { SfnStateMachine } from "aws-cdk-lib/aws-events-targets";
 import {JsonPath, StateMachine, TaskInput} from "aws-cdk-lib/aws-stepfunctions";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
@@ -46,10 +46,13 @@ export class OpenSearchS3EventIndexWorkflowStack extends Stack {
             stateMachineName: 'OpenSearchS3EventIndexWorkflow'
         })
 
-        new Rule(this, 'OpenSearchS3EventIndexWorkflow-Every-Day', {
+        const rule = new Rule(this, 'OpenSearchS3EventIndexWorkflow-Every-Day', {
             schedule: Schedule.expression('cron(0 0 * * ? *)'),
-            targets: [new SfnStateMachine(opensearchS3EventIndexWorkflow)],
         });
+
+        rule.addTarget(new SfnStateMachine(opensearchS3EventIndexWorkflow, {
+            input: RuleTargetInput.fromObject({}),
+        }));
 
         this.workflowComponent = {
             opensearchS3EventIndexWorkflowStateMachineName: opensearchS3EventIndexWorkflow.stateMachineName
