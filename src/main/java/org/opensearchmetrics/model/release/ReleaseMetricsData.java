@@ -1,3 +1,12 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.model.release;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -38,6 +46,7 @@ public class ReleaseMetricsData {
 
     @JsonProperty("autocut_issues_open")
     private Long autocutIssuesOpen;
+
     @JsonProperty("issues_closed")
     private Long issuesClosed;
 

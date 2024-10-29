@@ -1,9 +1,22 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.metrics.release;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.opensearchmetrics.model.codecov.CodeCovResponse;
+import org.opensearchmetrics.model.codecov.CodeCovResult;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.nio.charset.CoderResult;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +37,13 @@ public class ReleaseMetrics {
 
     private final ReleaseIssueChecker releaseIssueChecker;
 
+    private final CodeCoverage codeCoverage;
+
     @Inject
     public ReleaseMetrics(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper, ReleaseRepoFetcher releaseRepoFetcher,
                           ReleaseLabelIssuesFetcher releaseLabelIssuesFetcher, ReleaseLabelPullsFetcher releaseLabelPullsFetcher,
                           ReleaseVersionIncrementChecker releaseVersionIncrementChecker, ReleaseBranchChecker releaseBranchChecker,
-                          ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker) {
+                          ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage) {
         this.openSearchUtil = openSearchUtil;
         this.objectMapper = objectMapper;
         this.releaseRepoFetcher = releaseRepoFetcher;
@@ -38,6 +53,7 @@ public class ReleaseMetrics {
         this.releaseBranchChecker = releaseBranchChecker;
         this.releaseNotesChecker = releaseNotesChecker;
         this.releaseIssueChecker = releaseIssueChecker;
+        this.codeCoverage = codeCoverage;
     }
 
     public Map<String, String> getReleaseRepos(String releaseVersion) {
@@ -71,6 +87,10 @@ public class ReleaseMetrics {
 
     public String getReleaseIssue (String releaseVersion, String repo) {
         return releaseIssueChecker.releaseIssue(releaseVersion, repo, openSearchUtil);
+    }
+
+    public CodeCovResponse getCodeCoverage (String branch, String repo) {
+        return codeCoverage.coverage(branch, repo);
     }
 
 
