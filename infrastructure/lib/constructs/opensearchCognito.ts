@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -7,9 +8,9 @@
  */
 
 import { RemovalPolicy } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { Effect, FederatedPrincipal, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { CfnIdentityPool, CfnIdentityPoolRoleAttachment, CfnUserPool, CfnUserPoolClient, CfnUserPoolDomain, CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
+import { Effect, FederatedPrincipal, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Construct } from 'constructs';
 
 export interface OpenSearchMetricsCognitoProps {
     readonly openSearchDomainArn: string;

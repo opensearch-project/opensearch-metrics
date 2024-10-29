@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -8,20 +9,20 @@
 
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
-import { OpenSearchMetricsWorkflowStack } from "../lib/stacks/metricsWorkflow";
-import Project from "../lib/enums/project";
-import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
-import { VpcStack } from "../lib/stacks/vpc";
 import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import Project from "../lib/enums/project";
+import { OpenSearchMetricsWorkflowStack } from "../lib/stacks/metricsWorkflow";
 import { OpenSearchMetricsMonitoringStack } from "../lib/stacks/monitoringDashboard";
+import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { OpenSearchS3 } from "../lib/stacks/s3";
+import { OpenSearchS3EventIndexWorkflowStack } from "../lib/stacks/s3EventIndexWorkflow";
 import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
-import {OpenSearchS3} from "../lib/stacks/s3";
-import {OpenSearchS3EventIndexWorkflowStack} from "../lib/stacks/s3EventIndexWorkflow";
+import { VpcStack } from "../lib/stacks/vpc";
 
 test('Monitoring Stack Test', () => {
     const app = new App();
     const vpcStack = new VpcStack(app, 'OpenSearchHealth-VPC', {});
-        const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
+    const s3Stack = new OpenSearchS3(app, "Test-OpenSearchMetrics-GitHubAutomationAppEvents-S3");
     const opensearchDomainStack = new OpenSearchDomainStack(app, 'Test-OpenSearchHealth-OpenSearch', {
         region: "us-east-1",
         account: "test-account",

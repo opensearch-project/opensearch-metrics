@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -7,15 +8,15 @@
  */
 
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import {Rule, RuleTargetInput, Schedule} from "aws-cdk-lib/aws-events";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { SfnStateMachine } from "aws-cdk-lib/aws-events-targets";
-import {JsonPath, StateMachine, TaskInput} from "aws-cdk-lib/aws-stepfunctions";
+import { Bucket } from "aws-cdk-lib/aws-s3";
+import { JsonPath, StateMachine, TaskInput } from "aws-cdk-lib/aws-stepfunctions";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { Construct } from 'constructs';
 import { OpenSearchLambda } from "../constructs/lambda";
 import { OpenSearchDomainStack } from "./opensearch";
 import { VpcStack } from "./vpc";
-import {Bucket} from "aws-cdk-lib/aws-s3";
 
 export interface OpenSearchS3EventIndexWorkflowStackProps extends StackProps {
     readonly region: string;

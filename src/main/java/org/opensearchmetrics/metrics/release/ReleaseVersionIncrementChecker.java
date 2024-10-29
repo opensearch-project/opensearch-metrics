@@ -6,7 +6,10 @@
  * this file be licensed under the Apache-2.0 license or a
  * compatible open source license.
  */
+<<<<<<< HEAD
 
+=======
+>>>>>>> cf2adf2 (Add license checker and missing license headers)
 package org.opensearchmetrics.metrics.release;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

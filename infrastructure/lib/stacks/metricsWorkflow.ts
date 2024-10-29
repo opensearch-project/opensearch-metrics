@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -53,7 +54,7 @@ export class OpenSearchMetricsWorkflowStack extends Stack {
     }
 
     private createMetricsTask(scope: Construct, opensearchDomainStack: OpenSearchDomainStack,
-                              vpcStack: VpcStack, lambdaPackage: string) {
+        vpcStack: VpcStack, lambdaPackage: string) {
         const openSearchDomain = opensearchDomainStack.domain;
         const metricsLambda = new OpenSearchLambda(scope, "OpenSearchMetricsLambdaFunction", {
             lambdaNameBase: "OpenSearchMetricsDashboards",

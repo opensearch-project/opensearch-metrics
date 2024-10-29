@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -8,7 +9,7 @@
 
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
-import {OpenSearchS3} from "../lib/stacks/s3";
+import { OpenSearchS3 } from "../lib/stacks/s3";
 
 test('S3 Stack Test', () => {
     const app = new App();

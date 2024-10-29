@@ -6,7 +6,6 @@
  * this file be licensed under the Apache-2.0 license or a
  * compatible open source license.
  */
-
 package org.opensearchmetrics.model.release;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

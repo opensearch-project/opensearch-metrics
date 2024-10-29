@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -8,12 +9,12 @@
 
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
 import Project from "../lib/enums/project";
 import { OpenSearchDomainStack } from "../lib/stacks/opensearch";
+import { OpenSearchS3 } from "../lib/stacks/s3";
+import { OpenSearchS3EventIndexWorkflowStack } from "../lib/stacks/s3EventIndexWorkflow";
 import { VpcStack } from "../lib/stacks/vpc";
-import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
-import {OpenSearchS3} from "../lib/stacks/s3";
-import {OpenSearchS3EventIndexWorkflowStack} from "../lib/stacks/s3EventIndexWorkflow";
 
 test('S3 Event Index Workflow Stack Test', () => {
     const app = new App();

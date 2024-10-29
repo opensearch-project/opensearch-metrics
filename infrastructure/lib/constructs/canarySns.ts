@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -6,12 +7,11 @@
  * compatible open source license.
  */
 
-import { SnsMonitors } from "./snsMonitor";
-import { SnsMonitorsProps } from "./snsMonitor";
-import { Construct } from "constructs";
+import { Duration } from "aws-cdk-lib";
 import { Alarm, ComparisonOperator, TreatMissingData } from "aws-cdk-lib/aws-cloudwatch";
 import { Canary } from 'aws-cdk-lib/aws-synthetics';
-import { Duration } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { SnsMonitors, SnsMonitorsProps } from "./snsMonitor";
 
 interface canarySnsProps extends SnsMonitorsProps {
     readonly canaryAlarms: Array<{ alertName: string, canary: Canary }>;

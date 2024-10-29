@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -6,9 +7,9 @@
  * compatible open source license.
  */
 
-import {App} from "aws-cdk-lib";
-import {GitHubWorkflowMonitorAlarms} from "../lib/stacks/gitHubWorkflowMonitorAlarms";
-import {Match, Template} from "aws-cdk-lib/assertions";
+import { App } from "aws-cdk-lib";
+import { Match, Template } from "aws-cdk-lib/assertions";
+import { GitHubWorkflowMonitorAlarms } from "../lib/stacks/gitHubWorkflowMonitorAlarms";
 
 test('OpenSearch Workflow Monitor Alarms test ', () => {
     const app = new App();
@@ -24,7 +25,7 @@ test('OpenSearch Workflow Monitor Alarms test ', () => {
     });
 
     const template = Template.fromStack(gitHubWorkflowMonitorAlarms);
-    
+
 
     template.hasResourceProperties('AWS::CloudWatch::Alarm', {
         AlarmName: 'OpenSearchMetrics-GitHubApp-Publishsnapshotstomaven-FailuresAlarm',
