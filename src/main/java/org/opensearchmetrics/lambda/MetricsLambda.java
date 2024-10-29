@@ -1,3 +1,12 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -56,6 +65,7 @@ public class MetricsLambda extends AbstractBaseLambda {
             metricsCalculation.generateGeneralMetrics(keys);
             metricsCalculation.generateLabelMetrics(keys);
             metricsCalculation.generateReleaseMetrics();
+            metricsCalculation.generateCodeCovMetrics();
         } catch (Exception e) {
             throw new RuntimeException("Error running Metrics Calculation", e);
         }

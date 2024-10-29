@@ -1,3 +1,12 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -46,12 +55,11 @@ public class MetricsLambdaTest {
         when(aggregations.get("repos")).thenReturn(termsAggregation);
         when(termsAggregation.getBuckets()).thenReturn(Collections.emptyList());
         metricsLambda.handleRequest(null, context);
-
-        // Assert
         verify(openSearchUtil, times(1)).search(any(SearchRequest.class));
         verify(metricsCalculation, times(1)).generateGeneralMetrics(anyList());
         verify(metricsCalculation, times(1)).generateLabelMetrics(anyList());
         verify(metricsCalculation, times(1)).generateReleaseMetrics();
+        verify(metricsCalculation, times(1)).generateCodeCovMetrics();
     }
 
 
@@ -60,8 +68,6 @@ public class MetricsLambdaTest {
     public void testHandleRequestWithMetricsCalculationException() {
         MetricsLambda metricsLambda = new MetricsLambda(openSearchUtil, metricsCalculation);
         Context context = mock(Context.class);
-
-        // Mocking openSearchUtil.search() to return a SearchResponse with non-null aggregations
         SearchResponse searchResponse = mock(SearchResponse.class);
         Aggregations aggregations = mock(Aggregations.class);
         ParsedStringTerms termsAggregation = mock(ParsedStringTerms.class); // Mock the ParsedStringTerms object
@@ -69,16 +75,11 @@ public class MetricsLambdaTest {
         when(aggregations.get("repos")).thenReturn(termsAggregation); // Return non-null termsAggregation
         when(searchResponse.getAggregations()).thenReturn(aggregations); // Return non-null aggregations
         when(openSearchUtil.search(any(SearchRequest.class))).thenReturn(searchResponse);
-
-        // Mocking MetricsCalculation methods to throw an exception
         doThrow(new RuntimeException("Error running Metrics Calculation")).when(metricsCalculation).generateGeneralMetrics(anyList());
-
-        // Act & Assert
         try {
             metricsLambda.handleRequest(null, context);
             fail("Expected a RuntimeException to be thrown");
         } catch (RuntimeException e) {
-            // Exception caught as expected
             System.out.println("Caught exception message: " + e.getMessage());
             assertTrue(e.getMessage().contains("Error running Metrics Calculation"));
         }

@@ -1,3 +1,12 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.metrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,8 +15,11 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.release.CodeCoverage;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
+import org.opensearchmetrics.model.codecov.CodeCovResponse;
+import org.opensearchmetrics.model.codecov.CodeCovResult;
 import org.opensearchmetrics.model.label.LabelData;
 import org.opensearchmetrics.model.general.MetricsData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
@@ -197,6 +209,44 @@ public class MetricsCalculation {
                         releaseMetricsData -> releaseMetricsData.getJson(releaseMetricsData, objectMapper)));
         openSearchUtil.createIndexIfNotExists("opensearch_release_metrics");
         openSearchUtil.bulkIndex("opensearch_release_metrics", metricFinalData);
+    }
+
+    public void generateCodeCovMetrics() {
+        ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
+        Map<String, String> metricFinalData =
+                Arrays.stream(releaseInputs)
+                        .filter(ReleaseInputs::getTrack)
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                                .flatMap(entry -> {
+                                    String repoName = entry.getKey();
+                                    String componentName = entry.getValue();
+                                    CodeCovResult codeCovResult = new CodeCovResult();
+                                    codeCovResult.setRepository(repoName);
+                                    codeCovResult.setComponent(componentName);
+                                    codeCovResult.setCurrentDate(currentDate.toString());
+                                    try {
+                                        codeCovResult.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
+                                                .digest(("codecov-metrics-" + releaseInput.getBranch() + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repoName)
+                                                        .getBytes()))));
+                                    } catch (NoSuchAlgorithmException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    codeCovResult.setReleaseVersion(releaseInput.getVersion());
+                                    codeCovResult.setVersion(releaseInput.getVersion());
+                                    codeCovResult.setReleaseState(releaseInput.getState());
+                                    codeCovResult.setBranch(releaseInput.getBranch());
+                                    CodeCovResponse codeCovResponse = releaseMetrics.getCodeCoverage(releaseInput.getBranch(), repoName);
+                                    codeCovResult.setCommitId(codeCovResponse.getCommitId());
+                                    codeCovResult.setState(codeCovResponse.getState());
+                                    codeCovResult.setCoverage(codeCovResponse.getCoverage());
+                                    codeCovResult.setUrl(codeCovResponse.getUrl());
+                                    return Stream.of(codeCovResult);
+                                }))
+                        .collect(Collectors.toMap(CodeCovResult::getId,
+                                codeCovResult -> codeCovResult.getJson(codeCovResult, objectMapper)));
+        String codeCovIndexName = "opensearch-codecov-metrics-" + currentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        openSearchUtil.createIndexIfNotExists(codeCovIndexName);
+        openSearchUtil.bulkIndex(codeCovIndexName, metricFinalData);
     }
 
 }

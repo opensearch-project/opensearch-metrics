@@ -1,5 +1,15 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.metrics;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opensearch.action.search.SearchRequest;
@@ -15,6 +26,7 @@ import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
+import org.opensearchmetrics.model.codecov.CodeCovResponse;
 import org.opensearchmetrics.model.label.LabelData;
 import org.opensearchmetrics.model.general.MetricsData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
@@ -22,6 +34,7 @@ import org.opensearchmetrics.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -140,5 +153,38 @@ public class MetricsCalculationTest {
         verify(openSearchUtil).createIndexIfNotExists("opensearch_release_metrics");
         verify(openSearchUtil).bulkIndex(eq("opensearch_release_metrics"), ArgumentMatchers.anyMap());
         verify(openSearchUtil, times(1)).createIndexIfNotExists("opensearch_release_metrics");
+    }
+
+
+    @Test
+    void testGenerateCodeCovMetrics() {
+        try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
+            ReleaseInputs releaseInput = mock(ReleaseInputs.class);
+            when(releaseInput.getVersion()).thenReturn("2.18.0");
+            when(releaseInput.getBranch()).thenReturn("main");
+            when(releaseInput.getTrack()).thenReturn(true);
+            when(releaseInput.getState()).thenReturn("active");
+            ReleaseInputs[] releaseInputsArray = {releaseInput};
+            mockedReleaseInputs.when(ReleaseInputs::getAllReleaseInputs).thenReturn(releaseInputsArray);
+            Map<String, String> releaseRepos = new HashMap<>();
+            releaseRepos.put("repo1", "component1");
+            when(releaseMetrics.getReleaseRepos("2.18.0")).thenReturn(releaseRepos);
+            CodeCovResponse codeCovResponse = new CodeCovResponse();
+            codeCovResponse.setCommitId("abc123");
+            codeCovResponse.setUrl("https://sample-url.com");
+            codeCovResponse.setState("success");
+            codeCovResponse.setCoverage(85.5);
+            when(releaseMetrics.getCodeCoverage("main", "repo1")).thenReturn(codeCovResponse);
+            try {
+                when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            metricsCalculation.generateCodeCovMetrics();
+            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"));
+            verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
+            verify(releaseMetrics).getCodeCoverage("main", "repo1");
+            verify(releaseMetrics).getReleaseRepos("2.18.0");
+        }
     }
 }

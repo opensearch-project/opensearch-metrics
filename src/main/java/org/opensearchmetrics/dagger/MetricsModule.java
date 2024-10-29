@@ -1,3 +1,12 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
 package org.opensearchmetrics.dagger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -5,6 +14,7 @@ import dagger.Module;
 import dagger.Provides;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.release.CodeCoverage;
 import org.opensearchmetrics.metrics.release.ReleaseBranchChecker;
 import org.opensearchmetrics.metrics.release.ReleaseIssueChecker;
 import org.opensearchmetrics.metrics.release.ReleaseLabelIssuesFetcher;
@@ -144,7 +154,9 @@ public class MetricsModule {
     public ReleaseMetrics getReleaseMetrics(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper,
                                             ReleaseRepoFetcher releaseRepoFetcher, ReleaseLabelIssuesFetcher releaseLabelIssuesFetcher,
                                             ReleaseLabelPullsFetcher releaseLabelPullsFetcher, ReleaseVersionIncrementChecker releaseVersionIncrementChecker,
-                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker) {
-        return new ReleaseMetrics(openSearchUtil, objectMapper, releaseRepoFetcher, releaseLabelIssuesFetcher, releaseLabelPullsFetcher, releaseVersionIncrementChecker, releaseBranchChecker, releaseNotesChecker, releaseIssueChecker);
+                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage) {
+        return new ReleaseMetrics(openSearchUtil, objectMapper, releaseRepoFetcher,
+                releaseLabelIssuesFetcher, releaseLabelPullsFetcher, releaseVersionIncrementChecker,
+                releaseBranchChecker, releaseNotesChecker, releaseIssueChecker, codeCoverage);
     }
 }
