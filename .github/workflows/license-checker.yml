@@ -10,4 +10,3 @@
           - uses: actions/checkout@v3
           - name: Check License Header
             run: npx @kt3k/license-checker
-    
