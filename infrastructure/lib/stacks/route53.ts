@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -7,9 +8,9 @@
  */
 
 import { Stack } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatemanager";
+import { HostedZone } from "aws-cdk-lib/aws-route53";
+import { Construct } from "constructs";
 
 export interface Route53Props {
     readonly hostedZone: string,

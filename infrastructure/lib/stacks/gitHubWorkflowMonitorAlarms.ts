@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -6,9 +7,9 @@
  * compatible open source license.
  */
 
-import {Duration, Stack} from "aws-cdk-lib";
-import {Construct} from "constructs";
-import {Alarm, ComparisonOperator, Metric, TreatMissingData} from "aws-cdk-lib/aws-cloudwatch";
+import { Duration, Stack } from "aws-cdk-lib";
+import { Alarm, ComparisonOperator, Metric } from "aws-cdk-lib/aws-cloudwatch";
+import { Construct } from "constructs";
 
 export interface AlarmProps {
     readonly namespace: string;
@@ -33,7 +34,7 @@ export class GitHubWorkflowMonitorAlarms extends Stack {
                 statistic: 'Sum',
             });
 
-            const alarm = new Alarm (this, `OpenSearchMetrics-GitHubApp-${dimensionValue.replace(/\s+/g, '')}-FailuresAlarm`, {
+            const alarm = new Alarm(this, `OpenSearchMetrics-GitHubApp-${dimensionValue.replace(/\s+/g, '')}-FailuresAlarm`, {
                 alarmName: `OpenSearchMetrics-GitHubApp-${dimensionValue.replace(/\s+/g, '')}-FailuresAlarm`,
                 metric: workflowMetric,
                 threshold: 2,

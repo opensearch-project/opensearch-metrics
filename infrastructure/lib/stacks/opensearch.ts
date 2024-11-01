@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -9,13 +10,13 @@
 import { RemovalPolicy, Stack } from "aws-cdk-lib";
 import { ArnPrincipal, CfnServiceLinkedRole, CompositePrincipal, Effect, IPrincipal, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Domain, EngineVersion } from "aws-cdk-lib/aws-opensearchservice";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { OpenSearchMetricsCognito } from "../constructs/opensearchCognito";
 import { OpenSearchMetricsNginxCognito } from "../constructs/opensearchNginxProxyCognito";
 import Project from "../enums/project";
 import { OpenSearchHealthRoute53 } from "./route53";
 import { VpcStack } from "./vpc";
-import {Bucket} from "aws-cdk-lib/aws-s3";
 
 
 export interface OpenSearchStackProps {
@@ -103,7 +104,7 @@ export class OpenSearchDomainStack extends Stack {
                             actions: ["s3:GetObject",
                                 "s3:ListBucket"],
                             resources: [props.githubEventsBucket.bucketArn,
-                                `${props.githubEventsBucket.bucketArn}/*`],
+                            `${props.githubEventsBucket.bucketArn}/*`],
                         })
                     ]
                 })

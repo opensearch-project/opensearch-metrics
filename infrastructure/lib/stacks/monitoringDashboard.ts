@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -22,7 +23,7 @@ import { VpcStack } from "./vpc";
 interface OpenSearchMetricsMonitoringStackProps extends StackProps {
     readonly region: string;
     readonly account: string;
-    readonly workflowComponent: {[component: string]: string};
+    readonly workflowComponent: { [component: string]: string };
     readonly lambdaPackage: string;
     readonly secrets: Secret;
     readonly vpcStack: VpcStack;

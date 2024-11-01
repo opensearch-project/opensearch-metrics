@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -9,11 +10,11 @@
 import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import Project from "../lib/enums/project";
-import { VpcStack } from "../lib/stacks/vpc";
 import { GitHubAutomationApp } from "../lib/stacks/gitHubAutomationApp";
+import { GitHubWorkflowMonitorAlarms } from "../lib/stacks/gitHubWorkflowMonitorAlarms";
+import { OpenSearchS3 } from "../lib/stacks/s3";
 import { OpenSearchMetricsSecretsStack } from "../lib/stacks/secrets";
-import {GitHubWorkflowMonitorAlarms} from "../lib/stacks/gitHubWorkflowMonitorAlarms";
-import {OpenSearchS3} from "../lib/stacks/s3";
+import { VpcStack } from "../lib/stacks/vpc";
 
 
 test('OpenSearch GitHub App Stack test ', () => {

@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -6,8 +7,8 @@
  * compatible open source license.
  */
 
-import {Stack, RemovalPolicy, StackProps} from "aws-cdk-lib";
-import { Bucket, BlockPublicAccess, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from "constructs";
 
 export class OpenSearchS3 extends Stack {

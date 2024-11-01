@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -7,22 +8,22 @@
  */
 
 import { App, Fn, Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { VpcStack } from "./stacks/vpc";
-import { OpenSearchDomainStack } from "./stacks/opensearch";
-import Project from './enums/project';
-import { OpenSearchHealthRoute53 } from "./stacks/route53";
-import { OpenSearchMetricsWorkflowStack } from "./stacks/metricsWorkflow";
-import { OpenSearchMetricsNginxReadonly } from "./stacks/opensearchNginxProxyReadonly";
 import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
-import { OpenSearchWAF } from "./stacks/waf";
+import { Construct } from 'constructs';
 import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxyCognito";
-import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
-import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
+import Project from './enums/project';
 import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
-import { OpenSearchS3 } from "./stacks/s3";
 import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
-import {OpenSearchS3EventIndexWorkflowStack} from "./stacks/s3EventIndexWorkflow";
+import { OpenSearchMetricsWorkflowStack } from "./stacks/metricsWorkflow";
+import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
+import { OpenSearchDomainStack } from "./stacks/opensearch";
+import { OpenSearchMetricsNginxReadonly } from "./stacks/opensearchNginxProxyReadonly";
+import { OpenSearchHealthRoute53 } from "./stacks/route53";
+import { OpenSearchS3 } from "./stacks/s3";
+import { OpenSearchS3EventIndexWorkflowStack } from "./stacks/s3EventIndexWorkflow";
+import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
+import { VpcStack } from "./stacks/vpc";
+import { OpenSearchWAF } from "./stacks/waf";
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -39,7 +40,7 @@ export class InfrastructureStack extends Stack {
     });
 
 
-   // Alarms to Monitor the Critical GitHub CI workflows by the GitHub Automation App
+    // Alarms to Monitor the Critical GitHub CI workflows by the GitHub Automation App
     const gitHubWorkflowMonitorAlarms = new GitHubWorkflowMonitorAlarms(app, "OpenSearchMetrics-GitHubWorkflowMonitor-Alarms", {
       namespace: 'GitHubActions',
       metricName: 'WorkflowRunFailures',

@@ -1,4 +1,5 @@
-/**
+/*
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
  * The OpenSearch Contributors require contributions made to
@@ -31,8 +32,8 @@ import {
     Role,
     ServicePrincipal
 } from 'aws-cdk-lib/aws-iam';
-import { Construct } from 'constructs';
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Construct } from 'constructs';
 
 
 export interface GitHubAppProps {
@@ -59,8 +60,8 @@ export class GitHubAutomationApp extends Stack {
 
         this.asg = new AutoScalingGroup(this, 'OpenSearchMetrics-GitHubAutomationApp-Asg', {
             instanceType: InstanceType.of(InstanceClass.M5, InstanceSize.XLARGE),
-            blockDevices: [{deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(20)}],
-            healthCheck: HealthCheck.ec2({grace: Duration.seconds(90)}),
+            blockDevices: [{ deviceName: '/dev/xvda', volume: BlockDeviceVolume.ebs(20) }],
+            healthCheck: HealthCheck.ec2({ grace: Duration.seconds(90) }),
             machineImage: props && props.ami ?
                 MachineImage.fromSsmParameter(props.ami) :
                 MachineImage.latestAmazonLinux2(),
