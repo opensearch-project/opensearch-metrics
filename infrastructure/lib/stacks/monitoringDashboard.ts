@@ -70,6 +70,7 @@ export class OpenSearchMetricsMonitoringStack extends Stack {
     private snsMonitorStepFunctionExecutionsFailed(): void {
         const stepFunctionSnsAlarms = [
             { alertName: 'StepFunction_execution_errors_MetricsWorkflow', stateMachineName: this.props.workflowComponent.opensearchMetricsWorkflowStateMachineName },
+            { alertName: 'StepFunction_execution_errors_MaintainerInactivityWorkflow', stateMachineName: this.props.workflowComponent.opensearchMaintainerInactivityWorkflowStateMachineName },
             { alertName: 'StepFunction_execution_errors_S3EventIndexWorkflow', stateMachineName: this.props.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName },
         ];
 

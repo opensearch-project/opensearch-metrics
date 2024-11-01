@@ -15,26 +15,25 @@ import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
 import org.opensearchmetrics.metrics.release.CodeCoverage;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.model.codecov.CodeCovResponse;
 import org.opensearchmetrics.model.codecov.CodeCovResult;
 import org.opensearchmetrics.model.label.LabelData;
 import org.opensearchmetrics.model.general.MetricsData;
+import org.opensearchmetrics.model.label.LabelData;
+import org.opensearchmetrics.model.maintainer.LatestEventData;
+import org.opensearchmetrics.model.maintainer.MaintainerData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +58,7 @@ public class MetricsCalculation {
     private final IssueNegativeReactions issueNegativeReactions;
     private final LabelMetrics labelMetrics;
     private final ReleaseMetrics releaseMetrics;
+    private final MaintainerMetrics maintainerMetrics;
 
 
     public MetricsCalculation(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper,
@@ -69,7 +69,7 @@ public class MetricsCalculation {
                               CreatedIssues createdIssues, IssueComments issueComments,
                               PullComments pullComments, IssuePositiveReactions issuePositiveReactions,
                               IssueNegativeReactions issueNegativeReactions, LabelMetrics labelMetrics,
-                              ReleaseMetrics releaseMetrics) {
+                              ReleaseMetrics releaseMetrics, MaintainerMetrics maintainerMetrics) {
         this.unlabelledPullRequests = unlabelledPullRequests;
         this.unlabelledIssues = unlabelledIssues;
         this.mergedPullRequests = mergedPullRequests;
@@ -88,6 +88,7 @@ public class MetricsCalculation {
         this.uncommentedPullRequests = uncommentedPullRequests;
         this.labelMetrics = labelMetrics;
         this.releaseMetrics = releaseMetrics;
+        this.maintainerMetrics = maintainerMetrics;
     }
 
 
@@ -248,4 +249,109 @@ public class MetricsCalculation {
         openSearchUtil.bulkIndex(codeCovIndexName, metricFinalData);
     }
 
+    public void generateMaintainerMetrics(List<String> repositories) {
+        long[] mostAndLeastRepoEventCounts = maintainerMetrics.mostAndLeastRepoEventCounts(openSearchUtil);
+        final double mostRepoEventCount = (double) mostAndLeastRepoEventCounts[0];
+        final double leastRepoEventCount = (double) mostAndLeastRepoEventCounts[1];
+        final double higherBoundDays = 365; // 1 year
+        final double lowerBoundDays = 90; // 3 months
+
+        // Slope and intercept for linear equation:
+        // x = number of events
+        // y = time maintainer is inactive until they are flagged as inactive
+        final double[] slopeAndIntercept = maintainerMetrics.getSlopeAndIntercept(leastRepoEventCount, higherBoundDays, mostRepoEventCount, lowerBoundDays);
+
+        List<String> eventTypes = maintainerMetrics.getEventTypes(openSearchUtil);
+
+        Map<String, String> metricFinalData = repositories.stream()
+                .flatMap(repo -> {
+                    long currentRepoEventCount = maintainerMetrics.repoEventCount(repo, openSearchUtil);
+                    return maintainerMetrics.repoMaintainers(repo).stream()
+                            .flatMap(maintainerData -> {
+                                // latestEvent will keep track of the latest of all event types
+                                LatestEventData latestEvent = null;
+
+                                // List of documents that represent each particular event type(issues, pull_request, label, etc.)
+                                List<MaintainerData> individualEvents = new ArrayList<>();
+
+                                // Loop through each event type(issues, pull_request, label, etc.)
+                                for (String eventType : eventTypes) {
+                                    MaintainerData maintainerEvent = new MaintainerData(); // doc to be indexed
+
+                                    // setting values for doc
+                                    try {
+                                        maintainerEvent.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
+                                                .digest(("maintainer-inactivity-" + eventType + "-" + maintainerData.getGithubLogin() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                                        .getBytes()))));
+                                    } catch (NoSuchAlgorithmException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    maintainerEvent.setCurrentDate(currentDate.toString());
+                                    maintainerEvent.setEventType(eventType);
+                                    maintainerEvent.setRepository(repo);
+                                    maintainerEvent.setName(maintainerData.getName());
+                                    maintainerEvent.setGithubLogin((maintainerData.getGithubLogin()));
+                                    maintainerEvent.setAffiliation(maintainerData.getAffiliation());
+
+                                    // Query for the latest event of the current event type(issues, pull_request, label, etc.)
+                                    Optional<LatestEventData> latestEventDataOpt = maintainerMetrics.queryLatestEvent(repo, maintainerData.getGithubLogin(), eventType, openSearchUtil);
+
+                                    if (latestEventDataOpt.isPresent()) { // If an event was found in the query
+                                        LatestEventData currentLatestEvent = latestEventDataOpt.get();
+
+                                        // calculate inactivity for current event type
+                                        currentLatestEvent.setInactive(maintainerMetrics.calculateInactivity(currentRepoEventCount, slopeAndIntercept, lowerBoundDays, currentLatestEvent));
+
+                                        // Logic to keep track of latest event of all event types.
+                                        if (latestEvent != null) {
+                                            if (currentLatestEvent.getTimeLastEngaged().isAfter(latestEvent.getTimeLastEngaged())) {
+                                                latestEvent = currentLatestEvent;
+                                            }
+                                        } else { // first time it is run
+                                            latestEvent = currentLatestEvent;
+                                        }
+
+                                        // continue setting values for doc
+                                        maintainerEvent.setEventAction(currentLatestEvent.getEventAction());
+                                        maintainerEvent.setTimeLastEngaged(currentLatestEvent.getTimeLastEngaged().toString());
+                                        maintainerEvent.setInactive(currentLatestEvent.isInactive());
+                                    } else {
+                                        // If no event was found in query, then leave event action and time last engaged empty,
+                                        // and set inactive to true
+                                        maintainerEvent.setInactive(true);
+                                    }
+
+                                    individualEvents.add(maintainerEvent);
+                                }
+
+                                // Index an extra document that represents a combination of all event types
+                                maintainerData.setEventType("All");
+
+                                // Set values for this document
+                                try {
+                                    maintainerData.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
+                                            .digest(("maintainer-inactivity-" + maintainerData.getEventType() + "-" + maintainerData.getGithubLogin() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repo)
+                                                    .getBytes()))));
+                                } catch (NoSuchAlgorithmException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                maintainerData.setCurrentDate(currentDate.toString());
+
+                                // Set values based on latest event of all event types
+                                if (latestEvent != null) {
+                                    maintainerData.setEventAction(latestEvent.getEventType() + "." + latestEvent.getEventAction()); // e.g. issues.opened
+                                    maintainerData.setTimeLastEngaged(latestEvent.getTimeLastEngaged().toString());
+                                    maintainerData.setInactive(latestEvent.isInactive());
+                                } else {
+                                    maintainerData.setInactive(true);
+                                }
+                                Stream<MaintainerData> compositeEvent = Stream.of(maintainerData);
+                                return Stream.concat(individualEvents.stream(), compositeEvent);
+                            });
+                })
+                .collect(Collectors.toMap(MaintainerData::getId, maintainerData -> maintainerData.getJson(maintainerData, objectMapper)));
+        String indexName = "maintainer-inactivity-" + currentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        openSearchUtil.createIndexIfNotExists(indexName);
+        openSearchUtil.bulkIndex(indexName, metricFinalData);
+    }
 }

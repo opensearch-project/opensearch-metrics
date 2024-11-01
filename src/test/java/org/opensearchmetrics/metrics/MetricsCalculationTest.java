@@ -23,19 +23,24 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearchmetrics.metrics.general.*;
 import org.opensearchmetrics.metrics.label.LabelMetrics;
+import org.opensearchmetrics.metrics.maintainer.MaintainerMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseInputs;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.model.codecov.CodeCovResponse;
 import org.opensearchmetrics.model.label.LabelData;
 import org.opensearchmetrics.model.general.MetricsData;
+import org.opensearchmetrics.model.maintainer.LatestEventData;
+import org.opensearchmetrics.model.maintainer.MaintainerData;
 import org.opensearchmetrics.model.release.ReleaseMetricsData;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -80,6 +85,9 @@ public class MetricsCalculationTest {
     private LabelMetrics labelMetrics;
     @Mock
     private ReleaseMetrics releaseMetrics;
+    @Mock
+    private MaintainerMetrics maintainerMetrics;
+
 
     @InjectMocks
     private MetricsCalculation metricsCalculation;
@@ -92,7 +100,7 @@ public class MetricsCalculationTest {
                 untriagedIssues, uncommentedPullRequests, unlabelledPullRequests, unlabelledIssues,
                 mergedPullRequests, openPullRequests, openIssues, closedIssues, createdIssues,
                 issueComments, pullComments, issuePositiveReactions, issueNegativeReactions,
-                labelMetrics, releaseMetrics);
+                labelMetrics, releaseMetrics, maintainerMetrics);
     }
 
     @Test
@@ -154,7 +162,6 @@ public class MetricsCalculationTest {
         verify(openSearchUtil, times(1)).createIndexIfNotExists("opensearch_release_metrics");
     }
 
-
     @Test
     void testGenerateCodeCovMetrics() {
         try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
@@ -185,5 +192,36 @@ public class MetricsCalculationTest {
             verify(releaseMetrics).getCodeCoverage("main", "repo1");
             verify(releaseMetrics).getReleaseRepos("2.18.0");
         }
+    }
+
+    @Test
+    void testGenerateMaintainerMetrics() throws IOException{
+        List<String> repositories = Arrays.asList("repo1", "repo2");
+        List<String> eventList = Arrays.asList("event1", "event2");
+        List<MaintainerData> maintainersList = new ArrayList<>();
+        MaintainerData maintainerData = new MaintainerData();
+        maintainerData.setRepository("repo1");
+        maintainerData.setName("maintainer1");
+        maintainerData.setGithubLogin("githubId");
+        maintainerData.setAffiliation("affiliation1");
+        maintainersList.add(maintainerData);
+        LatestEventData latestEventData = new LatestEventData();
+        latestEventData.setEventType("eventType");
+        latestEventData.setEventAction("eventAction");
+        latestEventData.setTimeLastEngaged(Instant.now().minus(7, ChronoUnit.DAYS));
+        double[] slopeAndIntercept = {-1.0, 368.0};
+        double upperBound = 365;
+        double lowerBound = 90;
+        when(maintainerMetrics.mostAndLeastRepoEventCounts(any())).thenReturn(new long[]{100L, 10L});
+        when(maintainerMetrics.getSlopeAndIntercept(10, upperBound, 100, lowerBound)).thenReturn(slopeAndIntercept);
+        when(maintainerMetrics.getEventTypes(any())).thenReturn(eventList);
+        when(maintainerMetrics.repoEventCount(any(), any())).thenReturn(50L);
+        when(maintainerMetrics.repoMaintainers(any())).thenReturn(maintainersList);
+        when(maintainerMetrics.queryLatestEvent(any(), any(), any(), any())).thenReturn(Optional.of(latestEventData));
+        when(maintainerMetrics.calculateInactivity(50L, slopeAndIntercept, lowerBound, latestEventData)).thenReturn(false);
+        when(objectMapper.writeValueAsString(any())).thenReturn("json");
+        metricsCalculation.generateMaintainerMetrics(repositories);
+        verify(openSearchUtil).createIndexIfNotExists(matches("maintainer-inactivity-\\d{2}-\\d{4}"));
+        verify(openSearchUtil).bulkIndex(matches("maintainer-inactivity-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
     }
 }

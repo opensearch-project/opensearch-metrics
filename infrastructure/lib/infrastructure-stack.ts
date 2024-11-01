@@ -13,17 +13,18 @@ import { Construct } from 'constructs';
 import { OpenSearchMetricsNginxCognito } from "./constructs/opensearchNginxProxyCognito";
 import Project from './enums/project';
 import { GitHubAutomationApp } from "./stacks/gitHubAutomationApp";
-import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
 import { OpenSearchMetricsWorkflowStack } from "./stacks/metricsWorkflow";
 import { OpenSearchMetricsMonitoringStack } from "./stacks/monitoringDashboard";
 import { OpenSearchDomainStack } from "./stacks/opensearch";
 import { OpenSearchMetricsNginxReadonly } from "./stacks/opensearchNginxProxyReadonly";
 import { OpenSearchHealthRoute53 } from "./stacks/route53";
 import { OpenSearchS3 } from "./stacks/s3";
-import { OpenSearchS3EventIndexWorkflowStack } from "./stacks/s3EventIndexWorkflow";
 import { OpenSearchMetricsSecretsStack } from "./stacks/secrets";
 import { VpcStack } from "./stacks/vpc";
 import { OpenSearchWAF } from "./stacks/waf";
+import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
+import { OpenSearchS3EventIndexWorkflowStack } from "./stacks/s3EventIndexWorkflow";
+import { OpenSearchMaintainerInactivityWorkflowStack } from "./stacks/maintainerInactivityWorkflow";
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -99,6 +100,14 @@ export class InfrastructureStack extends Stack {
     })
     openSearchS3EventIndexWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
 
+    // Create OpenSearch Maintainer Inactivity Lambda setup
+    const openSearchMaintainerInactivityWorkflowStack = new OpenSearchMaintainerInactivityWorkflowStack(app, 'OpenSearchMaintainerInactivity-Workflow', {
+      opensearchDomainStack: openSearchDomainStack,
+      vpcStack: vpcStack,
+      lambdaPackage: Project.LAMBDA_PACKAGE,
+    })
+    openSearchMaintainerInactivityWorkflowStack.node.addDependency(vpcStack, openSearchDomainStack);
+
     // Create Secret Manager for the metrics project
     const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
       secretName: 'metrics-creds'
@@ -111,7 +120,8 @@ export class InfrastructureStack extends Stack {
       account: Project.AWS_ACCOUNT,
       workflowComponent: {
         opensearchMetricsWorkflowStateMachineName: openSearchMetricsWorkflowStack.workflowComponent.opensearchMetricsWorkflowStateMachineName,
-        opensearchS3EventIndexWorkflowStateMachineName: openSearchS3EventIndexWorkflowStack.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName
+        opensearchMaintainerInactivityWorkflowStateMachineName: openSearchMaintainerInactivityWorkflowStack.workflowComponent.opensearchMaintainerInactivityWorkflowStateMachineName,
+        opensearchS3EventIndexWorkflowStateMachineName: openSearchS3EventIndexWorkflowStack.workflowComponent.opensearchS3EventIndexWorkflowStateMachineName,
       },
       lambdaPackage: Project.LAMBDA_PACKAGE,
       secrets: openSearchMetricsSecretsStack.secret,
