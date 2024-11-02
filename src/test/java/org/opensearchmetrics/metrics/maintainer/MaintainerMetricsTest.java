@@ -116,6 +116,42 @@ public class MaintainerMetricsTest {
     }
 
     @Test
+    public void testQueryLatestEventNoActionOrCreatedAt() {
+        // Mock
+        OpenSearchUtil openSearchUtil = Mockito.mock(OpenSearchUtil.class);
+        SearchResponse eventsResponse = Mockito.mock(SearchResponse.class);
+        SearchHit searchHit = Mockito.mock(SearchHit.class);
+        SearchHits searchHits = Mockito.mock(SearchHits.class);
+        TopHits topHits = Mockito.mock(TopHits.class);
+        Aggregations aggregations = Mockito.mock(Aggregations.class);
+
+        when(openSearchUtil.search(any(SearchRequest.class))).thenReturn(eventsResponse);
+        when(eventsResponse.status()).thenReturn(RestStatus.OK);
+        when(eventsResponse.getAggregations()).thenReturn(aggregations);
+        when(aggregations.get("latest_event")).thenReturn(topHits);
+        when(topHits.getHits()).thenReturn(searchHits);
+        when(searchHits.getHits()).thenReturn(new SearchHit[]{searchHit});
+
+        Map<String, Object> sourceMap = new HashMap<>();
+        when(searchHit.getSourceAsMap()).thenReturn(sourceMap);
+
+        MaintainerMetrics maintainerMetrics = new MaintainerMetrics();
+
+        // Call method under test
+        String testRepo = "testRepo";
+        String testUserLogin = "testUserLogin";
+        String testEventType = "testEventType";
+        Optional<LatestEventData> latestEvent = maintainerMetrics.queryLatestEvent(testRepo, testUserLogin, testEventType, openSearchUtil);
+        LatestEventData testEvent = new LatestEventData();
+        testEvent.setEventType("testEventType");
+        Optional<LatestEventData> testEventOpt = Optional.of(testEvent);
+
+
+        // Assertions
+        assertEquals(testEventOpt, latestEvent); // Modify expected result according to your logic
+    }
+
+    @Test
     public void testQueryLatestEventEmpty() {
         // Mock
         OpenSearchUtil openSearchUtil = Mockito.mock(OpenSearchUtil.class);

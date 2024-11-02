@@ -98,8 +98,12 @@ public class MaintainerMetrics {
                 Map<String, Object> latestDocument = topHits.getHits().getHits()[0].getSourceAsMap();
                 LatestEventData latestEventData = new LatestEventData();
                 latestEventData.setEventType(eventType);
-                latestEventData.setEventAction(latestDocument.get("action").toString());
-                latestEventData.setTimeLastEngaged(Instant.parse(latestDocument.get("created_at").toString()));
+                if(latestDocument.containsKey("action")){
+                    latestEventData.setEventAction(latestDocument.get("action").toString());
+                }
+                if(latestDocument.containsKey("created_at")) {
+                    latestEventData.setTimeLastEngaged(Instant.parse(latestDocument.get("created_at").toString()));
+                }
                 return Optional.of(latestEventData);
             } else {
                 return Optional.empty();
