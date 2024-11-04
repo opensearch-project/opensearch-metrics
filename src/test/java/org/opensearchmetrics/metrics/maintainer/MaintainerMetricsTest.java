@@ -287,6 +287,7 @@ public class MaintainerMetricsTest {
         String expectedContent = "test content\n" +
                 "| Maintainer       | GitHub ID                                | Affiliation |\n" +
                 "| maintainer | [githubId](https://github.com/githubId) | affiliation      |\n" +
+                "| maintainer | [githubId](https://github.com/githubId) | affiliation      |\n" +
                 "## Emeritus Maintainers" +
                 "| maintainer | [githubId](https://github.com/githubId) | affiliation      |\n" +
                 "line3\n";
