@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -237,6 +239,7 @@ public class MaintainerMetrics {
         String rawMaintainersFile = String.format("https://raw.githubusercontent.com/opensearch-project/%s/main/MAINTAINERS.md", repo);
         boolean isEmeritusSection = false;
         List<MaintainerData> maintainersList = new ArrayList<>();
+        Set<String> maintainerIdSet = new HashSet<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(rawMaintainersFile).openStream(),
                 StandardCharsets.UTF_8))) {
             String line;
@@ -256,7 +259,10 @@ public class MaintainerMetrics {
                             maintainerData.setName(maintainer);
                             maintainerData.setGithubLogin(githubId);
                             maintainerData.setAffiliation(affiliation);
-                            maintainersList.add(maintainerData);
+                            if(!maintainerIdSet.contains(githubId)){ // Add only unique github ids
+                                maintainerIdSet.add(githubId);
+                                maintainersList.add(maintainerData);
+                            }
                         }
                     }
                 } else if (line.contains("Emeritus")) {
