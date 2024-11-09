@@ -79,7 +79,7 @@ test('S3 Event Index Workflow Stack Test', () => {
     });
     template.resourceCountIs('AWS::Events::Rule', 1);
     template.hasResourceProperties('AWS::Events::Rule', {
-        "ScheduleExpression": "cron(0 0 * * ? *)",
+        "ScheduleExpression": "cron(45 23 * * ? *)",
         "State": "ENABLED",
         "Targets": [
             {
