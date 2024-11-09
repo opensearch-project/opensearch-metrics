@@ -48,7 +48,7 @@ export class OpenSearchS3EventIndexWorkflowStack extends Stack {
         })
 
         const rule = new Rule(this, 'OpenSearchS3EventIndexWorkflow-Every-Day', {
-            schedule: Schedule.expression('cron(0 0 * * ? *)'),
+            schedule: Schedule.expression('cron(45 23 * * ? *)'),
         });
 
         rule.addTarget(new SfnStateMachine(opensearchS3EventIndexWorkflow, {

@@ -45,7 +45,7 @@ export class OpenSearchMaintainerInactivityWorkflowStack extends Stack {
         })
 
         new Rule(this, 'MaintainerInactivityWorkflow-Every-Day', {
-            schedule: Schedule.expression('cron(15 0 * * ? *)'),
+            schedule: Schedule.expression('cron(0 0 * * ? *)'),
             targets: [new SfnStateMachine(opensearchMaintainerInactivityWorkflow)],
         });
 

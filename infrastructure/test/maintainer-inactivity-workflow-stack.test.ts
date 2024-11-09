@@ -76,4 +76,22 @@ test('Maintainer Inactivity Workflow Stack Test', () => {
         },
         "StateMachineName": "OpenSearchMaintainerInactivityWorkflow"
     });
+    template.hasResourceProperties('AWS::Events::Rule', {
+        "ScheduleExpression": "cron(0 0 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+            {
+                "Arn": {
+                    "Ref": "OpenSearchMaintainerInactivityWorkflowE07E380B"
+                },
+                "Id": "Target0",
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "OpenSearchMaintainerInactivityWorkflowEventsRole0FDEAE61",
+                        "Arn"
+                    ]
+                }
+            }
+        ]
+    });
 });
