@@ -82,7 +82,7 @@ public class MaintainerMetrics {
     public Optional<LatestEventData> queryLatestEvent(String repo, String userLogin, String eventType, OpenSearchUtil openSearchUtil) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", repo));
-        boolQueryBuilder.must(QueryBuilders.matchQuery("sender.keyword", userLogin));
+        boolQueryBuilder.must(QueryBuilders.matchQuery("sender", userLogin));
         boolQueryBuilder.must(QueryBuilders.matchQuery("type.keyword", eventType));
         SearchRequest searchRequest = new SearchRequest(GITHUB_EVENTS_INDEX);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
