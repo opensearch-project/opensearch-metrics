@@ -64,15 +64,19 @@ public class GithubEventsLambdaTest {
 
         Map<String,String> input = new HashMap<>();
         LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minus(1, ChronoUnit.DAYS);
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
         input.put("collectionStartDate", yesterday.toString());
 
         // Act
         githubEventsLambda.handleRequest(input, mock(Context.class));
 
         // Assert
-        String indexName = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil).createIndexIfNotExists(indexName);
-        verify(openSearchUtil).bulkIndex(eq(indexName), any(Map.class));
+        String indexNameYesterday = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        String indexNameToday = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday);
+        verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameYesterday), any(Map.class));
+        verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameToday), any(Map.class));
     }
 
     @Test
@@ -88,8 +92,8 @@ public class GithubEventsLambdaTest {
         when(s3Util.getObjectInputStream(anyString())).thenReturn(new ResponseInputStream<>(getObjectResponse, new ByteArrayInputStream(eventJson.getBytes())));
 
         Map<String,String> input = new HashMap<>();
-        LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minus(1, ChronoUnit.DAYS);
-        LocalDate lastMonth = yesterday.minus(1, ChronoUnit.MONTHS);
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        LocalDate lastMonth = today.minus(1, ChronoUnit.MONTHS);
         input.put("collectionStartDate", lastMonth.toString());
 
         // Act
@@ -100,7 +104,7 @@ public class GithubEventsLambdaTest {
         verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameLastMonth);
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameLastMonth), any(Map.class));
 
-        String indexNameThisMonth = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        String indexNameThisMonth = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
         verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameThisMonth);
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameThisMonth), any(Map.class));
     }
@@ -119,14 +123,18 @@ public class GithubEventsLambdaTest {
 
         Map<String,String> input = new HashMap<>();
         LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minus(1, ChronoUnit.DAYS);
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
 
         // Act
         githubEventsLambda.handleRequest(input, mock(Context.class));
 
         // Assert
-        String indexName = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil).createIndexIfNotExists(indexName);
-        verify(openSearchUtil).bulkIndex(eq(indexName), any(Map.class));
+        String indexNameYesterday = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        String indexNameToday = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday);
+        verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameYesterday), any(Map.class));
+        verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameToday), any(Map.class));
     }
 
     @Test
