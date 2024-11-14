@@ -69,7 +69,7 @@ public class GithubEventsLambda implements RequestHandler<Map<String, String>, V
         }
         LocalDate collectionCurrentDate = collectionStartDate;
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
-        while (collectionCurrentDate.isBefore(today)) {
+        while (!collectionCurrentDate.isAfter(today)) {
             Map<String, String> finalEventData = new HashMap<>();
             for (GithubEvents eventToIndex : eventsToIndex) {
                 String prefix = eventToIndex.getEventName() + "/" + collectionCurrentDate + "/";
