@@ -22,7 +22,7 @@ dependencies {
     implementation 'com.google.dagger:dagger:2.51'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.51'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
-    implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.11.0'
+    implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.18.0'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
     implementation 'software.amazon.awssdk:sts:2.25.21'
     implementation 'io.github.acm19:aws-request-signing-apache-interceptor:2.3.1'
