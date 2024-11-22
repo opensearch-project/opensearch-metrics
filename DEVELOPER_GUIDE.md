@@ -28,6 +28,7 @@ So you want to contribute code to this project? Excellent! We're glad you're her
     - `cdk deploy OpenSearchMetrics-GitHubAutomationAppEvents-S3`: Creates the S3 Bucket for the [GitHub Automation App](https://github.com/opensearch-project/automation-app) to store OpenSearch Project GitHub Events.
     - `cdk deploy OpenSearchS3EventIndex-Workflow`: Creates the Lambda and Step Function to index the GitHub Events stored in the S3 Bucket to the Metrics cluster.
     - `cdk deploy OpenSearchMaintainerInactivity-Workflow`: Creates the Lambda and Step Function to index Maintainer Inactivity to the Metrics cluster.
+    - `cdk deploy OpenSearchEventCanary-Workflow`: Creates the Lambda and Step Function that runs the GitHub Label Canary for Automation App monitoring.
 
 ### Forking and Cloning
 

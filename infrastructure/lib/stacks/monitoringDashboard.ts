@@ -18,6 +18,7 @@ import { OpenSearchLambda } from "../constructs/lambda";
 import { StepFunctionSns } from "../constructs/stepFunctionSns";
 import Project from "../enums/project";
 import { VpcStack } from "./vpc";
+import {AutomationAppSns} from "../constructs/automationAppSns";
 
 
 interface OpenSearchMetricsMonitoringStackProps extends StackProps {
@@ -56,12 +57,13 @@ export class OpenSearchMetricsMonitoringStack extends Stack {
             lambdaZipPath: `../../../build/distributions/${props.lambdaPackage}`,
             role: slackLambdaRole,
             environment: {
-                SLACK_CREDENTIALS_SECRETS: props.secrets.secretName,
+                API_CREDENTIALS_SECRETS: props.secrets.secretName,
                 SECRETS_MANAGER_REGION: props.secrets.env.region
             }
         });
         this.snsMonitorStepFunctionExecutionsFailed();
         this.snsMonitorCanaryFailed('metrics_heartbeat', `https://${Project.METRICS_HOSTED_ZONE}`, props.vpcStack);
+        this.snsMonitorAutomationAppFailed();
     }
 
     /**
@@ -114,6 +116,24 @@ export class OpenSearchMetricsMonitoringStack extends Stack {
             canaryAlarms: canaryAlarms,
             alarmNameSpace: "CloudWatchSynthetics",
             snsTopicName: "CanaryFailed",
+            slackLambda: this.slackLambda
+        });
+    }
+
+    /**
+     * Create SNS alarms for if the GitHub Event Data Lake App goes down.
+     */
+    private snsMonitorAutomationAppFailed(): void {
+        const automationAppSnsAlarms = [
+            { alertName: 'Event_data_lake_app_failed', metricName: 'AutomationApp_EventDataLake'},
+        ];
+
+        new AutomationAppSns(this, "SnsMonitors-EventDataLakeAppFailed", {
+            region: this.props.region,
+            accountId: this.props.account,
+            automationAppSnsAlarms: automationAppSnsAlarms,
+            alarmNameSpace: "GitHubLabelCanary",
+            snsTopicName: "AutomationAppFailed",
             slackLambda: this.slackLambda
         });
     }
