@@ -21,7 +21,8 @@ public enum ReleaseInputs {
     VERSION_1_3_16("1.3.16", "closed", "1.3", false),
     VERSION_1_3_17("1.3.17", "closed", "1.3", false),
     VERSION_1_3_18("1.3.18", "closed", "1.3", true),
-    VERSION_1_3_19("1.3.19", "closed", "1.3", true);
+    VERSION_1_3_19("1.3.19", "closed", "1.3", true),
+    VERSION_1_3_20("1.3.20", "open", "1.3", true);
 
     private final String version;
     private final String state;

@@ -71,4 +71,35 @@ public class SecretsManagerUtilTest {
         assertEquals(slackChannel, channelResult.get());
         assertEquals(slackUsername, usernameResult.get());
     }
+
+    @Test
+    void testGetGitHubApiCredentials() throws IOException {
+        String githubAppKey = "github-app-key";
+        String githubAppId = "github-app-id";
+        String githubAppInstallId = "github-app-install-id";
+        SecretsManagerUtil.GitHubAppCredentials githubAppCredentials = new SecretsManagerUtil.GitHubAppCredentials();
+        githubAppCredentials.setGithubAppKey(githubAppKey);
+        githubAppCredentials.setGithubAppId(githubAppId);
+        githubAppCredentials.setGithubAppInstallId(githubAppInstallId);
+
+        String secretString = "secret-string-with-github-credentials";
+        GetSecretValueResult getSecretValueResult = new GetSecretValueResult();
+        getSecretValueResult.setSecretString(secretString);
+
+        when(secretsManager.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenReturn(getSecretValueResult);
+        when(mapper.readValue(eq(secretString), eq(SecretsManagerUtil.GitHubAppCredentials.class)))
+                .thenReturn(githubAppCredentials);
+
+        Optional<String> appKeyResult = secretsManagerUtil.getGitHubAppCredentials(DataSourceType.GITHUB_APP_KEY);
+        Optional<String> appIdResult = secretsManagerUtil.getGitHubAppCredentials(DataSourceType.GITHUB_APP_ID);
+        Optional<String> appInstallIdResult = secretsManagerUtil.getGitHubAppCredentials(DataSourceType.GITHUB_APP_INSTALL_ID);
+
+        assertTrue(appKeyResult.isPresent());
+        assertTrue(appIdResult.isPresent());
+        assertTrue(appInstallIdResult.isPresent());
+        assertEquals(githubAppKey, appKeyResult.get());
+        assertEquals(githubAppId, appIdResult.get());
+        assertEquals(githubAppInstallId, appInstallIdResult.get());
+    }
 }
