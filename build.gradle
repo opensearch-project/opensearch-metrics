@@ -34,7 +34,7 @@ dependencies {
 
     implementation 'com.amazonaws:aws-java-sdk-secretsmanager:1.12.671'
 
-    implementation 'software.amazon.awssdk:s3:2.28.17'
+    implementation 'software.amazon.awssdk:s3:2.29.12'
 
     implementation 'org.json:json:20240303'
 
