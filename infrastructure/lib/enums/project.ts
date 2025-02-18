@@ -18,6 +18,7 @@ enum Project {
     RESTRICTED_PREFIX = '',
     LAMBDA_PACKAGE = 'opensearch-metrics-1.0.zip',
     EC2_AMI_SSM = '',
-    SNS_ALERT_EMAIL = 'insert@test.mail'
+    SNS_ALERT_EMAIL = 'insert@test.mail',
+    EVENT_CANARY_REPO_TARGET = '',
 }
 export default Project;

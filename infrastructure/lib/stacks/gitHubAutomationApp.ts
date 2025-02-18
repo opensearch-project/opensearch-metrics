@@ -161,7 +161,7 @@ export class GitHubAutomationApp extends Stack {
             'sudo systemctl start docker',
             'sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/sbin/docker-compose',
             'sudo chmod a+x /usr/local/sbin/docker-compose',
-            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.1.18',
+            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.3.6',
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
