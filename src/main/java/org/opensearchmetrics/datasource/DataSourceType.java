@@ -11,5 +11,8 @@ package org.opensearchmetrics.datasource;
 public enum DataSourceType {
     SLACK_WEBHOOK_URL,
     SLACK_CHANNEL,
-    SLACK_USERNAME
+    SLACK_USERNAME,
+    GITHUB_APP_KEY,
+    GITHUB_APP_ID,
+    GITHUB_APP_INSTALL_ID,
 }

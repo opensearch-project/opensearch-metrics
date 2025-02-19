@@ -115,6 +115,18 @@ graph LR
     F --> H[Data for Debugging and Trend Analysis]
 ```
 
+##### Automation App Failure Detection
+The logic for detecting automation app failures is found in the [github-label-canary-monitor.ts](https://github.com/opensearch-project/automation-app/blob/main/src/call/github-label-canary-monitor.ts). There is a GitHub Event Canary Lambda that will create and delete a label every 10 minutes. The Automation App will listen on this label event, and will send CloudWatch Metrics every time the event is heard. If the Automation App goes down or stops working, then the CloudWatch Alarm will sense this missing data and go into Alarm state, notifying us of the outage.
+
+```mermaid
+graph LR
+    A[GitHub Event Canary Lambda] -->|Creates/Deletes Label every 10 minutes| B[GitHub Repository]
+    B -->|Label Event| C[Automation App]
+    C -->|Sends Metrics| D[CloudWatch Metrics]
+    D -->|Monitors for missing data| E[CloudWatch Alarm]
+    E -->|Triggers on missing data| F[Notification]
+```
+
 ## Contributing
 
 See [developer guide](DEVELOPER_GUIDE.md) and [how to contribute to this project](CONTRIBUTING.md).

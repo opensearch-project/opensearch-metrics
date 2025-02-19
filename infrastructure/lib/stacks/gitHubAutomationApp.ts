@@ -161,15 +161,12 @@ export class GitHubAutomationApp extends Stack {
             'sudo systemctl start docker',
             'sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/sbin/docker-compose',
             'sudo chmod a+x /usr/local/sbin/docker-compose',
-            'git clone --branch 0.1.18 https://github.com/opensearch-project/automation-app.git automation-app-0.1.18',
-            'git clone --branch 0.3.2 https://github.com/opensearch-project/automation-app.git automation-app-0.3.2',
-            `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app-0.1.18/.env`,
-            'cp automation-app-0.1.18/.env automation-app-0.3.2/.env',
-            'cd automation-app-0.1.18/docker',
+            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.3.6',
+            `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
+            'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
             'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d',
             'PORT=8082 RESOURCE_CONFIG=configs/resources/opensearch-project-only-org.yml OPERATION_CONFIG=configs/operations/github-events-to-s3.yml docker-compose -p github-events-to-s3 up -d',
-            'cd ../../automation-app-0.3.2/docker',
             'PORT=8083 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/add-meta-rfc-issues-to-os-roadmap.yml ADDITIONAL_RESOURCE_CONTEXT=true docker-compose -p github-os-roadmap up -d',
         ];
     }

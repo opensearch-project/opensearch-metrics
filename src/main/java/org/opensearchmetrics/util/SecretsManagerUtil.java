@@ -24,7 +24,7 @@ import java.util.Optional;
 
 @Slf4j
 public class SecretsManagerUtil {
-    private static final String SLACK_CREDENTIALS_SECRETS = "SLACK_CREDENTIALS_SECRETS";
+    private static final String API_CREDENTIALS_SECRETS = "API_CREDENTIALS_SECRETS";
     private final AWSSecretsManager secretsManager;
     private final ObjectMapper mapper;
 
@@ -45,8 +45,20 @@ public class SecretsManagerUtil {
         private String slackUsername;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    public static class GitHubAppCredentials {
+        @JsonProperty("githubAppKey")
+        private String githubAppKey;
+        @JsonProperty("githubAppId")
+        private String githubAppId;
+        @JsonProperty("githubAppInstallId")
+        private String githubAppInstallId;
+    }
+
     public Optional<String> getSlackCredentials(DataSourceType datasourceType) throws IOException {
-        String secretName = System.getenv(SLACK_CREDENTIALS_SECRETS);
+        String secretName = System.getenv(API_CREDENTIALS_SECRETS);
         log.info("Retrieving secrets value from secrets = {} ", secretName);
         GetSecretValueResult getSecretValueResult =
                 secretsManager.getSecretValue(new GetSecretValueRequest().withSecretId(secretName));
@@ -60,6 +72,26 @@ public class SecretsManagerUtil {
                 return Optional.of(credentials.getSlackChannel());
             case SLACK_USERNAME:
                 return Optional.of(credentials.getSlackUsername());
+            default:
+                return Optional.empty();
+        }
+    }
+
+    public Optional<String> getGitHubAppCredentials(DataSourceType datasourceType) throws IOException {
+        String secretName = System.getenv(API_CREDENTIALS_SECRETS);
+        log.info("Retrieving secrets value from secrets = {} ", secretName);
+        GetSecretValueResult getSecretValueResult =
+                secretsManager.getSecretValue(new GetSecretValueRequest().withSecretId(secretName));
+        log.info("Successfully retrieved secrets for data source credentials");
+        GitHubAppCredentials credentials =
+                mapper.readValue(getSecretValueResult.getSecretString(), GitHubAppCredentials.class);
+        switch (datasourceType) {
+            case GITHUB_APP_KEY:
+                return Optional.of(credentials.getGithubAppKey());
+            case GITHUB_APP_ID:
+                return Optional.of(credentials.getGithubAppId());
+            case GITHUB_APP_INSTALL_ID:
+                return Optional.of(credentials.getGithubAppInstallId());
             default:
                 return Optional.empty();
         }

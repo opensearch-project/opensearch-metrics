@@ -25,6 +25,7 @@ import { OpenSearchWAF } from "./stacks/waf";
 import { GitHubWorkflowMonitorAlarms } from "./stacks/gitHubWorkflowMonitorAlarms";
 import { OpenSearchS3EventIndexWorkflowStack } from "./stacks/s3EventIndexWorkflow";
 import { OpenSearchMaintainerInactivityWorkflowStack } from "./stacks/maintainerInactivityWorkflow";
+import {OpenSearchEventCanaryWorkflowStack} from "./stacks/eventCanaryWorkflow";
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -112,6 +113,15 @@ export class InfrastructureStack extends Stack {
     const openSearchMetricsSecretsStack = new OpenSearchMetricsSecretsStack(app, "OpenSearchMetrics-Secrets", {
       secretName: 'metrics-creds'
     });
+
+    // Create OpenSearch Event Canary Lambda setup
+    const openSearchEventCanaryWorkflowStack = new OpenSearchEventCanaryWorkflowStack(app, 'OpenSearchEventCanary-Workflow', {
+      vpcStack: vpcStack,
+      lambdaPackage: Project.LAMBDA_PACKAGE,
+      gitHubRepoTarget: Project.EVENT_CANARY_REPO_TARGET,
+      gitHubAppSecret: openSearchMetricsSecretsStack.secret,
+    })
+    openSearchEventCanaryWorkflowStack.node.addDependency(vpcStack);
 
     // Create Monitoring Dashboard
 

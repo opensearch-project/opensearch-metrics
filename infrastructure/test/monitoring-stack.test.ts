@@ -72,8 +72,8 @@ test('Monitoring Stack Test', () => {
     const template = Template.fromStack(openSearchMetricsMonitoringStack);
     template.resourceCountIs('AWS::IAM::Role', 2);
     template.resourceCountIs('AWS::IAM::Policy', 1);
-    template.resourceCountIs('AWS::CloudWatch::Alarm', 4);
-    template.resourceCountIs('AWS::SNS::Topic', 2);
+    template.resourceCountIs('AWS::CloudWatch::Alarm', 5);
+    template.resourceCountIs('AWS::SNS::Topic', 3);
     template.resourceCountIs('AWS::Synthetics::Canary', 1);
     template.hasResourceProperties('AWS::IAM::Role', {
         "AssumeRolePolicyDocument": {
@@ -329,5 +329,38 @@ test('Monitoring Stack Test', () => {
         "Statistic": "Average",
         "Threshold": 0,
         "TreatMissingData": "notBreaching"
+    });
+
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+        "AlarmActions": [
+            {
+                "Ref": "SnsMonitorsEventDataLakeAppFailedOpenSearchMetricsAlarmAutomationAppFailed41B8F5F2"
+            }
+        ],
+        "AlarmDescription": "Detect GitHub Automation App failure",
+        "AlarmName": "Event_data_lake_app_failed",
+        "ComparisonOperator": "LessThanThreshold",
+        "DatapointsToAlarm": 1,
+        "EvaluationPeriods": 1,
+        "Metrics": [
+            {
+                "Expression": "FILL(metric, 0)",
+                "Id": "expr_1"
+            },
+            {
+                "Id": "metric",
+                "MetricStat": {
+                    "Metric": {
+                        "MetricName": "AutomationApp_EventDataLake",
+                        "Namespace": "GitHubLabelCanary"
+                    },
+                    "Period": 600,
+                    "Stat": "Sum"
+                },
+                "ReturnData": false
+            }
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "breaching"
     });
 });
