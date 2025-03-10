@@ -8,12 +8,11 @@
  */
 package org.opensearchmetrics.metrics.release;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ReleaseInputsTest {
+import org.junit.jupiter.api.Test;
 
+public class ReleaseInputsTest {
 
     @Test
     public void testGetVersion() {
@@ -46,7 +45,7 @@ public class ReleaseInputsTest {
         assertEquals("closed", ReleaseInputs.VERSION_2_17_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_18_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_19_0.getState());
-        assertEquals("open", ReleaseInputs.VERSION_2_19_1.getState());
+        assertEquals("closed", ReleaseInputs.VERSION_2_19_1.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_15.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_16.getState());
         assertEquals("closed", ReleaseInputs.VERSION_1_3_17.getState());
