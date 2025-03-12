@@ -167,6 +167,7 @@ export class GitHubAutomationApp extends Stack {
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
             'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d',
             'PORT=8082 RESOURCE_CONFIG=configs/resources/opensearch-project-only-org.yml OPERATION_CONFIG=configs/operations/github-events-to-s3.yml docker-compose -p github-events-to-s3 up -d',
+            'PORT=8083 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/add-meta-rfc-issues-to-os-roadmap.yml ADDITIONAL_RESOURCE_CONTEXT=true docker-compose -p github-os-roadmap up -d',
         ];
     }
 }
