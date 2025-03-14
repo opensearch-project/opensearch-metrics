@@ -37,11 +37,42 @@ public class ReleaseInputsTest {
     @Test
     public void testGetFullVersion() {
         assertEquals("3.0.0-alpha1", ReleaseInputs.VERSION_3_0_0.getFullVersion());
+        assertEquals("2.12.0", ReleaseInputs.VERSION_2_12_0.getFullVersion());
+        assertEquals("2.13.0", ReleaseInputs.VERSION_2_13_0.getFullVersion());
+        assertEquals("2.14.0", ReleaseInputs.VERSION_2_14_0.getFullVersion());
+        assertEquals("2.15.0", ReleaseInputs.VERSION_2_15_0.getFullVersion());
+        assertEquals("2.16.0", ReleaseInputs.VERSION_2_16_0.getFullVersion());
+        assertEquals("2.17.0", ReleaseInputs.VERSION_2_17_0.getFullVersion());
+        assertEquals("2.18.0", ReleaseInputs.VERSION_2_18_0.getFullVersion());
+        assertEquals("2.19.0", ReleaseInputs.VERSION_2_19_0.getFullVersion());
+        assertEquals("2.19.1", ReleaseInputs.VERSION_2_19_1.getFullVersion());
+        assertEquals("1.3.15", ReleaseInputs.VERSION_1_3_15.getFullVersion());
+        assertEquals("1.3.16", ReleaseInputs.VERSION_1_3_16.getFullVersion());
+        assertEquals("1.3.17", ReleaseInputs.VERSION_1_3_17.getFullVersion());
+        assertEquals("1.3.18", ReleaseInputs.VERSION_1_3_18.getFullVersion());
+        assertEquals("1.3.19", ReleaseInputs.VERSION_1_3_19.getFullVersion());
+        assertEquals("1.3.20", ReleaseInputs.VERSION_1_3_20.getFullVersion());
     }
 
     @Test
     public void testGetQualifier() {
         assertEquals("alpha1", ReleaseInputs.VERSION_3_0_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_12_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_13_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_14_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_15_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_16_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_17_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_18_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_19_0.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_2_19_1.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_15.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_16.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_17.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_18.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_19.getQualifier());
+        assertEquals(null, ReleaseInputs.VERSION_1_3_20.getQualifier());
+
     }
 
     @Test
