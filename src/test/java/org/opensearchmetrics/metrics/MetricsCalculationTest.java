@@ -117,7 +117,7 @@ public class MetricsCalculationTest {
         when(untriagedIssues.performSearch(any(), any())).thenReturn(10L);
         when(objectMapper.writeValueAsString(any())).thenReturn("json");
         metricsCalculation.generateGeneralMetrics(repositories);
-        verify(openSearchUtil).createIndexIfNotExists("opensearch_general_metrics");
+        verify(openSearchUtil).createIndexIfNotExists("opensearch_general_metrics", Optional.empty());
         verify(openSearchUtil).bulkIndex(eq("opensearch_general_metrics"), any(Map.class));
     }
 
@@ -136,7 +136,7 @@ public class MetricsCalculationTest {
         when(labelMetrics.getLabelInfo(any(), any())).thenReturn(labelInfo);
         when(objectMapper.writeValueAsString(any())).thenReturn("json");
         metricsCalculation.generateLabelMetrics(repositories);
-        verify(openSearchUtil).createIndexIfNotExists("opensearch_label_metrics");
+        verify(openSearchUtil).createIndexIfNotExists("opensearch_label_metrics", Optional.empty());
         verify(openSearchUtil).bulkIndex(eq("opensearch_label_metrics"), any(Map.class));
     }
 
@@ -157,9 +157,9 @@ public class MetricsCalculationTest {
         when(releaseMetrics.getReleaseOwners(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn(new String[]{"owner1", "owner2"});
         when(releaseMetrics.getReleaseIssue(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn("release-123");
         metricsCalculation.generateReleaseMetrics();
-        verify(openSearchUtil).createIndexIfNotExists("opensearch_release_metrics");
+        verify(openSearchUtil).createIndexIfNotExists("opensearch_release_metrics", Optional.empty());
         verify(openSearchUtil).bulkIndex(eq("opensearch_release_metrics"), ArgumentMatchers.anyMap());
-        verify(openSearchUtil, times(1)).createIndexIfNotExists("opensearch_release_metrics");
+        verify(openSearchUtil, times(1)).createIndexIfNotExists("opensearch_release_metrics", Optional.empty());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class MetricsCalculationTest {
                 throw new RuntimeException(e);
             }
             metricsCalculation.generateCodeCovMetrics();
-            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"));
+            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), eq(Optional.empty()));
             verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
             verify(releaseMetrics).getCodeCoverage("main", "repo1");
             verify(releaseMetrics).getReleaseRepos("2.18.0");
@@ -221,7 +221,7 @@ public class MetricsCalculationTest {
         when(maintainerMetrics.calculateInactivity(50L, slopeAndIntercept, lowerBound, latestEventData)).thenReturn(false);
         when(objectMapper.writeValueAsString(any())).thenReturn("json");
         metricsCalculation.generateMaintainerMetrics(repositories);
-        verify(openSearchUtil).createIndexIfNotExists(matches("maintainer-inactivity-\\d{2}-\\d{4}"));
+        verify(openSearchUtil).createIndexIfNotExists(matches("maintainer-inactivity-\\d{2}-\\d{4}"), eq(Optional.of("maintainer-inactivity")));
         verify(openSearchUtil).bulkIndex(matches("maintainer-inactivity-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
     }
 }

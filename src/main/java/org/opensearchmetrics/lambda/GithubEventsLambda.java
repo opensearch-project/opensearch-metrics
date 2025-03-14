@@ -31,6 +31,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 
 @Slf4j
 public class GithubEventsLambda implements RequestHandler<Map<String, String>, Void> {
@@ -96,7 +98,7 @@ public class GithubEventsLambda implements RequestHandler<Map<String, String>, V
                 }
             }
             String indexName = "github-user-activity-events-" + collectionCurrentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-            openSearchUtil.createIndexIfNotExists(indexName);
+            openSearchUtil.createIndexIfNotExists(indexName, Optional.empty());
             openSearchUtil.bulkIndex(indexName, finalEventData);
             collectionCurrentDate = collectionCurrentDate.plusDays(1);
         }

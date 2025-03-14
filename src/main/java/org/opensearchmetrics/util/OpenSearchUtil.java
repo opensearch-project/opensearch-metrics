@@ -23,6 +23,8 @@ import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.client.indices.CreateIndexRequest;
 import org.opensearch.client.indices.CreateIndexResponse;
+import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest;
+import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest.AliasActions;
 import org.opensearch.client.indices.GetIndexRequest;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.xcontent.XContentType;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +52,7 @@ public class OpenSearchUtil {
         this.client = client;
     }
 
-    public void createIndexIfNotExists(String index) {
+    public void createIndexIfNotExists(String index, Optional<String> aliasName) {
         GetIndexRequest getIndexRequest = new GetIndexRequest(index);
         try {
             if (!client.indices().exists(getIndexRequest, RequestOptions.DEFAULT)) {
@@ -66,15 +69,30 @@ public class OpenSearchUtil {
                     throw new RuntimeException(e);
                 }
                 System.out.println("Create index " + createIndexResponse.index() + ", acknowledged = " + createIndexResponse.isAcknowledged() + ", shard acknowledged = " + createIndexResponse.isShardsAcknowledged());
+                //Adds alias if requested to the index after the index is sucessfully created
+                if(aliasName.isPresent()) {
+                    IndicesAliasesRequest indicesAliasesRequest = new IndicesAliasesRequest()
+                            .addAliasAction(
+                                    IndicesAliasesRequest.AliasActions.add()
+                                            .index(index)
+                                            .alias(aliasName.get())
+                            );
+                    try {
+                        client.indices().updateAliases(indicesAliasesRequest, RequestOptions.DEFAULT);
+                        System.out.println("Alias is added to the index " + index);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
             } else {
                 System.out.println("Index " + index + " already exists, skip creating index.");
             }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 
     /**
      * Bulk index json data into an OpenSearch index.
