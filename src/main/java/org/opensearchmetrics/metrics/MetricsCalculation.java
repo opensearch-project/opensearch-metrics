@@ -122,7 +122,7 @@ public class MetricsCalculation {
                             return Stream.of(metricsData);
                         }))
                 .collect(Collectors.toMap(MetricsData::getId, metricsData -> metricsData.getJson(metricsData, objectMapper)));
-        openSearchUtil.createIndexIfNotExists("opensearch_general_metrics");
+        openSearchUtil.createIndexIfNotExists("opensearch_general_metrics", Optional.empty());
         openSearchUtil.bulkIndex("opensearch_general_metrics", metricFinalData);
     }
 
@@ -157,7 +157,7 @@ public class MetricsCalculation {
                             });
                         }))
                 .collect(Collectors.toMap(LabelData::getId, labelData -> labelData.getJson(labelData, objectMapper)));
-        openSearchUtil.createIndexIfNotExists("opensearch_label_metrics");
+        openSearchUtil.createIndexIfNotExists("opensearch_label_metrics", Optional.empty());
         openSearchUtil.bulkIndex("opensearch_label_metrics", metricFinalData);
     }
 
@@ -207,7 +207,7 @@ public class MetricsCalculation {
                         }))
                 .collect(Collectors.toMap(ReleaseMetricsData::getId,
                         releaseMetricsData -> releaseMetricsData.getJson(releaseMetricsData, objectMapper)));
-        openSearchUtil.createIndexIfNotExists("opensearch_release_metrics");
+        openSearchUtil.createIndexIfNotExists("opensearch_release_metrics", Optional.empty());
         openSearchUtil.bulkIndex("opensearch_release_metrics", metricFinalData);
     }
 
@@ -245,7 +245,7 @@ public class MetricsCalculation {
                         .collect(Collectors.toMap(CodeCovResult::getId,
                                 codeCovResult -> codeCovResult.getJson(codeCovResult, objectMapper)));
         String codeCovIndexName = "opensearch-codecov-metrics-" + currentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        openSearchUtil.createIndexIfNotExists(codeCovIndexName);
+        openSearchUtil.createIndexIfNotExists(codeCovIndexName, Optional.empty());
         openSearchUtil.bulkIndex(codeCovIndexName, metricFinalData);
     }
 
@@ -351,7 +351,7 @@ public class MetricsCalculation {
                 })
                 .collect(Collectors.toMap(MaintainerData::getId, maintainerData -> maintainerData.getJson(maintainerData, objectMapper)));
         String indexName = "maintainer-inactivity-" + currentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        openSearchUtil.createIndexIfNotExists(indexName);
+        openSearchUtil.createIndexIfNotExists(indexName, Optional.of("maintainer-inactivity"));
         openSearchUtil.bulkIndex(indexName, metricFinalData);
     }
 }
