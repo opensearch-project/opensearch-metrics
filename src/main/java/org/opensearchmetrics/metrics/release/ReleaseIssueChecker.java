@@ -31,6 +31,7 @@ public class ReleaseIssueChecker {
         boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", repo));
         boolQueryBuilder.must(QueryBuilders.matchQuery("title.keyword", "[RELEASE] Release version " + releaseVersion));
         boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
+        boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
         SearchRequest searchRequest = new SearchRequest("github_issues");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
@@ -53,6 +54,7 @@ public class ReleaseIssueChecker {
         boolQueryBuilder.must(QueryBuilders.matchQuery("repository.keyword", repo));
         boolQueryBuilder.must(QueryBuilders.matchQuery("title.keyword", "[RELEASE] Release version " + releaseVersion));
         boolQueryBuilder.must(QueryBuilders.matchQuery("issue_pull_request", false));
+        boolQueryBuilder.must(QueryBuilders.matchQuery("state.keyword", "open"));
         SearchRequest searchRequest = new SearchRequest("github_issues");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
