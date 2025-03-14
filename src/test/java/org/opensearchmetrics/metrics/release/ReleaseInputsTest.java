@@ -35,6 +35,16 @@ public class ReleaseInputsTest {
     }
 
     @Test
+    public void testGetFullVersion() {
+        assertEquals("3.0.0-alpha1", ReleaseInputs.VERSION_3_0_0.getFullVersion());
+    }
+
+    @Test
+    public void testGetQualifier() {
+        assertEquals("alpha1", ReleaseInputs.VERSION_3_0_0.getQualifier());
+    }
+
+    @Test
     public void testGetState() {
         assertEquals("open", ReleaseInputs.VERSION_3_0_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_12_0.getState());
