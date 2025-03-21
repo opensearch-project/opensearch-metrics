@@ -166,7 +166,7 @@ public class MetricsCalculationTest {
     void testGenerateCodeCovMetrics() {
         try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
             ReleaseInputs releaseInput = mock(ReleaseInputs.class);
-            when(releaseInput.getVersion()).thenReturn("2.18.0");
+            when(releaseInput.getFullVersion()).thenReturn("2.18.0");
             when(releaseInput.getBranch()).thenReturn("main");
             when(releaseInput.getTrack()).thenReturn(true);
             when(releaseInput.getState()).thenReturn("active");

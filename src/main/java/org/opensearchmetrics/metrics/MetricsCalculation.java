@@ -167,7 +167,7 @@ public class MetricsCalculation {
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
                         .filter(ReleaseInputs::getTrack)
-                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getFullVersion()).entrySet().stream()
                         .flatMap(entry -> {
                             String repoName = entry.getKey();
                             String componentName = entry.getValue();
@@ -216,7 +216,7 @@ public class MetricsCalculation {
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
                         .filter(ReleaseInputs::getTrack)
-                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getFullVersion()).entrySet().stream()
                                 .flatMap(entry -> {
                                     String repoName = entry.getKey();
                                     String componentName = entry.getValue();
