@@ -245,7 +245,7 @@ public class MetricsCalculation {
                         .collect(Collectors.toMap(CodeCovResult::getId,
                                 codeCovResult -> codeCovResult.getJson(codeCovResult, objectMapper)));
         String codeCovIndexName = "opensearch-codecov-metrics-" + currentDate.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        openSearchUtil.createIndexIfNotExists(codeCovIndexName, Optional.empty());
+        openSearchUtil.createIndexIfNotExists(codeCovIndexName, Optional.of("opensearch-codecov-metrics"));
         openSearchUtil.bulkIndex(codeCovIndexName, metricFinalData);
     }
 

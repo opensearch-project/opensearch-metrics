@@ -187,7 +187,7 @@ public class MetricsCalculationTest {
                 throw new RuntimeException(e);
             }
             metricsCalculation.generateCodeCovMetrics();
-            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), eq(Optional.empty()));
+            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), eq(Optional.of("opensearch-codecov-metrics")));
             verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
             verify(releaseMetrics).getCodeCoverage("main", "repo1");
             verify(releaseMetrics).getReleaseRepos("2.18.0");
