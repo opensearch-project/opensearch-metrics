@@ -23,8 +23,8 @@ import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.client.indices.CreateIndexRequest;
 import org.opensearch.client.indices.CreateIndexResponse;
+import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest;
-import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest.AliasActions;
 import org.opensearch.client.indices.GetIndexRequest;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.xcontent.XContentType;
@@ -69,8 +69,9 @@ public class OpenSearchUtil {
                     throw new RuntimeException(e);
                 }
                 System.out.println("Create index " + createIndexResponse.index() + ", acknowledged = " + createIndexResponse.isAcknowledged() + ", shard acknowledged = " + createIndexResponse.isShardsAcknowledged());
-                //Adds alias if requested to the index after the index is sucessfully created
+                //Adds alias if requested to the index after the index is successfully created
                 if(aliasName.isPresent()) {
+
                     IndicesAliasesRequest indicesAliasesRequest = new IndicesAliasesRequest()
                             .addAliasAction(
                                     IndicesAliasesRequest.AliasActions.add()
@@ -78,8 +79,8 @@ public class OpenSearchUtil {
                                             .alias(aliasName.get())
                             );
                     try {
-                        client.indices().updateAliases(indicesAliasesRequest, RequestOptions.DEFAULT);
-                        System.out.println("Alias is added to the index " + index);
+                        AcknowledgedResponse indicesAliasesResponse = client.indices().updateAliases(indicesAliasesRequest, RequestOptions.DEFAULT);
+                        System.out.println("Alias creation  acknowledged = " + indicesAliasesResponse.isAcknowledged() + index);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

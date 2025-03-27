@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
+import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.client.IndicesClient;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
@@ -67,6 +68,8 @@ public class OpenSearchUtilTest {
         when(indicesClient.exists(any(GetIndexRequest.class), any(RequestOptions.class))).thenReturn(false);
         when(indicesClient.create(any(CreateIndexRequest.class), any(RequestOptions.class)))
                 .thenReturn(new CreateIndexResponse(true, true, "some_index"));
+        when(indicesClient.updateAliases(any(IndicesAliasesRequest.class), any(RequestOptions.class)))
+                .thenReturn(new AcknowledgedResponse(true));
         openSearchUtil.createIndexIfNotExists("some_index", Optional.of("maintainer-activity"));
 
         verify(indicesClient).exists(any(GetIndexRequest.class), any(RequestOptions.class));
