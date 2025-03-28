@@ -91,8 +91,6 @@ public class OpenSearchUtilTest {
             openSearchUtil.createIndexIfNotExists("some_index", Optional.of("maintainer-activity"));
             fail("Expected a RuntimeException to be thrown");
         } catch (RuntimeException e) {
-            // Exception caught as expected
-            System.out.println("Caught exception message: " + e.getMessage());
             assertTrue(e.getMessage().contains("Error adding alias to index"));
         }
     }

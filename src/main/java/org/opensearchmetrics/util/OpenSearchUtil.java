@@ -80,7 +80,7 @@ public class OpenSearchUtil {
                             );
                     try {
                         AcknowledgedResponse indicesAliasesResponse = client.indices().updateAliases(indicesAliasesRequest, RequestOptions.DEFAULT);
-                        System.out.println("Alias creation  acknowledged = " + indicesAliasesResponse.isAcknowledged() + index);
+                        System.out.println("Alias creation acknowledged " + indicesAliasesResponse.isAcknowledged() + "for the index-" + index);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
