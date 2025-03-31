@@ -30,6 +30,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -73,8 +75,8 @@ public class GithubEventsLambdaTest {
         // Assert
         String indexNameYesterday = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
         String indexNameToday = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday);
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday, Optional.empty());
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday, Optional.empty());
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameYesterday), any(Map.class));
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameToday), any(Map.class));
     }
@@ -101,11 +103,11 @@ public class GithubEventsLambdaTest {
 
         // Assert
         String indexNameLastMonth = "github-user-activity-events-" + lastMonth.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameLastMonth);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameLastMonth, Optional.empty());
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameLastMonth), any(Map.class));
 
         String indexNameThisMonth = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameThisMonth);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameThisMonth, Optional.empty());
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameThisMonth), any(Map.class));
     }
 
@@ -131,8 +133,8 @@ public class GithubEventsLambdaTest {
         // Assert
         String indexNameYesterday = "github-user-activity-events-" + yesterday.format(DateTimeFormatter.ofPattern("MM-yyyy"));
         String indexNameToday = "github-user-activity-events-" + today.format(DateTimeFormatter.ofPattern("MM-yyyy"));
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday);
-        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday);
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameYesterday, Optional.empty());
+        verify(openSearchUtil, atLeastOnce()).createIndexIfNotExists(indexNameToday, Optional.empty());
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameYesterday), any(Map.class));
         verify(openSearchUtil, atLeastOnce()).bulkIndex(eq(indexNameToday), any(Map.class));
     }
