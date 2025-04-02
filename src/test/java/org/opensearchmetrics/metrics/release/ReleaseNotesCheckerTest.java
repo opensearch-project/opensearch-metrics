@@ -46,4 +46,17 @@ public class ReleaseNotesCheckerTest {
 
         assertFalse(releaseNotesChecker.releaseNotes("1.0", "OpenSearch", "1.0"));
     }
+
+    @Test
+    void testReleaseNotesExistWithQualifier() throws IOException {
+        // Mocking the getUrlResponse method of UrlResponse class
+        UrlResponse urlResponseMock = mock(UrlResponse.class);
+        HttpURLConnection connectionMock = mock(HttpURLConnection.class);
+        when(connectionMock.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(urlResponseMock.getUrlResponse(anyString())).thenReturn(connectionMock);
+
+        ReleaseNotesChecker releaseNotesChecker = new ReleaseNotesChecker(urlResponseMock);
+
+        assertTrue(releaseNotesChecker.releaseNotes("3.0.0-alpha1", "OpenSearch", "main"));
+    }
 }
