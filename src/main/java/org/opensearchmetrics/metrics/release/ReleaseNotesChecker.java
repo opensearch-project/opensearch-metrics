@@ -22,12 +22,17 @@ public class ReleaseNotesChecker extends UrlResponse {
 
     public Boolean releaseNotes(String releaseVersion, String repo, String releaseBranch) {
         String releaseNotesUrl;
+        String[] versionSplit = releaseVersion.split("-");
+        String qualifier = versionSplit.length > 1 ? versionSplit[1] : null;
+
         if(repo.equals("OpenSearch")) {
             releaseNotesUrl = String.format("https://raw.githubusercontent.com/opensearch-project/%s/%s/release-notes/opensearch.release-notes-%s.md", repo, releaseBranch, releaseVersion);
         } else if (repo.equals("OpenSearch-Dashboards")) {
             releaseNotesUrl = String.format("https://raw.githubusercontent.com/opensearch-project/%s/%s/release-notes/opensearch-dashboards.release-notes-%s.md", repo, releaseBranch, releaseVersion);
-        } else {
+        } else if (qualifier == null){
             releaseNotesUrl = String.format("https://raw.githubusercontent.com/opensearch-project/%s/%s/release-notes/opensearch-%s.release-notes-%s.0.md", repo, releaseBranch, repo, releaseVersion);
+        } else {
+            releaseNotesUrl = String.format("https://raw.githubusercontent.com/opensearch-project/%s/%s/release-notes/opensearch-%s.release-notes-%s.0-%s.md", repo, releaseBranch, repo, releaseVersion, qualifier);
         }
         try {
             int responseCode = urlResponse.getUrlResponse(releaseNotesUrl).getResponseCode();
