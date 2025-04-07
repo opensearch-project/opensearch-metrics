@@ -82,7 +82,7 @@ public class ReleaseInputsTest {
         assertEquals(false, ReleaseInputs.VERSION_2_14_0.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_2_15_0.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_2_16_0.getTrack());
-        assertEquals(true, ReleaseInputs.VERSION_2_17_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_2_17_0.getTrack());
         assertEquals(true, ReleaseInputs.VERSION_2_18_0.getTrack());
         assertEquals(true, ReleaseInputs.VERSION_2_19_0.getTrack());
         assertEquals(true, ReleaseInputs.VERSION_2_19_1.getTrack());
@@ -90,7 +90,7 @@ public class ReleaseInputsTest {
         assertEquals(false, ReleaseInputs.VERSION_1_3_16.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_17.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_18.getTrack());
-        assertEquals(true, ReleaseInputs.VERSION_1_3_19.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_1_3_19.getTrack());
         assertEquals(true, ReleaseInputs.VERSION_1_3_20.getTrack());
     }
 
