@@ -169,8 +169,8 @@ public class MetricsCalculation {
                         .filter(ReleaseInputs::getTrack)
                         .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
                         .flatMap(entry -> {
-                            String repoName = entry.getKey();
-                            String componentName = entry.getValue();
+                            String repoName = entry.getValue();
+                            String componentName = entry.getKey();
                             ReleaseMetricsData releaseMetricsData = new ReleaseMetricsData();
                             releaseMetricsData.setRepository(repoName);
                             releaseMetricsData.setComponent(componentName);

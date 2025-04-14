@@ -90,7 +90,7 @@ public class ReleaseRepoFetcher {
                             int endIndex = repoUrl.lastIndexOf(".git");
                             String repoName = (endIndex != -1) ? repoUrl.substring(startIndex, endIndex) : repoUrl.substring(startIndex);
 
-                            repoMap.put(repoName, componentName);
+                            repoMap.put(componentName, repoName);
                         });
             }
         });

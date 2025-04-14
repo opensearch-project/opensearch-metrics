@@ -97,7 +97,7 @@ public class ReleaseRepoFetcherTest {
         assertEquals(2, repoNames.size());
         Map<String, String> expectedRepoNames = new HashMap<>();
         expectedRepoNames.put("OpenSearch", "OpenSearch");
-        expectedRepoNames.put("common-utils", "commonUtils");
+        expectedRepoNames.put("commonUtils", "common-utils");
         assertEquals(expectedRepoNames, repoNames);
         // assertEquals(new ArrayList<>(Arrays.asList("OpenSearch", "common-utils")), repoNames);
     }
