@@ -74,7 +74,7 @@ public class ReleaseMetricsTest {
 
     @Test
     public void testGetReleaseRepos() {
-        Map<String, String> repos = Collections.singletonMap("testRepo", "testComponent");
+        Map<String, String> repos = Collections.singletonMap("testComponent", "testRepo");
         when(releaseRepoFetcher.getReleaseRepos(anyString())).thenReturn(repos);
 
         Map<String, String> result = releaseMetrics.getReleaseRepos("1.0.0");
