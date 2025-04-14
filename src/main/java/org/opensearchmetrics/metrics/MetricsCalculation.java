@@ -177,7 +177,7 @@ public class MetricsCalculation {
                             releaseMetricsData.setCurrentDate(currentDate.toString());
                             try {
                                 releaseMetricsData.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
-                                        .digest(("release-metrics-" + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repoName)
+                                        .digest(("release-metrics-" + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + componentName)
                                                 .getBytes()))));
                             } catch (NoSuchAlgorithmException e) {
                                 throw new RuntimeException(e);
