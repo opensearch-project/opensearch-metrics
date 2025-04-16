@@ -167,7 +167,7 @@ public class MetricsCalculation {
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
                         .filter(ReleaseInputs::getTrack)
-                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getFullVersion()).entrySet().stream()
                         .flatMap(entry -> {
                             String repoName = entry.getValue();
                             String componentName = entry.getKey();
@@ -191,7 +191,7 @@ public class MetricsCalculation {
                             releaseMetricsData.setPullsOpen(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repoName, "open"));
                             releaseMetricsData.setPullsClosed(releaseMetrics.getReleaseLabelPulls(releaseInput.getVersion(), repoName, "closed"));
                             releaseMetricsData.setVersionIncrement(releaseMetrics.getReleaseVersionIncrement(releaseInput.getVersion(), repoName, releaseInput.getBranch()));
-                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getVersion(), repoName, releaseInput.getBranch()));
+                            releaseMetricsData.setReleaseNotes(releaseMetrics.getReleaseNotes(releaseInput.getFullVersion(), repoName, releaseInput.getBranch()));
                             releaseMetricsData.setReleaseBranch(releaseMetrics.getReleaseBranch(releaseInput.getVersion(), repoName));
                             String[] releaseOwners = releaseMetrics.getReleaseOwners(releaseInput.getVersion(), repoName);
                             releaseMetricsData.setReleaseOwners(releaseOwners);
@@ -216,7 +216,7 @@ public class MetricsCalculation {
         Map<String, String> metricFinalData =
                 Arrays.stream(releaseInputs)
                         .filter(ReleaseInputs::getTrack)
-                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
+                        .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getFullVersion()).entrySet().stream()
                                 .flatMap(entry -> {
                                     String repoName = entry.getKey();
                                     String componentName = entry.getValue();
