@@ -9,7 +9,7 @@
 package org.opensearchmetrics.metrics.release;
 
 public enum ReleaseInputs {
-    VERSION_3_0_0("3.0.0", "open", "main", true),
+    VERSION_3_0_0("3.0.0-alpha1", "open", "main", true),
     VERSION_2_12_0("2.12.0", "closed", "2.12", false),
     VERSION_2_13_0("2.13.0", "closed", "2.13", false),
     VERSION_2_14_0("2.14.0", "closed", "2.14", false),
@@ -30,7 +30,6 @@ public enum ReleaseInputs {
     private final String version;
     private final String state;
     private final String branch;
-
     private final boolean track;
 
     ReleaseInputs(String version, String state, String branch, boolean track) {
@@ -41,6 +40,16 @@ public enum ReleaseInputs {
     }
 
     public String getVersion() {
+        String[] versionSplit = version.split("-");
+        return versionSplit[0];
+    }
+
+    public String getQualifier() {
+        String[] versionSplit = version.split("-");
+        return versionSplit.length > 1 ? versionSplit[1] : null;
+    }
+
+    public String getFullVersion() {
         return version;
     }
 

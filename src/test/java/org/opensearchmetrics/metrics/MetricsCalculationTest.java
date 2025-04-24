@@ -152,7 +152,7 @@ public class MetricsCalculationTest {
         when(releaseMetrics.getReleaseLabelPulls(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "open")).thenReturn(3L);
         when(releaseMetrics.getReleaseLabelPulls(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "closed")).thenReturn(8L);
         when(releaseMetrics.getReleaseVersionIncrement(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "main")).thenReturn(true);
-        when(releaseMetrics.getReleaseNotes(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "main")).thenReturn(true);
+        when(releaseMetrics.getReleaseNotes(ReleaseInputs.VERSION_2_13_0.getFullVersion(), "repo1", "main")).thenReturn(true);
         when(releaseMetrics.getReleaseBranch(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn(true);
         when(releaseMetrics.getReleaseOwners(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn(new String[]{"owner1", "owner2"});
         when(releaseMetrics.getReleaseIssue(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn("release-123");
@@ -166,7 +166,7 @@ public class MetricsCalculationTest {
     void testGenerateCodeCovMetrics() {
         try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
             ReleaseInputs releaseInput = mock(ReleaseInputs.class);
-            when(releaseInput.getVersion()).thenReturn("2.18.0");
+            when(releaseInput.getFullVersion()).thenReturn("2.18.0");
             when(releaseInput.getBranch()).thenReturn("main");
             when(releaseInput.getTrack()).thenReturn(true);
             when(releaseInput.getState()).thenReturn("active");
