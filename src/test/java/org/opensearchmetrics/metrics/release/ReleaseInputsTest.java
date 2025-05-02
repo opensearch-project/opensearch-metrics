@@ -38,7 +38,7 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetState() {
-        assertEquals("closed", ReleaseInputs.VERSION_3_1_0.getState());
+        assertEquals("open", ReleaseInputs.VERSION_3_1_0.getState());
         assertEquals("open", ReleaseInputs.VERSION_3_0_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_12_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_13_0.getState());
