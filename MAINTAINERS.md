@@ -10,4 +10,11 @@ This document contains a list of maintainers in this repo. See [opensearch-proje
 | Maintainer       | GitHub ID                                | Affiliation |
 | ---------------- |------------------------------------------| ----------- |
 | Prudhvi Godithi | [prudhvigodithi](https://github.com/prudhvigodithi) | Amazon      |
-| Brandon Shien | [bshien](https://github.com/bshien)    | Amazon      |
+| Sayali Gaikawad | [gaiksaya](https://github.com/gaiksaya)             | Amazon      |
+
+
+## Emeritus Maintainers
+
+| Maintainer               | GitHub ID                                           | Affiliation |
+| ------------------------ | --------------------------------------------------- | ----------- |
+| Brandon Shien | [bshien](https://github.com/bshien)    | Independent      |
