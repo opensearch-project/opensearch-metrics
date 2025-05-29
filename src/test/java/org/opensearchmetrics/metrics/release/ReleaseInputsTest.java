@@ -99,7 +99,7 @@ public class ReleaseInputsTest {
         assertEquals(false, ReleaseInputs.VERSION_1_3_17.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_18.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_19.getTrack());
-        assertEquals(true, ReleaseInputs.VERSION_1_3_20.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_1_3_20.getTrack());
     }
 
     @Test
