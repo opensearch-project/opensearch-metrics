@@ -17,6 +17,7 @@ public class ReleaseInputsTest {
     @Test
     public void testGetVersion() {
         assertEquals("3.1.0", ReleaseInputs.VERSION_3_1_0.getVersion());
+        assertEquals("3.1.0", ReleaseInputs.VERSION_3_1_0.getVersion());
         assertEquals("3.0.0", ReleaseInputs.VERSION_3_0_0.getVersion());
         assertEquals("2.12.0", ReleaseInputs.VERSION_2_12_0.getVersion());
         assertEquals("2.13.0", ReleaseInputs.VERSION_2_13_0.getVersion());
@@ -39,7 +40,7 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetState() {
-        assertEquals("open", ReleaseInputs.VERSION_3_1_0.getState());
+        assertEquals("closed", ReleaseInputs.VERSION_3_1_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_3_0_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_12_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_2_13_0.getState());
@@ -62,7 +63,7 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetBranch() {
-        assertEquals("main", ReleaseInputs.VERSION_3_1_0.getBranch());
+        assertEquals("3.1", ReleaseInputs.VERSION_3_1_0.getBranch());
         assertEquals("3.0", ReleaseInputs.VERSION_3_0_0.getBranch());
         assertEquals("2.12", ReleaseInputs.VERSION_2_12_0.getBranch());
         assertEquals("2.13", ReleaseInputs.VERSION_2_13_0.getBranch());
