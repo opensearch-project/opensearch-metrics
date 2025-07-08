@@ -116,4 +116,19 @@ test('OpenSearch GitHub App Stack test ', () => {
             ])
         }
     });
+
+    template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+            Statement: Match.arrayWith([
+                Match.objectLike({
+                    Action: "bedrock:InvokeModel",
+                    Effect: "Allow",
+                    Resource: Match.arrayWith([
+                        Match.stringLikeRegexp('arn:aws:bedrock:\\*:.*:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0'),
+                        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+                    ])
+                })
+            ])
+        }
+    });
 });
