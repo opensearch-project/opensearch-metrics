@@ -125,7 +125,9 @@ test('OpenSearch GitHub App Stack test ', () => {
                     Effect: "Allow",
                     Resource: Match.arrayWith([
                         Match.stringLikeRegexp('arn:aws:bedrock:\\*:.*:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0'),
-                        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+                        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
+                        Match.stringLikeRegexp('arn:aws:bedrock:\\*:.*:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0'),
+                        "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                     ])
                 })
             ])

@@ -154,7 +154,9 @@ export class GitHubAutomationApp extends Stack {
                 actions: ["bedrock:InvokeModel"],
                 resources: [
                     `arn:aws:bedrock:*:${account}:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0`,
-                    "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+                    "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
+                    `arn:aws:bedrock:*:${account}:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0`,
+                    "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                 ],
             }),
         );
@@ -171,7 +173,7 @@ export class GitHubAutomationApp extends Stack {
             'sudo systemctl start docker',
             'sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/sbin/docker-compose',
             'sudo chmod a+x /usr/local/sbin/docker-compose',
-            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.6.0',
+            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.7.4',
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
