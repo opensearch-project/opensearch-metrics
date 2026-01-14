@@ -175,7 +175,6 @@ export class GitHubAutomationApp extends Stack {
             'sudo chmod a+x /usr/local/sbin/docker-compose',
             'sudo curl -L "https://github.com/docker/buildx/releases/download/v0.18.0/buildx-v0.18.0.linux-amd64" -o /usr/libexec/docker/cli-plugins/docker-buildx',
             'sudo chmod +x /usr/libexec/docker/cli-plugins/docker-buildx',
-            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.6.0',
             'git clone https://github.com/opensearch-project/automation-app.git --branch 0.7.4',
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
             'cd automation-app/docker',
