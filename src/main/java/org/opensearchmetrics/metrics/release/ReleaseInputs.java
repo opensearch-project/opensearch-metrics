@@ -28,7 +28,7 @@ public enum ReleaseInputs {
     VERSION_2_19_2("2.19.2", "closed", "2.19", false),
     VERSION_2_19_3("2.19.3", "closed", "2.19", false),
     VERSION_2_19_4("2.19.4", "closed", "2.19", false),
-    VERSION_2_19_5("2.19.5", "open", "2.19", true),
+    VERSION_2_19_5("2.19.5", "closed", "2.19", true),
     VERSION_1_3_15("1.3.15", "closed", "1.3", false),
     VERSION_1_3_16("1.3.16", "closed", "1.3", false),
     VERSION_1_3_17("1.3.17", "closed", "1.3", false),
