@@ -211,7 +211,7 @@ test('OpenSearchDomain Stack Test', () => {
             },
             "ZoneAwarenessEnabled": true
         },
-        "EngineVersion": "OpenSearch_2.19",
+        "EngineVersion": "OpenSearch_3.3",
     });
 
     openSearchDomainStackTemplate.resourceCountIs('AWS::Route53::RecordSet', 1);
