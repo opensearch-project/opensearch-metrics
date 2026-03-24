@@ -175,7 +175,7 @@ export class OpenSearchDomainStack extends Stack {
         }
 
         this.domain = new Domain(this, 'OpenSearchHealthDomain', {
-            version: EngineVersion.OPENSEARCH_2_13,
+            version: EngineVersion.OPENSEARCH_2_19,
             vpc: props.vpcStack.vpc,
             vpcSubnets: [this.props.vpcStack.subnets],
             securityGroups: props.vpcStack.securityGroup ? [props.vpcStack.securityGroup] : undefined,
