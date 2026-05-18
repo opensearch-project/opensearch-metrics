@@ -16,6 +16,8 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetVersion() {
+        assertEquals("3.7.0", ReleaseInputs.VERSION_3_7_0.getVersion());
+        assertEquals("2.19.6", ReleaseInputs.VERSION_2_19_6.getVersion());
         assertEquals("3.6.0", ReleaseInputs.VERSION_3_6_0.getVersion());
         assertEquals("3.5.0", ReleaseInputs.VERSION_3_5_0.getVersion());
         assertEquals("3.4.0", ReleaseInputs.VERSION_3_4_0.getVersion());
@@ -46,7 +48,9 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetState() {
-        assertEquals("open", ReleaseInputs.VERSION_3_6_0.getState());
+        assertEquals("open", ReleaseInputs.VERSION_3_7_0.getState());
+        assertEquals("open", ReleaseInputs.VERSION_2_19_6.getState());
+        assertEquals("closed", ReleaseInputs.VERSION_3_6_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_3_5_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_3_4_0.getState());
         assertEquals("closed", ReleaseInputs.VERSION_3_3_0.getState());
@@ -76,7 +80,9 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetBranch() {
-        assertEquals("main", ReleaseInputs.VERSION_3_6_0.getBranch());
+        assertEquals("main", ReleaseInputs.VERSION_3_7_0.getBranch());
+        assertEquals("2.19", ReleaseInputs.VERSION_2_19_6.getBranch());
+        assertEquals("3.6", ReleaseInputs.VERSION_3_6_0.getBranch());
         assertEquals("3.5", ReleaseInputs.VERSION_3_5_0.getBranch());
         assertEquals("3.4", ReleaseInputs.VERSION_3_4_0.getBranch());
         assertEquals("3.3", ReleaseInputs.VERSION_3_3_0.getBranch());
@@ -106,8 +112,10 @@ public class ReleaseInputsTest {
 
     @Test
     public void testGetTrack() {
-        assertEquals(true, ReleaseInputs.VERSION_3_6_0.getTrack());
-        assertEquals(true, ReleaseInputs.VERSION_3_5_0.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_3_7_0.getTrack());
+        assertEquals(true, ReleaseInputs.VERSION_2_19_6.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_3_6_0.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_3_5_0.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_3_4_0.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_3_3_0.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_3_2_0.getTrack());
@@ -125,7 +133,7 @@ public class ReleaseInputsTest {
         assertEquals(false, ReleaseInputs.VERSION_2_19_2.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_2_19_3.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_2_19_4.getTrack());
-        assertEquals(true, ReleaseInputs.VERSION_2_19_5.getTrack());
+        assertEquals(false, ReleaseInputs.VERSION_2_19_5.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_15.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_16.getTrack());
         assertEquals(false, ReleaseInputs.VERSION_1_3_17.getTrack());
@@ -137,33 +145,35 @@ public class ReleaseInputsTest {
     @Test
     public void testGetAllReleaseInputs() {
         ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
-        assertEquals(26, releaseInputs.length);
-        assertEquals(ReleaseInputs.VERSION_3_6_0, releaseInputs[0]);
-        assertEquals(ReleaseInputs.VERSION_3_5_0, releaseInputs[1]);
-        assertEquals(ReleaseInputs.VERSION_3_4_0, releaseInputs[2]);
-        assertEquals(ReleaseInputs.VERSION_3_3_0, releaseInputs[3]);
-        assertEquals(ReleaseInputs.VERSION_3_2_0, releaseInputs[4]);
-        assertEquals(ReleaseInputs.VERSION_3_1_0, releaseInputs[5]);
-        assertEquals(ReleaseInputs.VERSION_3_0_0, releaseInputs[6]);
-        assertEquals(ReleaseInputs.VERSION_2_12_0, releaseInputs[7]);
-        assertEquals(ReleaseInputs.VERSION_2_13_0, releaseInputs[8]);
-        assertEquals(ReleaseInputs.VERSION_2_14_0, releaseInputs[9]);
-        assertEquals(ReleaseInputs.VERSION_2_15_0, releaseInputs[10]);
-        assertEquals(ReleaseInputs.VERSION_2_16_0, releaseInputs[11]);
-        assertEquals(ReleaseInputs.VERSION_2_17_0, releaseInputs[12]);
-        assertEquals(ReleaseInputs.VERSION_2_18_0, releaseInputs[13]);
-        assertEquals(ReleaseInputs.VERSION_2_19_0, releaseInputs[14]);
-        assertEquals(ReleaseInputs.VERSION_2_19_1, releaseInputs[15]);
-        assertEquals(ReleaseInputs.VERSION_2_19_2, releaseInputs[16]);
-        assertEquals(ReleaseInputs.VERSION_2_19_3, releaseInputs[17]);
-        assertEquals(ReleaseInputs.VERSION_2_19_4, releaseInputs[18]);
-        assertEquals(ReleaseInputs.VERSION_2_19_5, releaseInputs[19]);
-        assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[20]);
-        assertEquals(ReleaseInputs.VERSION_1_3_16, releaseInputs[21]);
-        assertEquals(ReleaseInputs.VERSION_1_3_17, releaseInputs[22]);
-        assertEquals(ReleaseInputs.VERSION_1_3_18, releaseInputs[23]);
-        assertEquals(ReleaseInputs.VERSION_1_3_19, releaseInputs[24]);
-        assertEquals(ReleaseInputs.VERSION_1_3_20, releaseInputs[25]);
+        assertEquals(28, releaseInputs.length);
+        assertEquals(ReleaseInputs.VERSION_3_7_0, releaseInputs[0]);
+        assertEquals(ReleaseInputs.VERSION_3_6_0, releaseInputs[1]);
+        assertEquals(ReleaseInputs.VERSION_3_5_0, releaseInputs[2]);
+        assertEquals(ReleaseInputs.VERSION_3_4_0, releaseInputs[3]);
+        assertEquals(ReleaseInputs.VERSION_3_3_0, releaseInputs[4]);
+        assertEquals(ReleaseInputs.VERSION_3_2_0, releaseInputs[5]);
+        assertEquals(ReleaseInputs.VERSION_3_1_0, releaseInputs[6]);
+        assertEquals(ReleaseInputs.VERSION_3_0_0, releaseInputs[7]);
+        assertEquals(ReleaseInputs.VERSION_2_12_0, releaseInputs[8]);
+        assertEquals(ReleaseInputs.VERSION_2_13_0, releaseInputs[9]);
+        assertEquals(ReleaseInputs.VERSION_2_14_0, releaseInputs[10]);
+        assertEquals(ReleaseInputs.VERSION_2_15_0, releaseInputs[11]);
+        assertEquals(ReleaseInputs.VERSION_2_16_0, releaseInputs[12]);
+        assertEquals(ReleaseInputs.VERSION_2_17_0, releaseInputs[13]);
+        assertEquals(ReleaseInputs.VERSION_2_18_0, releaseInputs[14]);
+        assertEquals(ReleaseInputs.VERSION_2_19_0, releaseInputs[15]);
+        assertEquals(ReleaseInputs.VERSION_2_19_1, releaseInputs[16]);
+        assertEquals(ReleaseInputs.VERSION_2_19_2, releaseInputs[17]);
+        assertEquals(ReleaseInputs.VERSION_2_19_3, releaseInputs[18]);
+        assertEquals(ReleaseInputs.VERSION_2_19_4, releaseInputs[19]);
+        assertEquals(ReleaseInputs.VERSION_2_19_5, releaseInputs[20]);
+        assertEquals(ReleaseInputs.VERSION_2_19_6, releaseInputs[21]);
+        assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[22]);
+        assertEquals(ReleaseInputs.VERSION_1_3_16, releaseInputs[23]);
+        assertEquals(ReleaseInputs.VERSION_1_3_17, releaseInputs[24]);
+        assertEquals(ReleaseInputs.VERSION_1_3_18, releaseInputs[25]);
+        assertEquals(ReleaseInputs.VERSION_1_3_19, releaseInputs[26]);
+        assertEquals(ReleaseInputs.VERSION_1_3_20, releaseInputs[27]);
     }
 
 }
