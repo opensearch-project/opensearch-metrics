@@ -173,7 +173,7 @@ public class MetricsCalculationTest {
             ReleaseInputs[] releaseInputsArray = {releaseInput};
             mockedReleaseInputs.when(ReleaseInputs::getAllReleaseInputs).thenReturn(releaseInputsArray);
             Map<String, String> releaseRepos = new HashMap<>();
-            releaseRepos.put("repo1", "component1");
+            releaseRepos.put("component1", "repo1");
             when(releaseMetrics.getReleaseRepos("2.18.0")).thenReturn(releaseRepos);
             CodeCovResponse codeCovResponse = new CodeCovResponse();
             codeCovResponse.setCommitId("abc123");

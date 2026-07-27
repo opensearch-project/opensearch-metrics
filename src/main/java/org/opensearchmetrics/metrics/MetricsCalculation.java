@@ -218,8 +218,8 @@ public class MetricsCalculation {
                         .filter(ReleaseInputs::getTrack)
                         .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
                                 .flatMap(entry -> {
-                                    String repoName = entry.getKey();
-                                    String componentName = entry.getValue();
+                                    String repoName = entry.getValue();
+                                    String componentName = entry.getKey();
                                     CodeCovResult codeCovResult = new CodeCovResult();
                                     codeCovResult.setRepository(repoName);
                                     codeCovResult.setComponent(componentName);
