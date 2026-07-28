@@ -103,6 +103,46 @@ public class ReleaseRepoFetcherTest {
     }
 
     @Test
+    public void testParseYamlComponentNameAndRepoDiverge() {
+        // Guards the map contract: key = manifest component "name", value = repo slug derived from
+        // the "repository" URL. Uses real components from the opensearch-build manifests where the
+        // name and repo slug differ (some are prefixed, some are reordered) so an inverted key/value
+        // would surface immediately here.
+        String responseBody = "---\n" +
+                "schema-version: '1.1'\n" +
+                "build:\n" +
+                "  name: OpenSearch\n" +
+                "  version: 3.8.0\n" +
+                "components:\n" +
+                "  - name: opensearch-observability\n" +
+                "    repository: https://github.com/opensearch-project/observability.git\n" +
+                "    ref: tags/3.8.0.0\n" +
+                "  - name: opensearch-reports\n" +
+                "    repository: https://github.com/opensearch-project/reporting.git\n" +
+                "    ref: tags/3.8.0.0\n" +
+                "  - name: notifications-core\n" +
+                "    repository: https://github.com/opensearch-project/notifications.git\n" +
+                "    ref: tags/3.8.0.0\n" +
+                "  - name: observabilityDashboards\n" +
+                "    repository: https://github.com/opensearch-project/dashboards-observability.git\n" +
+                "    ref: tags/3.8.0.0\n" +
+                "  - name: securityDashboards\n" +
+                "    repository: https://github.com/opensearch-project/security-dashboards-plugin.git\n" +
+                "    ref: tags/3.8.0.0\n";
+        Map<String, String> repoNames = new HashMap<>();
+        ReleaseRepoFetcher fetcher = new ReleaseRepoFetcher();
+        fetcher.parseYaml(responseBody, repoNames);
+        Map<String, String> expectedRepoNames = new HashMap<>();
+        // key is the component name, value is the repo slug
+        expectedRepoNames.put("opensearch-observability", "observability");
+        expectedRepoNames.put("opensearch-reports", "reporting");
+        expectedRepoNames.put("notifications-core", "notifications");
+        expectedRepoNames.put("observabilityDashboards", "dashboards-observability");
+        expectedRepoNames.put("securityDashboards", "security-dashboards-plugin");
+        assertEquals(expectedRepoNames, repoNames);
+    }
+
+    @Test
     public void testGetReleaseRepos() {
         ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
         Mockito.doReturn("Test content").when(fetcher).readUrl(Mockito.anyString());
