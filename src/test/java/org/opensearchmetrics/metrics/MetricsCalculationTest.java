@@ -195,6 +195,41 @@ public class MetricsCalculationTest {
     }
 
     @Test
+    void testGenerateCodeCovMetricsMultipleComponentsShareRepo() {
+        // Regression: two distinct manifest components (notifications, notifications-core) map to the
+        // same repo (notifications). The doc id must be derived from the unique component name, not the
+        // shared repo name, otherwise Collectors.toMap throws IllegalStateException on the duplicate id.
+        try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
+            ReleaseInputs releaseInput = mock(ReleaseInputs.class);
+            when(releaseInput.getVersion()).thenReturn("3.8.0");
+            when(releaseInput.getBranch()).thenReturn("main");
+            when(releaseInput.getTrack()).thenReturn(true);
+            when(releaseInput.getState()).thenReturn("open");
+            ReleaseInputs[] releaseInputsArray = {releaseInput};
+            mockedReleaseInputs.when(ReleaseInputs::getAllReleaseInputs).thenReturn(releaseInputsArray);
+            Map<String, String> releaseRepos = new HashMap<>();
+            releaseRepos.put("notifications", "notifications");
+            releaseRepos.put("notifications-core", "notifications");
+            when(releaseMetrics.getReleaseRepos("3.8.0")).thenReturn(releaseRepos);
+            CodeCovResponse codeCovResponse = new CodeCovResponse();
+            codeCovResponse.setCommitId("690f3df226f2da10da23bb717ff151406be8c436");
+            codeCovResponse.setUrl("https://api.codecov.io/api/v2/github/opensearch-project/repos/notifications/commits?branch=main");
+            codeCovResponse.setState("complete");
+            codeCovResponse.setCoverage(70.7);
+            when(releaseMetrics.getCodeCoverage("main", "notifications")).thenReturn(codeCovResponse);
+            try {
+                when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            metricsCalculation.generateCodeCovMetrics();
+            // Both components must be indexed as separate docs (distinct ids), not collapsed or thrown.
+            verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> map.size() == 2));
+            verify(releaseMetrics, times(2)).getCodeCoverage("main", "notifications");
+        }
+    }
+
+    @Test
     void testGenerateMaintainerMetrics() throws IOException{
         List<String> repositories = Arrays.asList("repo1", "repo2");
         List<String> eventList = Arrays.asList("event1", "event2");

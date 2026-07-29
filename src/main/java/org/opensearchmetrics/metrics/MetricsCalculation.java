@@ -226,7 +226,7 @@ public class MetricsCalculation {
                                     codeCovResult.setCurrentDate(currentDate.toString());
                                     try {
                                         codeCovResult.setId(String.valueOf(UUID.nameUUIDFromBytes(MessageDigest.getInstance("SHA-1")
-                                                .digest(("codecov-metrics-" + releaseInput.getBranch() + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + repoName)
+                                                .digest(("codecov-metrics-" + releaseInput.getBranch() + releaseInput.getVersion() + "-" + currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + componentName)
                                                         .getBytes()))));
                                     } catch (NoSuchAlgorithmException e) {
                                         throw new RuntimeException(e);
