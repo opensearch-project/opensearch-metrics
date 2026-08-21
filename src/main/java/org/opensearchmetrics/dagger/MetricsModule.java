@@ -21,6 +21,7 @@ import org.opensearchmetrics.metrics.release.ReleaseLabelPullsFetcher;
 import org.opensearchmetrics.metrics.release.ReleaseMetrics;
 import org.opensearchmetrics.metrics.release.ReleaseNotesChecker;
 import org.opensearchmetrics.metrics.release.ReleaseRepoFetcher;
+import org.opensearchmetrics.metrics.release.ReleaseScheduleFetcher;
 import org.opensearchmetrics.metrics.release.ReleaseVersionIncrementChecker;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
@@ -153,9 +154,11 @@ public class MetricsModule {
     public ReleaseMetrics getReleaseMetrics(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper,
                                             ReleaseRepoFetcher releaseRepoFetcher, ReleaseLabelIssuesFetcher releaseLabelIssuesFetcher,
                                             ReleaseLabelPullsFetcher releaseLabelPullsFetcher, ReleaseVersionIncrementChecker releaseVersionIncrementChecker,
-                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage) {
+                                            ReleaseBranchChecker releaseBranchChecker, ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage,
+                                            ReleaseScheduleFetcher releaseScheduleFetcher) {
         return new ReleaseMetrics(openSearchUtil, objectMapper, releaseRepoFetcher,
                 releaseLabelIssuesFetcher, releaseLabelPullsFetcher, releaseVersionIncrementChecker,
-                releaseBranchChecker, releaseNotesChecker, releaseIssueChecker, codeCoverage);
+                releaseBranchChecker, releaseNotesChecker, releaseIssueChecker, codeCoverage,
+                releaseScheduleFetcher);
     }
 }

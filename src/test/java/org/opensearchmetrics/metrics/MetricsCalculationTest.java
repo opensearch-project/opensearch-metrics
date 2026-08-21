@@ -16,8 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.index.query.BoolQueryBuilder;
@@ -141,21 +139,23 @@ public class MetricsCalculationTest {
     }
 
     @Test
-    void testGenerateReleaseMetrics() {
+    void testGenerateReleaseMetrics() throws JsonProcessingException {
+        when(objectMapper.writeValueAsString(any())).thenReturn("json");
         Map<String, String> releaseRepos = new HashMap<>();
-        releaseRepos.put("repo1", "component1");
-        releaseRepos.put("repo2", "component2");
+        releaseRepos.put("component1", "repo1");
+        ReleaseInputs releaseInput = trackedRelease("2.13.0", "main", "open");
+        when(releaseMetrics.getReleaseInputs(any())).thenReturn(List.of(releaseInput));
         when(releaseMetrics.getReleaseRepos("2.13.0")).thenReturn(releaseRepos);
-        when(releaseMetrics.getReleaseLabelIssues(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "open", false)).thenReturn(10L);
-        when(releaseMetrics.getReleaseLabelIssues(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "open", true)).thenReturn(5L);
-        when(releaseMetrics.getReleaseLabelIssues(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "closed", false)).thenReturn(20L);
-        when(releaseMetrics.getReleaseLabelPulls(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "open")).thenReturn(3L);
-        when(releaseMetrics.getReleaseLabelPulls(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "closed")).thenReturn(8L);
-        when(releaseMetrics.getReleaseVersionIncrement(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "main")).thenReturn(true);
-        when(releaseMetrics.getReleaseNotes(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1", "main")).thenReturn(true);
-        when(releaseMetrics.getReleaseBranch(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn(true);
-        when(releaseMetrics.getReleaseOwners(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn(new String[]{"owner1", "owner2"});
-        when(releaseMetrics.getReleaseIssue(ReleaseInputs.VERSION_2_13_0.getVersion(), "repo1")).thenReturn("release-123");
+        when(releaseMetrics.getReleaseLabelIssues("2.13.0", "repo1", "open", false)).thenReturn(10L);
+        when(releaseMetrics.getReleaseLabelIssues("2.13.0", "repo1", "open", true)).thenReturn(5L);
+        when(releaseMetrics.getReleaseLabelIssues("2.13.0", "repo1", "closed", false)).thenReturn(20L);
+        when(releaseMetrics.getReleaseLabelPulls("2.13.0", "repo1", "open")).thenReturn(3L);
+        when(releaseMetrics.getReleaseLabelPulls("2.13.0", "repo1", "closed")).thenReturn(8L);
+        when(releaseMetrics.getReleaseVersionIncrement("2.13.0", "repo1", "main")).thenReturn(true);
+        when(releaseMetrics.getReleaseNotes("2.13.0", "repo1", "main")).thenReturn(true);
+        when(releaseMetrics.getReleaseBranch("2.13.0", "repo1")).thenReturn(true);
+        when(releaseMetrics.getReleaseOwners("2.13.0", "repo1")).thenReturn(new String[]{"owner1", "owner2"});
+        when(releaseMetrics.getReleaseIssue("2.13.0", "repo1")).thenReturn("release-123");
         metricsCalculation.generateReleaseMetrics();
         verify(openSearchUtil).createIndexIfNotExists("opensearch_release_metrics", Optional.empty());
         verify(openSearchUtil).bulkIndex(eq("opensearch_release_metrics"), ArgumentMatchers.anyMap());
@@ -163,35 +163,39 @@ public class MetricsCalculationTest {
     }
 
     @Test
+    void testGenerateReleaseMetricsSkipsUntrackedReleases() {
+        // Releases the schedule returns but does not have in flight must not be queried at all.
+        ReleaseInputs untracked = mock(ReleaseInputs.class);
+        when(untracked.getTrack()).thenReturn(false);
+        when(releaseMetrics.getReleaseInputs(any())).thenReturn(List.of(untracked));
+        metricsCalculation.generateReleaseMetrics();
+        verify(releaseMetrics, never()).getReleaseRepos(anyString());
+        verify(openSearchUtil).bulkIndex(eq("opensearch_release_metrics"), argThat(Map::isEmpty));
+    }
+
+    @Test
     void testGenerateCodeCovMetrics() {
-        try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
-            ReleaseInputs releaseInput = mock(ReleaseInputs.class);
-            when(releaseInput.getVersion()).thenReturn("2.18.0");
-            when(releaseInput.getBranch()).thenReturn("main");
-            when(releaseInput.getTrack()).thenReturn(true);
-            when(releaseInput.getState()).thenReturn("active");
-            ReleaseInputs[] releaseInputsArray = {releaseInput};
-            mockedReleaseInputs.when(ReleaseInputs::getAllReleaseInputs).thenReturn(releaseInputsArray);
-            Map<String, String> releaseRepos = new HashMap<>();
-            releaseRepos.put("component1", "repo1");
-            when(releaseMetrics.getReleaseRepos("2.18.0")).thenReturn(releaseRepos);
-            CodeCovResponse codeCovResponse = new CodeCovResponse();
-            codeCovResponse.setCommitId("abc123");
-            codeCovResponse.setUrl("https://sample-url.com");
-            codeCovResponse.setState("success");
-            codeCovResponse.setCoverage(85.5);
-            when(releaseMetrics.getCodeCoverage("main", "repo1")).thenReturn(codeCovResponse);
-            try {
-                when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            metricsCalculation.generateCodeCovMetrics();
-            verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), eq(Optional.of("opensearch-codecov-metrics")));
-            verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
-            verify(releaseMetrics).getCodeCoverage("main", "repo1");
-            verify(releaseMetrics).getReleaseRepos("2.18.0");
+        ReleaseInputs releaseInput = trackedRelease("2.18.0", "main", "open");
+        when(releaseMetrics.getReleaseInputs(any())).thenReturn(List.of(releaseInput));
+        Map<String, String> releaseRepos = new HashMap<>();
+        releaseRepos.put("component1", "repo1");
+        when(releaseMetrics.getReleaseRepos("2.18.0")).thenReturn(releaseRepos);
+        CodeCovResponse codeCovResponse = new CodeCovResponse();
+        codeCovResponse.setCommitId("abc123");
+        codeCovResponse.setUrl("https://sample-url.com");
+        codeCovResponse.setState("success");
+        codeCovResponse.setCoverage(85.5);
+        when(releaseMetrics.getCodeCoverage("main", "repo1")).thenReturn(codeCovResponse);
+        try {
+            when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
+        metricsCalculation.generateCodeCovMetrics();
+        verify(openSearchUtil).createIndexIfNotExists(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), eq(Optional.of("opensearch-codecov-metrics")));
+        verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> !map.isEmpty()));
+        verify(releaseMetrics).getCodeCoverage("main", "repo1");
+        verify(releaseMetrics).getReleaseRepos("2.18.0");
     }
 
     @Test
@@ -199,34 +203,36 @@ public class MetricsCalculationTest {
         // Regression: two distinct manifest components (notifications, notifications-core) map to the
         // same repo (notifications). The doc id must be derived from the unique component name, not the
         // shared repo name, otherwise Collectors.toMap throws IllegalStateException on the duplicate id.
-        try (MockedStatic<ReleaseInputs> mockedReleaseInputs = Mockito.mockStatic(ReleaseInputs.class)) {
-            ReleaseInputs releaseInput = mock(ReleaseInputs.class);
-            when(releaseInput.getVersion()).thenReturn("3.8.0");
-            when(releaseInput.getBranch()).thenReturn("main");
-            when(releaseInput.getTrack()).thenReturn(true);
-            when(releaseInput.getState()).thenReturn("open");
-            ReleaseInputs[] releaseInputsArray = {releaseInput};
-            mockedReleaseInputs.when(ReleaseInputs::getAllReleaseInputs).thenReturn(releaseInputsArray);
-            Map<String, String> releaseRepos = new HashMap<>();
-            releaseRepos.put("notifications", "notifications");
-            releaseRepos.put("notifications-core", "notifications");
-            when(releaseMetrics.getReleaseRepos("3.8.0")).thenReturn(releaseRepos);
-            CodeCovResponse codeCovResponse = new CodeCovResponse();
-            codeCovResponse.setCommitId("690f3df226f2da10da23bb717ff151406be8c436");
-            codeCovResponse.setUrl("https://api.codecov.io/api/v2/github/opensearch-project/repos/notifications/commits?branch=main");
-            codeCovResponse.setState("complete");
-            codeCovResponse.setCoverage(70.7);
-            when(releaseMetrics.getCodeCoverage("main", "notifications")).thenReturn(codeCovResponse);
-            try {
-                when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            metricsCalculation.generateCodeCovMetrics();
-            // Both components must be indexed as separate docs (distinct ids), not collapsed or thrown.
-            verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> map.size() == 2));
-            verify(releaseMetrics, times(2)).getCodeCoverage("main", "notifications");
+        ReleaseInputs releaseInput = trackedRelease("3.8.0", "main", "open");
+        when(releaseMetrics.getReleaseInputs(any())).thenReturn(List.of(releaseInput));
+        Map<String, String> releaseRepos = new HashMap<>();
+        releaseRepos.put("notifications", "notifications");
+        releaseRepos.put("notifications-core", "notifications");
+        when(releaseMetrics.getReleaseRepos("3.8.0")).thenReturn(releaseRepos);
+        CodeCovResponse codeCovResponse = new CodeCovResponse();
+        codeCovResponse.setCommitId("690f3df226f2da10da23bb717ff151406be8c436");
+        codeCovResponse.setUrl("https://api.codecov.io/api/v2/github/opensearch-project/repos/notifications/commits?branch=main");
+        codeCovResponse.setState("complete");
+        codeCovResponse.setCoverage(70.7);
+        when(releaseMetrics.getCodeCoverage("main", "notifications")).thenReturn(codeCovResponse);
+        try {
+            when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
+        metricsCalculation.generateCodeCovMetrics();
+        // Both components must be indexed as separate docs (distinct ids), not collapsed or thrown.
+        verify(openSearchUtil).bulkIndex(matches("opensearch-codecov-metrics-\\d{2}-\\d{4}"), argThat(map -> map.size() == 2));
+        verify(releaseMetrics, times(2)).getCodeCoverage("main", "notifications");
+    }
+
+    private static ReleaseInputs trackedRelease(String version, String branch, String state) {
+        ReleaseInputs releaseInput = mock(ReleaseInputs.class);
+        when(releaseInput.getVersion()).thenReturn(version);
+        when(releaseInput.getBranch()).thenReturn(branch);
+        when(releaseInput.getState()).thenReturn(state);
+        when(releaseInput.getTrack()).thenReturn(true);
+        return releaseInput;
     }
 
     @Test

@@ -162,10 +162,10 @@ public class MetricsCalculation {
     }
 
     public void generateReleaseMetrics() {
-        ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
+        List<ReleaseInputs> releaseInputs = releaseMetrics.getReleaseInputs(currentDate.toLocalDate());
 
         Map<String, String> metricFinalData =
-                Arrays.stream(releaseInputs)
+                releaseInputs.stream()
                         .filter(ReleaseInputs::getTrack)
                         .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
                         .flatMap(entry -> {
@@ -212,9 +212,9 @@ public class MetricsCalculation {
     }
 
     public void generateCodeCovMetrics() {
-        ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
+        List<ReleaseInputs> releaseInputs = releaseMetrics.getReleaseInputs(currentDate.toLocalDate());
         Map<String, String> metricFinalData =
-                Arrays.stream(releaseInputs)
+                releaseInputs.stream()
                         .filter(ReleaseInputs::getTrack)
                         .flatMap(releaseInput -> releaseMetrics.getReleaseRepos(releaseInput.getVersion()).entrySet().stream()
                                 .flatMap(entry -> {

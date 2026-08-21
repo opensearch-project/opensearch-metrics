@@ -9,176 +9,115 @@
 package org.opensearchmetrics.metrics.release;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.util.Optional;
+
 public class ReleaseInputsTest {
 
+    private static final LocalDate TODAY = LocalDate.of(2026, 8, 13);
+
     @Test
-    public void testGetVersion() {
-        assertEquals("3.8.0", ReleaseInputs.VERSION_3_8_0.getVersion());
-        assertEquals("3.7.0", ReleaseInputs.VERSION_3_7_0.getVersion());
-        assertEquals("2.19.6", ReleaseInputs.VERSION_2_19_6.getVersion());
-        assertEquals("3.6.0", ReleaseInputs.VERSION_3_6_0.getVersion());
-        assertEquals("3.5.0", ReleaseInputs.VERSION_3_5_0.getVersion());
-        assertEquals("3.4.0", ReleaseInputs.VERSION_3_4_0.getVersion());
-        assertEquals("3.3.0", ReleaseInputs.VERSION_3_3_0.getVersion());
-        assertEquals("3.2.0", ReleaseInputs.VERSION_3_2_0.getVersion());
-        assertEquals("3.1.0", ReleaseInputs.VERSION_3_1_0.getVersion());
-        assertEquals("3.0.0", ReleaseInputs.VERSION_3_0_0.getVersion());
-        assertEquals("2.12.0", ReleaseInputs.VERSION_2_12_0.getVersion());
-        assertEquals("2.13.0", ReleaseInputs.VERSION_2_13_0.getVersion());
-        assertEquals("2.14.0", ReleaseInputs.VERSION_2_14_0.getVersion());
-        assertEquals("2.15.0", ReleaseInputs.VERSION_2_15_0.getVersion());
-        assertEquals("2.16.0", ReleaseInputs.VERSION_2_16_0.getVersion());
-        assertEquals("2.17.0", ReleaseInputs.VERSION_2_17_0.getVersion());
-        assertEquals("2.18.0", ReleaseInputs.VERSION_2_18_0.getVersion());
-        assertEquals("2.19.0", ReleaseInputs.VERSION_2_19_0.getVersion());
-        assertEquals("2.19.1", ReleaseInputs.VERSION_2_19_1.getVersion());
-        assertEquals("2.19.2", ReleaseInputs.VERSION_2_19_2.getVersion());
-        assertEquals("2.19.3", ReleaseInputs.VERSION_2_19_3.getVersion());
-        assertEquals("2.19.4", ReleaseInputs.VERSION_2_19_4.getVersion());
-        assertEquals("2.19.5", ReleaseInputs.VERSION_2_19_5.getVersion());
-        assertEquals("1.3.15", ReleaseInputs.VERSION_1_3_15.getVersion());
-        assertEquals("1.3.16", ReleaseInputs.VERSION_1_3_16.getVersion());
-        assertEquals("1.3.17", ReleaseInputs.VERSION_1_3_17.getVersion());
-        assertEquals("1.3.18", ReleaseInputs.VERSION_1_3_18.getVersion());
-        assertEquals("1.3.19", ReleaseInputs.VERSION_1_3_19.getVersion());
-        assertEquals("1.3.20", ReleaseInputs.VERSION_1_3_20.getVersion());
+    public void testActiveMinorReleaseIsOpenAndTrackedOnMain() {
+        ReleaseInputs releaseInputs = ReleaseInputs
+                .fromSchedule("3.9.0", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY)
+                .orElseThrow();
+        assertEquals("3.9.0", releaseInputs.getVersion());
+        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
+        assertEquals("main", releaseInputs.getBranch());
+        assertTrue(releaseInputs.getTrack());
     }
 
     @Test
-    public void testGetState() {
-        assertEquals("open", ReleaseInputs.VERSION_3_8_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_7_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_6.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_6_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_5_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_4_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_3_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_2_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_1_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_3_0_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_12_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_13_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_14_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_15_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_16_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_17_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_18_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_0.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_1.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_2.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_3.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_4.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_2_19_5.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_15.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_16.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_17.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_18.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_19.getState());
-        assertEquals("closed", ReleaseInputs.VERSION_1_3_20.getState());
+    public void testActivePatchReleaseTracksItsOwnBranch() {
+        ReleaseInputs releaseInputs = ReleaseInputs
+                .fromSchedule("2.19.7", ReleaseInputs.STATUS_ACTIVE, "2026-09-01", TODAY)
+                .orElseThrow();
+        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
+        assertEquals("2.19", releaseInputs.getBranch());
+        assertTrue(releaseInputs.getTrack());
     }
 
     @Test
-    public void testGetBranch() {
-        assertEquals("main", ReleaseInputs.VERSION_3_8_0.getBranch());
-        assertEquals("3.7", ReleaseInputs.VERSION_3_7_0.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_6.getBranch());
-        assertEquals("3.6", ReleaseInputs.VERSION_3_6_0.getBranch());
-        assertEquals("3.5", ReleaseInputs.VERSION_3_5_0.getBranch());
-        assertEquals("3.4", ReleaseInputs.VERSION_3_4_0.getBranch());
-        assertEquals("3.3", ReleaseInputs.VERSION_3_3_0.getBranch());
-        assertEquals("3.2", ReleaseInputs.VERSION_3_2_0.getBranch());
-        assertEquals("3.1", ReleaseInputs.VERSION_3_1_0.getBranch());
-        assertEquals("3.0", ReleaseInputs.VERSION_3_0_0.getBranch());
-        assertEquals("2.12", ReleaseInputs.VERSION_2_12_0.getBranch());
-        assertEquals("2.13", ReleaseInputs.VERSION_2_13_0.getBranch());
-        assertEquals("2.14", ReleaseInputs.VERSION_2_14_0.getBranch());
-        assertEquals("2.15", ReleaseInputs.VERSION_2_15_0.getBranch());
-        assertEquals("2.16", ReleaseInputs.VERSION_2_16_0.getBranch());
-        assertEquals("2.17", ReleaseInputs.VERSION_2_17_0.getBranch());
-        assertEquals("2.18", ReleaseInputs.VERSION_2_18_0.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_0.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_1.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_2.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_3.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_4.getBranch());
-        assertEquals("2.19", ReleaseInputs.VERSION_2_19_5.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_15.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_16.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_17.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_18.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_19.getBranch());
-        assertEquals("1.3", ReleaseInputs.VERSION_1_3_20.getBranch());
+    public void testReleasedIsClosedAndBranchIsNeverMain() {
+        ReleaseInputs releaseInputs = ReleaseInputs
+                .fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, TODAY.toString(), TODAY)
+                .orElseThrow();
+        assertEquals(ReleaseInputs.STATE_CLOSED, releaseInputs.getState());
+        assertEquals("3.8", releaseInputs.getBranch());
+        assertTrue(releaseInputs.getTrack());
     }
 
     @Test
-    public void testGetTrack() {
-        assertEquals(true, ReleaseInputs.VERSION_3_8_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_7_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_6.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_6_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_5_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_4_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_3_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_2_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_1_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_3_0_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_12_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_13_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_14_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_15_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_16_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_17_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_18_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_0.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_1.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_2.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_3.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_4.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_2_19_5.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_15.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_16.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_17.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_18.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_19.getTrack());
-        assertEquals(false, ReleaseInputs.VERSION_1_3_20.getTrack());
+    public void testReleasedIsTrackedThroughTheGraceWindowThenDropsOff() {
+        // Released today, and on the last day of the grace window, the closed state still reports.
+        assertTrue(trackedAsReleased(TODAY));
+        assertTrue(trackedAsReleased(TODAY.minusDays(ReleaseInputs.RELEASED_TRACKING_GRACE_DAYS)));
+        // One day past the window it stops, so the release leaves the dashboard.
+        assertFalse(trackedAsReleased(TODAY.minusDays(ReleaseInputs.RELEASED_TRACKING_GRACE_DAYS + 1)));
+        assertFalse(trackedAsReleased(TODAY.minusMonths(6)));
     }
 
     @Test
-    public void testGetAllReleaseInputs() {
-        ReleaseInputs[] releaseInputs = ReleaseInputs.getAllReleaseInputs();
-        assertEquals(29, releaseInputs.length);
-        assertEquals(ReleaseInputs.VERSION_3_8_0, releaseInputs[0]);
-        assertEquals(ReleaseInputs.VERSION_3_7_0, releaseInputs[1]);
-        assertEquals(ReleaseInputs.VERSION_3_6_0, releaseInputs[2]);
-        assertEquals(ReleaseInputs.VERSION_3_5_0, releaseInputs[3]);
-        assertEquals(ReleaseInputs.VERSION_3_4_0, releaseInputs[4]);
-        assertEquals(ReleaseInputs.VERSION_3_3_0, releaseInputs[5]);
-        assertEquals(ReleaseInputs.VERSION_3_2_0, releaseInputs[6]);
-        assertEquals(ReleaseInputs.VERSION_3_1_0, releaseInputs[7]);
-        assertEquals(ReleaseInputs.VERSION_3_0_0, releaseInputs[8]);
-        assertEquals(ReleaseInputs.VERSION_2_12_0, releaseInputs[9]);
-        assertEquals(ReleaseInputs.VERSION_2_13_0, releaseInputs[10]);
-        assertEquals(ReleaseInputs.VERSION_2_14_0, releaseInputs[11]);
-        assertEquals(ReleaseInputs.VERSION_2_15_0, releaseInputs[12]);
-        assertEquals(ReleaseInputs.VERSION_2_16_0, releaseInputs[13]);
-        assertEquals(ReleaseInputs.VERSION_2_17_0, releaseInputs[14]);
-        assertEquals(ReleaseInputs.VERSION_2_18_0, releaseInputs[15]);
-        assertEquals(ReleaseInputs.VERSION_2_19_0, releaseInputs[16]);
-        assertEquals(ReleaseInputs.VERSION_2_19_1, releaseInputs[17]);
-        assertEquals(ReleaseInputs.VERSION_2_19_2, releaseInputs[18]);
-        assertEquals(ReleaseInputs.VERSION_2_19_3, releaseInputs[19]);
-        assertEquals(ReleaseInputs.VERSION_2_19_4, releaseInputs[20]);
-        assertEquals(ReleaseInputs.VERSION_2_19_5, releaseInputs[21]);
-        assertEquals(ReleaseInputs.VERSION_2_19_6, releaseInputs[22]);
-        assertEquals(ReleaseInputs.VERSION_1_3_15, releaseInputs[23]);
-        assertEquals(ReleaseInputs.VERSION_1_3_16, releaseInputs[24]);
-        assertEquals(ReleaseInputs.VERSION_1_3_17, releaseInputs[25]);
-        assertEquals(ReleaseInputs.VERSION_1_3_18, releaseInputs[26]);
-        assertEquals(ReleaseInputs.VERSION_1_3_19, releaseInputs[27]);
-        assertEquals(ReleaseInputs.VERSION_1_3_20, releaseInputs[28]);
+    public void testReleasedWithAnUnusableDateIsNotTracked() {
+        assertFalse(ReleaseInputs.fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, null, TODAY)
+                .orElseThrow().getTrack());
+        assertFalse(ReleaseInputs.fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, "", TODAY)
+                .orElseThrow().getTrack());
+        assertFalse(ReleaseInputs.fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, "not-a-date", TODAY)
+                .orElseThrow().getTrack());
     }
 
+    @Test
+    public void testReleaseDateAcceptsAFullTimestamp() {
+        assertTrue(ReleaseInputs
+                .fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, TODAY + "T00:00:00.000Z", TODAY)
+                .orElseThrow().getTrack());
+    }
+
+    @Test
+    public void testInactiveIsOpenButNotYetTracked() {
+        ReleaseInputs releaseInputs = ReleaseInputs
+                .fromSchedule("4.0.0", ReleaseInputs.STATUS_INACTIVE, "2027-03-01", TODAY)
+                .orElseThrow();
+        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
+        assertFalse(releaseInputs.getTrack());
+    }
+
+    @Test
+    public void testUnrecognisedStatusIsNotTracked() {
+        // Anything the schedule starts emitting that this code does not know about stays off the dashboard
+        // rather than being guessed at.
+        ReleaseInputs releaseInputs = ReleaseInputs
+                .fromSchedule("3.9.0", "cancelled", "2026-09-29", TODAY)
+                .orElseThrow();
+        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
+        assertFalse(releaseInputs.getTrack());
+    }
+
+    @Test
+    public void testUnusableScheduleEntriesAreSkipped() {
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule(null, ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY));
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule("3.9.0", null, "2026-09-29", TODAY));
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule("3.9", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY));
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule("3.9.0.1", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY));
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule("3.x.0", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY));
+        assertEquals(Optional.empty(), ReleaseInputs.fromSchedule("", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY));
+    }
+
+    @Test
+    public void testVersionIsTrimmed() {
+        assertEquals("3.9.0", ReleaseInputs
+                .fromSchedule(" 3.9.0 ", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", TODAY)
+                .orElseThrow().getVersion());
+    }
+
+    private boolean trackedAsReleased(LocalDate releaseDate) {
+        return ReleaseInputs.fromSchedule("3.8.0", ReleaseInputs.STATUS_RELEASED, releaseDate.toString(), TODAY)
+                .orElseThrow().getTrack();
+    }
 }

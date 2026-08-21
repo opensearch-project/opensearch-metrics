@@ -17,6 +17,7 @@ import org.opensearchmetrics.util.OpenSearchUtil;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.CoderResult;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -39,11 +40,14 @@ public class ReleaseMetrics {
 
     private final CodeCoverage codeCoverage;
 
+    private final ReleaseScheduleFetcher releaseScheduleFetcher;
+
     @Inject
     public ReleaseMetrics(OpenSearchUtil openSearchUtil, ObjectMapper objectMapper, ReleaseRepoFetcher releaseRepoFetcher,
                           ReleaseLabelIssuesFetcher releaseLabelIssuesFetcher, ReleaseLabelPullsFetcher releaseLabelPullsFetcher,
                           ReleaseVersionIncrementChecker releaseVersionIncrementChecker, ReleaseBranchChecker releaseBranchChecker,
-                          ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage) {
+                          ReleaseNotesChecker releaseNotesChecker, ReleaseIssueChecker releaseIssueChecker, CodeCoverage codeCoverage,
+                          ReleaseScheduleFetcher releaseScheduleFetcher) {
         this.openSearchUtil = openSearchUtil;
         this.objectMapper = objectMapper;
         this.releaseRepoFetcher = releaseRepoFetcher;
@@ -54,6 +58,15 @@ public class ReleaseMetrics {
         this.releaseNotesChecker = releaseNotesChecker;
         this.releaseIssueChecker = releaseIssueChecker;
         this.codeCoverage = codeCoverage;
+        this.releaseScheduleFetcher = releaseScheduleFetcher;
+    }
+
+    /**
+     * The releases to report on today, read from the release schedule at runtime rather than from a
+     * hardcoded list.
+     */
+    public List<ReleaseInputs> getReleaseInputs(LocalDate today) {
+        return releaseScheduleFetcher.getReleaseInputs(today, openSearchUtil);
     }
 
     public Map<String, String> getReleaseRepos(String releaseVersion) {

@@ -17,7 +17,9 @@ import org.mockito.MockitoAnnotations;
 import org.opensearchmetrics.model.codecov.CodeCovResponse;
 import org.opensearchmetrics.util.OpenSearchUtil;
 
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,6 +59,9 @@ public class ReleaseMetricsTest {
     @Mock
     private CodeCoverage codeCoverage;
 
+    @Mock
+    private ReleaseScheduleFetcher releaseScheduleFetcher;
+
     @InjectMocks
     private ReleaseMetrics releaseMetrics;
 
@@ -70,6 +75,18 @@ public class ReleaseMetricsTest {
         codeCovResponse.setUrl("https://sample-release-issue/100");
         codeCovResponse.setState("success");
         codeCovResponse.setCoverage(85.5);
+    }
+
+    @Test
+    public void testGetReleaseInputs() {
+        LocalDate today = LocalDate.of(2026, 8, 13);
+        List<ReleaseInputs> expected = ReleaseInputs
+                .fromSchedule("3.9.0", ReleaseInputs.STATUS_ACTIVE, "2026-09-29", today)
+                .map(Collections::singletonList)
+                .orElseThrow();
+        when(releaseScheduleFetcher.getReleaseInputs(today, openSearchUtil)).thenReturn(expected);
+
+        assertEquals(expected, releaseMetrics.getReleaseInputs(today));
     }
 
     @Test
