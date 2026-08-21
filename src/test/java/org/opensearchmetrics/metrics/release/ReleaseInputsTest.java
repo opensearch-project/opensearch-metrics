@@ -49,6 +49,8 @@ public class ReleaseInputsTest {
                 .orElseThrow();
         assertEquals(ReleaseInputs.STATE_CLOSED, releaseInputs.getState());
         assertEquals("3.8", releaseInputs.getBranch());
+        // Released today → still within the 1-day grace window, so a closed release keeps reporting.
+        // Drop-off after the window is covered by testReleasedIsTrackedThroughTheGraceWindowThenDropsOff.
         assertTrue(releaseInputs.getTrack());
     }
 
@@ -80,23 +82,19 @@ public class ReleaseInputsTest {
     }
 
     @Test
-    public void testInactiveIsOpenButNotYetTracked() {
-        ReleaseInputs releaseInputs = ReleaseInputs
-                .fromSchedule("4.0.0", ReleaseInputs.STATUS_INACTIVE, "2027-03-01", TODAY)
-                .orElseThrow();
-        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
-        assertFalse(releaseInputs.getTrack());
+    public void testInactiveIsIgnored() {
+        // Inactive releases are neither active nor released, so they are ignored entirely rather than
+        // reported as open.
+        assertEquals(Optional.empty(),
+                ReleaseInputs.fromSchedule("4.0.0", ReleaseInputs.STATUS_INACTIVE, "2027-03-01", TODAY));
     }
 
     @Test
-    public void testUnrecognisedStatusIsNotTracked() {
-        // Anything the schedule starts emitting that this code does not know about stays off the dashboard
-        // rather than being guessed at.
-        ReleaseInputs releaseInputs = ReleaseInputs
-                .fromSchedule("3.9.0", "cancelled", "2026-09-29", TODAY)
-                .orElseThrow();
-        assertEquals(ReleaseInputs.STATE_OPEN, releaseInputs.getState());
-        assertFalse(releaseInputs.getTrack());
+    public void testUnrecognisedStatusIsIgnored() {
+        // Anything the schedule starts emitting that this code does not know about is ignored rather than
+        // being guessed at.
+        assertEquals(Optional.empty(),
+                ReleaseInputs.fromSchedule("3.9.0", "cancelled", "2026-09-29", TODAY));
     }
 
     @Test

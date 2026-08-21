@@ -41,9 +41,9 @@ public class ReleaseScheduleFetcherTest {
 
         List<ReleaseInputs> releaseInputs = new ReleaseScheduleFetcher().getReleaseInputs(TODAY, openSearchUtil);
 
-        assertEquals(3, releaseInputs.size());
-        // Only the active release is tracked: 3.8.0 shipped more than the grace window ago and 4.0.0 is
-        // still too far out.
+        // The inactive 4.0.0 is ignored entirely; only active and released versions are mapped.
+        assertEquals(2, releaseInputs.size());
+        // Only the active release is tracked: 3.8.0 shipped more than the grace window ago.
         List<String> tracked = releaseInputs.stream()
                 .filter(ReleaseInputs::getTrack)
                 .map(ReleaseInputs::getVersion)

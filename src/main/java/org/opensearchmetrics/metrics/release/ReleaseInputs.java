@@ -65,9 +65,9 @@ public class ReleaseInputs {
     /**
      * Translates one release schedule entry into the inputs the metrics workflow needs.
      *
-     * <p>A released version reports as closed and keeps being tracked for
-     * {@link #RELEASED_TRACKING_GRACE_DAYS} day(s) past its release date. Anything else reports as open, and is tracked only
-     * while the schedule marks it active.
+     * <p>An active version reports as open and is tracked. A released version reports as closed and keeps
+     * being tracked for 1 day past its release date. Every other
+     * status (for example inactive or unrecognized) is ignored
      *
      */
     public static Optional<ReleaseInputs> fromSchedule(String version, String status, String releaseDate,
@@ -77,8 +77,12 @@ public class ReleaseInputs {
             return Optional.empty();
         }
         boolean released = STATUS_RELEASED.equals(status);
+        if (!released && !STATUS_ACTIVE.equals(status)) {
+            // Inactive or unrecognized statuses are ignored entirely rather than reported as open.
+            return Optional.empty();
+        }
         String state = released ? STATE_CLOSED : STATE_OPEN;
-        boolean track = released ? withinReleasedGrace(releaseDate, today) : STATUS_ACTIVE.equals(status);
+        boolean track = released ? withinReleasedGrace(releaseDate, today) : true;
         return Optional.of(new ReleaseInputs(version.trim(), state, deriveBranch(versionParts, state), track));
     }
 
