@@ -35,6 +35,13 @@ test('VPC Stack Test', () => {
                 "FromPort": 443,
                 "IpProtocol": "tcp",
                 "ToPort": 443
+            },
+            {
+                "CidrIp": "10.123.0.0/16",
+                "Description": "Allow inbound HTTPS from LF account servers",
+                "FromPort": 443,
+                "IpProtocol": "tcp",
+                "ToPort": 443
             }
         ]
     });
