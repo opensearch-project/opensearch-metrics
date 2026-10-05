@@ -175,10 +175,10 @@ export class GitHubAutomationApp extends Stack {
             'sudo chmod a+x /usr/local/sbin/docker-compose',
             'sudo curl -L "https://github.com/docker/buildx/releases/download/v0.18.0/buildx-v0.18.0.linux-amd64" -o /usr/libexec/docker/cli-plugins/docker-buildx',
             'sudo chmod +x /usr/libexec/docker/cli-plugins/docker-buildx',
-            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.8.9',
+            'git clone https://github.com/opensearch-project/automation-app.git --branch 0.8.10',
             'npm run build',
             `aws secretsmanager get-secret-value --secret-id ${secretName} --query SecretString --output text >> automation-app/.env`,
-            'cd automation-app/docker',
+            'cd automation-app/docker', // TODO: Remove docker compose and use docker run directly later
             'PORT=8080 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-merged-pulls-monitor.yml docker-compose -p github-merged-pulls-monitor up -d',
             'PORT=8081 RESOURCE_CONFIG=configs/resources/opensearch-project-resource.yml OPERATION_CONFIG=configs/operations/github-workflow-runs-monitor.yml docker-compose -p github-workflow-runs-monitor up -d',
             'PORT=8082 RESOURCE_CONFIG=configs/resources/opensearch-project-only-org.yml OPERATION_CONFIG=configs/operations/github-events-to-s3.yml docker-compose -p github-events-to-s3 up -d',
