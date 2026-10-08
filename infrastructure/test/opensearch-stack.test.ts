@@ -30,6 +30,8 @@ test('OpenSearchDomain Stack Test', () => {
             ]
         },
         githubAutomationAppAccess: "sample-role-arn",
+        oscarAccess: "arn:aws:iam::123456789012:role/sample-oscar-role",
+        linuxFoundationAccess: "arn:aws:iam::123456789012:role/sample-lf-role",
         githubEventsBucket: s3Stack.bucket,
     });
     const openSearchDomainStackTemplate = Template.fromStack(openSearchDomainStack);

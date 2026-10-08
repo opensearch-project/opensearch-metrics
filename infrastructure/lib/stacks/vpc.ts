@@ -24,6 +24,7 @@ export class VpcStack extends Stack {
             vpc: this.vpc
         });
         this.securityGroup.addIngressRule(Peer.ipv4(this.vpc.vpcCidrBlock), Port.tcp(443), "Allow inbound HTTPS traffic");
+        this.securityGroup.addIngressRule(Peer.ipv4("10.123.0.0/16"), Port.tcp(443), "Allow inbound HTTPS from LF account servers");
         this.subnets = this.vpc.selectSubnets({
             subnetType: SubnetType.PRIVATE_WITH_EGRESS
         })
