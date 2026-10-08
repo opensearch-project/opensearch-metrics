@@ -14,7 +14,25 @@ So you want to contribute code to this project? Excellent! We're glad you're her
 
 #### Deploy
 
-- Now `cd infrastructure/`, update the enum `lib/enums/account.ts` file with the desired AWS account and run `deploy` to create all the required backend resources.
+- Now `cd infrastructure/`, configure the deploy-time values in `lib/enums/project.ts` and run `deploy` to create all the required backend resources.
+    - The `lib/enums/project.ts` enum holds all deploy-time configuration:
+
+      | Param | Required | Default | Description |
+      |---|---|---|---|
+      | `AWS_ACCOUNT` | Yes | `''` | AWS account ID the stacks are deployed into. |
+      | `REGION` | Yes | `''` | AWS region to deploy into (e.g. `us-east-1`). |
+      | `EC2_AMI_SSM` | Yes | `''` | SSM parameter / AMI ID for the Nginx proxy and GitHub Automation App EC2 hosts. |
+      | `RESTRICTED_PREFIX` | Yes | `''` | VPC prefix list ID allowed to reach the Cognito ALB on port 443. |
+      | `METRICS_HOSTED_ZONE` | Yes | `metrics.opensearch.org` | Public hosted zone / record name for the metrics frontend. |
+      | `METRICS_COGNITO_HOSTED_ZONE` | Yes | `sample.login.endpoint` | Cognito login endpoint hosted zone for OpenSearch Dashboards auth. |
+      | `SNS_ALERT_EMAIL` | Yes | `insert@test.mail` | Email address subscribed to the monitoring SNS topic. |
+      | `LAMBDA_PACKAGE` | Yes | `opensearch-metrics-1.0.zip` | Filename of the built Lambda deployment package. |
+      | `JENKINS_MASTER_ROLE` | No | `''` | External Jenkins master role ARN trusted to assume the CDK-created `OpenSearchJenkinsAccessRole`. |
+      | `JENKINS_AGENT_ROLE` | No | `''` | External Jenkins agent role ARN trusted to assume the CDK-created `OpenSearchJenkinsAccessRole`. |
+      | `OSCAR_ACCESS_ROLE` | No | `''` | Oscar role ARN added as a principal to the `MetricsDefaultAccess` statement of the domain access policy. |
+      | `LINUX_FOUNDATION_ACCESS_ROLE` | No | `''` | Linux Foundation role ARN added as the `LinuxFoundationAccess` statement of the domain access policy, granting `es:ESHttp*` only. |
+      | `EVENT_CANARY_REPO_TARGET` | No | `''` | GitHub repository target used by the Event Canary workflow. |
+
     - `cdk deploy OpenSearchHealth-VPC`: To deploy the VPC resources.
     - `cdk deploy OpenSearchHealth-OpenSearch`: To deploy the OpenSearch cluster.
     - `cdk deploy OpenSearchMetrics-Workflow`: To deploy the lambda and step function.
