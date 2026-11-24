@@ -25,7 +25,9 @@ export interface OpenSearchStackProps {
     readonly vpcStack: VpcStack;
     readonly enableNginxCognito: boolean;
     readonly jenkinsAccess?: jenkinsAccess;
+    readonly oscarAccess?: string;
     readonly githubAutomationAppAccess?: string;
+    readonly linuxFoundationAccess?: string;
     readonly githubEventsBucket: Bucket;
 }
 
@@ -149,11 +151,19 @@ export class OpenSearchDomainStack extends Stack {
 
 
         const clusterAccessPolicy = new PolicyStatement({
+            sid: "MetricsDefaultAccess",
             effect: Effect.ALLOW,
-            actions: ["es:ESHttp*"],
+            actions: [
+                "es:ESHttp*",
+                "es:ESCrossClusterGet",
+                "es:ESCrossClusterReplicationSendAction"
+            ],
             principals: [
                 new ArnPrincipal(
                     metricsCognito.identityPoolAuthRole.roleArn
+                ),
+                new ArnPrincipal(
+                    metricsCognito.identityPoolAdminRole.roleArn
                 ),
                 new ArnPrincipal(
                     this.fullAccessRole.roleArn
@@ -161,6 +171,11 @@ export class OpenSearchDomainStack extends Stack {
             ],
             resources: [domainArn]
         })
+
+        // OpenSearchOscarAccessRole is created outside this stack; reference it by ARN.
+        if (props.oscarAccess) {
+            clusterAccessPolicy.addPrincipals(new ArnPrincipal(props.oscarAccess))
+        }
 
         if (props.jenkinsAccess) {
             const jenkinsAccessRole = new Role(this, 'OpenSearchJenkinsAccessRole', {
@@ -172,6 +187,22 @@ export class OpenSearchDomainStack extends Stack {
         }
         if (props.githubAutomationAppAccess) {
             clusterAccessPolicy.addPrincipals(new ArnPrincipal(props.githubAutomationAppAccess))
+        }
+
+        // Access policies applied to the OpenSearch domain. The internal roles
+        // (MetricsDefaultAccess) are always present; cross-account access for the
+        // Linux Foundation role is added only when its ARN is provided.
+        const accessPolicies = [clusterAccessPolicy];
+        if (props.linuxFoundationAccess) {
+            accessPolicies.push(new PolicyStatement({
+                sid: "LinuxFoundationAccess",
+                effect: Effect.ALLOW,
+                actions: ["es:ESHttp*"],
+                principals: [
+                    new ArnPrincipal(props.linuxFoundationAccess)
+                ],
+                resources: [domainArn]
+            }));
         }
 
         this.domain = new Domain(this, 'OpenSearchHealthDomain', {
@@ -207,7 +238,7 @@ export class OpenSearchDomainStack extends Stack {
             fineGrainedAccessControl: {
                 masterUserArn: metricsCognito.identityPoolAdminRole.roleArn,
             },
-            accessPolicies: [clusterAccessPolicy],
+            accessPolicies: accessPolicies,
             logging: {
                 auditLogEnabled: true,
                 appLogEnabled: true,

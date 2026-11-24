@@ -80,6 +80,8 @@ export class InfrastructureStack extends Stack {
         ]
       },
       githubAutomationAppAccess: gitHubAutomationApp.githubAppRole.roleArn,
+      oscarAccess: Project.OSCAR_ACCESS_ROLE,
+      linuxFoundationAccess: Project.LINUX_FOUNDATION_ACCESS_ROLE,
       githubEventsBucket: openSearchEventsS3Bucket.bucket,
     });
 

@@ -11,6 +11,8 @@ enum Project {
     AWS_ACCOUNT = '',
     JENKINS_MASTER_ROLE = '',
     JENKINS_AGENT_ROLE = '',
+    OSCAR_ACCESS_ROLE = '',
+    LINUX_FOUNDATION_ACCESS_ROLE = '',
     REGION = '',
     METRICS_HOSTED_ZONE = 'metrics.opensearch.org',
     // The METRICS_COGNITO_HOSTED_ZONE is s login endpoint for the OpenSearch Dashboards, update as required to allow OpenSearch Dashboards to login using AWS Cognito
