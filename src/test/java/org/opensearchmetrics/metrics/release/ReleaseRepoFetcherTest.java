@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -169,6 +171,94 @@ public class ReleaseRepoFetcherTest {
         // Default will always have 4 repos part of exception list
         assertEquals(5, repos.size());
         assertTrue(repos.containsKey("repoName"));
+    }
+
+    @Test
+    public void testReadUrl_manifestNotFoundReturnsEmpty() throws IOException {
+        String url = "https://example.com/missing.yml";
+        URL mockedUrl = Mockito.mock(URL.class);
+        when(mockedUrl.openStream()).thenThrow(new FileNotFoundException(url));
+        ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
+        Mockito.doReturn(mockedUrl).when(fetcher).createURL(url);
+        assertEquals("", fetcher.readUrl(url));
+    }
+
+    @Test
+    public void testReadUrl_otherIOExceptionStillThrows() throws IOException {
+        String url = "https://example.com/manifest.yml";
+        URL mockedUrl = Mockito.mock(URL.class);
+        when(mockedUrl.openStream()).thenThrow(new IOException("connection reset"));
+        ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
+        Mockito.doReturn(mockedUrl).when(fetcher).createURL(url);
+        RuntimeException e = assertThrows(RuntimeException.class, () -> fetcher.readUrl(url));
+        assertTrue(e.getCause() instanceof IOException);
+    }
+
+    private static final String VERSION = "3.10.1";
+    private static final String OS_MANIFEST_SUFFIX = "/opensearch-" + VERSION + ".yml";
+    private static final String OSD_MANIFEST_SUFFIX = "/opensearch-dashboards-" + VERSION + ".yml";
+
+    private static String manifest(String buildName, String componentName, String repoSlug) {
+        return "---\n" +
+                "schema-version: '1.1'\n" +
+                "build:\n" +
+                "  name: " + buildName + "\n" +
+                "  version: " + VERSION + "\n" +
+                "components:\n" +
+                "  - name: " + componentName + "\n" +
+                "    repository: https://github.com/opensearch-project/" + repoSlug + ".git\n" +
+                "    ref: '3.10'\n";
+    }
+
+    private static ReleaseRepoFetcher fetcherWithManifests(String osManifest, String osdManifest) {
+        ReleaseRepoFetcher fetcher = Mockito.spy(new ReleaseRepoFetcher());
+        Mockito.doReturn(osManifest).when(fetcher).readUrl(Mockito.endsWith(OS_MANIFEST_SUFFIX));
+        Mockito.doReturn(osdManifest).when(fetcher).readUrl(Mockito.endsWith(OSD_MANIFEST_SUFFIX));
+        return fetcher;
+    }
+
+    @Test
+    public void testGetReleaseRepos_openSearchOnlyRelease() {
+        ReleaseRepoFetcher fetcher = fetcherWithManifests(manifest("OpenSearch", "OpenSearch", "OpenSearch"), "");
+
+        Map<String, String> repos = fetcher.getReleaseRepos(VERSION);
+
+        Map<String, String> expected = new HashMap<>(fetcher.releaseRepoExceptionMap());
+        expected.put("OpenSearch", "OpenSearch");
+        assertEquals(expected, repos);
+    }
+
+    @Test
+    public void testGetReleaseRepos_dashboardsOnlyRelease() {
+        ReleaseRepoFetcher fetcher = fetcherWithManifests("",
+                manifest("OpenSearch Dashboards", "OpenSearch-Dashboards", "OpenSearch-Dashboards"));
+
+        Map<String, String> repos = fetcher.getReleaseRepos(VERSION);
+
+        Map<String, String> expected = new HashMap<>(fetcher.releaseRepoExceptionMap());
+        expected.put("OpenSearch-Dashboards", "OpenSearch-Dashboards");
+        assertEquals(expected, repos);
+    }
+
+    @Test
+    public void testGetReleaseRepos_openSearchAndDashboardsRelease() {
+        ReleaseRepoFetcher fetcher = fetcherWithManifests(manifest("OpenSearch", "OpenSearch", "OpenSearch"),
+                manifest("OpenSearch Dashboards", "OpenSearch-Dashboards", "OpenSearch-Dashboards"));
+
+        Map<String, String> repos = fetcher.getReleaseRepos(VERSION);
+
+        Map<String, String> expected = new HashMap<>(fetcher.releaseRepoExceptionMap());
+        expected.put("OpenSearch", "OpenSearch");
+        expected.put("OpenSearch-Dashboards", "OpenSearch-Dashboards");
+        assertEquals(expected, repos);
+    }
+
+    @Test
+    public void testGetReleaseRepos_noManifestsThrows() {
+        ReleaseRepoFetcher fetcher = fetcherWithManifests("", "");
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> fetcher.getReleaseRepos(VERSION));
+        assertTrue(e.getMessage().contains(VERSION));
     }
 
 }

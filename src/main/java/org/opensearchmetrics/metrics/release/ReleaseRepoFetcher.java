@@ -12,6 +12,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.inject.Inject;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -33,9 +34,16 @@ public class ReleaseRepoFetcher {
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-%s.yml", releaseVersion, releaseVersion),
                 String.format("https://raw.githubusercontent.com/opensearch-project/opensearch-build/main/manifests/%s/opensearch-dashboards-%s.yml", releaseVersion, releaseVersion)
         };
+        boolean manifestFound = false;
         for (String url : urls) {
             String responseBody = readUrl(url);
-            parseYaml(responseBody, repoMap);
+            if (!responseBody.isEmpty()) {
+                manifestFound = true;
+                parseYaml(responseBody, repoMap);
+            }
+        }
+        if (!manifestFound) {
+            throw new RuntimeException("No release manifests found for version " + releaseVersion);
         }
         repoMap.putAll(releaseRepoExceptionMap());
         return repoMap;
@@ -58,6 +66,9 @@ public class ReleaseRepoFetcher {
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
             }
+        } catch (FileNotFoundException e) {
+            // Manifest not published for this release (e.g. an OpenSearch-only or Dashboards-only release).
+            return "";
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
