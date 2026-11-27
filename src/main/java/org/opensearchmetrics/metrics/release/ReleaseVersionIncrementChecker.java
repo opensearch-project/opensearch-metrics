@@ -23,9 +23,12 @@ import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,26 +50,60 @@ public class ReleaseVersionIncrementChecker {
 
 
     public boolean checkOpenSearchVersion(String releaseVersion, String branch) {
-        String url = String.format("https://raw.githubusercontent.com/opensearch-project/OpenSearch/%s/buildSrc/version.properties", branch);
+        String baseUrl = String.format("https://raw.githubusercontent.com/opensearch-project/OpenSearch/%s/", branch);
+        return checkOpenSearchVersionAtUrl(releaseVersion, branch, baseUrl);
+    }
+
+    boolean checkOpenSearchVersionAtUrl(String releaseVersion, String branch, String baseUrl) {
         try {
-            return new BufferedReader(new InputStreamReader(new URL(url).openStream()))
-                    .lines()
-                    .map(String::trim)
-                    .filter(line -> line.startsWith("opensearch"))
-                    .map(line -> {
-                        Matcher matcher = Pattern.compile("^opensearch\\s*=\\s*(\\d+\\.\\d+\\.\\d+)").matcher(line);
-                        if (matcher.find()) {
-                            String extractedVersion = matcher.group(1);
-                            return extractedVersion != null && extractedVersion.equals(releaseVersion);
+            HttpURLConnection connection = (HttpURLConnection) new URL(baseUrl + "gradle/libs.versions.toml").openConnection();
+            try {
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    System.err.println("Version catalog not found on " + branch + "; checking legacy version.properties");
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(new URL(baseUrl + "buildSrc/version.properties").openStream(), StandardCharsets.UTF_8))) {
+                        Properties properties = new Properties();
+                        properties.load(reader);
+                        String version = properties.getProperty("opensearch");
+                        if (version == null) {
+                            throw new IOException("OpenSearch version missing from legacy version.properties");
                         }
-                        return false;
-                    })
-                    .findFirst()
-                    .orElse(false);
+                        Matcher matcher = Pattern.compile("^(\\d+\\.\\d+\\.\\d+)").matcher(version);
+                        if (matcher.find() == false) {
+                            throw new IOException("Invalid OpenSearch version in legacy version.properties");
+                        }
+                        return matcher.group(1).equals(releaseVersion);
+                    }
+                }
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    return readCatalogVersion(reader).equals(releaseVersion);
+                }
+            } finally {
+                connection.disconnect();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    static String readCatalogVersion(BufferedReader reader) throws IOException {
+        Pattern section = Pattern.compile("^\\s*\\[([^]]+)\\]\\s*(?:#.*)?$");
+        Pattern version = Pattern.compile("^\\s*opensearch\\s*=\\s*([\"'])(\\d+\\.\\d+\\.\\d+)\\1\\s*(?:#.*)?$");
+        boolean inVersions = false;
+        String line;
+        while ((line = reader.readLine()) != null) {
+            Matcher sectionMatcher = section.matcher(line);
+            if (sectionMatcher.matches()) {
+                inVersions = sectionMatcher.group(1).equals("versions");
+            } else if (inVersions) {
+                Matcher versionMatcher = version.matcher(line);
+                if (versionMatcher.matches()) {
+                    return versionMatcher.group(2);
+                }
+            }
+        }
+        throw new IOException("OpenSearch version missing or invalid in gradle/libs.versions.toml");
     }
 
     public boolean checkOpenSearchDashboardsVersion(String releaseVersion, String repo, String branch, ObjectMapper objectMapper) {
